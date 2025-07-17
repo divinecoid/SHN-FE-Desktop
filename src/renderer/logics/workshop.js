@@ -1,0 +1,802 @@
+// Inisialisasi Fabric.js canvas
+const canvas = new fabric.Canvas('c');
+
+// Set canvas to full size
+function resizeCanvas() {
+  const container = document.getElementById('canvas-container');
+  // Use offsetWidth/offsetHeight to ensure it fills parent
+  const containerWidth = container.offsetWidth;
+  const containerHeight = container.offsetHeight;
+  canvas.setWidth(containerWidth);
+  canvas.setHeight(containerHeight);
+  canvas.renderAll();
+}
+
+// Initial resize
+resizeCanvas();
+
+// Resize on window resize
+window.addEventListener('resize', resizeCanvas);
+
+// Variabel untuk menyimpan objek plat dasar
+let baseRect = null;
+
+// --- Pan (geser view) dengan mouse scroll wheel ---
+let isPanning = false;
+let lastPosX = 0;
+let lastPosY = 0;
+
+// Variabel untuk menyimpan daftar potongan dan labelnya
+let cuts = [];
+
+// --- Context Menu (klik kanan) untuk hapus objek ---
+let contextMenu = document.createElement('div');
+contextMenu.style.position = 'fixed';
+contextMenu.style.display = 'none';
+contextMenu.style.background = '#fff';
+contextMenu.style.border = '1px solid #ccc';
+contextMenu.style.padding = '8px 0';
+contextMenu.style.zIndex = 2000;
+contextMenu.innerHTML = '<div style="padding:6px 24px;cursor:pointer;" class="rotateObjBtn">Rotate 90°</div><div style="padding:6px 24px;cursor:pointer;" class="deleteObjBtn">Hapus</div>';
+document.body.appendChild(contextMenu);
+
+let contextTarget = null;
+
+// Fungsi untuk membuat atau update plat dasar
+function setBasePlate() {
+  // Ambil input dalam cm, konversi ke mm
+  const widthCm = parseFloat(document.getElementById('baseWidth').value);
+  const heightCm = parseFloat(document.getElementById('baseHeight').value);
+  const color = document.getElementById('baseColor').value;
+
+  // Konversi ke mm (jika ingin presisi, tapi untuk canvas, kita pakai skala pixel)
+  // const widthMm = widthCm * 10;
+  // const heightMm = heightCm * 10;
+
+  // Skala agar muat di canvas (misal: 1 cm = 5 px)
+  const scale = 5;
+  const widthPx = widthCm * scale;
+  const heightPx = heightCm * scale;
+
+  // Hapus plat dasar lama jika ada
+  if (baseRect) {
+    canvas.remove(baseRect);
+  }
+
+  // Buat plat dasar baru
+  baseRect = new fabric.Rect({
+    left: 50 + widthPx / 2,
+    top: 50 + heightPx / 2,
+    width: widthPx,
+    height: heightPx,
+    fill: color,
+    selectable: false,
+    originX: 'center',
+    originY: 'center'
+  });
+  canvas.add(baseRect);
+  canvas.sendToBack(baseRect);
+
+  // Label ukuran lebar (kanan)
+  baseRectLabelW = new fabric.Text(`${widthCm} cm`, {
+    left: 50 + widthPx + 10,
+    top: 50 + heightPx / 2,
+    fontSize: 18,
+    fill: '#333',
+    originY: 'middle',
+    selectable: false,
+    evented: false
+  });
+  // Label ukuran tinggi (atas)
+  baseRectLabelH = new fabric.Text(`${heightCm} cm`, {
+    left: 50 + widthPx / 2,
+    top: 50 - 24,
+    fontSize: 18,
+    fill: '#333',
+    originX: 'center',
+    originY: 'middle',
+    selectable: false,
+    evented: false
+  });
+
+  updateRemainingWeight();
+}
+
+document.getElementById('setBase').addEventListener('click', setBasePlate);
+
+
+canvas.on('mouse:down', function(opt) {
+  if (canvas.getObjects().length === 0) return;
+  if (opt.e.button === 1) { // 1 = mouse wheel
+    isPanning = true;
+    lastPosX = opt.e.clientX;
+    lastPosY = opt.e.clientY;
+    canvas.setCursor('grab');
+  }
+});
+
+canvas.on('mouse:move', function(opt) {
+  if (isPanning) {
+    const e = opt.e;
+    const vpt = canvas.viewportTransform;
+    vpt[4] += e.clientX - lastPosX;
+    vpt[5] += e.clientY - lastPosY;
+    canvas.requestRenderAll();
+    lastPosX = e.clientX;
+    lastPosY = e.clientY;
+  }
+});
+
+canvas.on('mouse:up', function(opt) {
+  if (isPanning) {
+    isPanning = false;
+    canvas.setCursor('default');
+  }
+});
+
+// Zoom in/out dengan mouse scroll
+canvas.on('mouse:wheel', function(opt) {
+  let delta = opt.e.deltaY;
+  let zoom = canvas.getZoom();
+  zoom *= 0.999 ** delta;
+  if (zoom > 3) zoom = 3;
+  if (zoom < 0.2) zoom = 0.2;
+
+  // Fokus zoom pada posisi kursor
+  const pointer = canvas.getPointer(opt.e);
+  canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+
+  opt.e.preventDefault();
+  opt.e.stopPropagation();
+});
+
+// --- Modal Edit Plat Dasar ---
+const editModal = document.getElementById('editModal');
+const modalBaseColor = document.getElementById('modalBaseColor');
+const rotate90Btn = document.getElementById('rotate90');
+const closeModalBtn = document.getElementById('closeModal');
+
+// Helper: set focus style
+function setBaseFocus(focused) {
+  if (baseRect) {
+    baseRect.set({
+      stroke: focused ? 'blue' : null,
+      strokeWidth: focused ? 4 : 0
+    });
+    canvas.requestRenderAll();
+  }
+}
+
+// Fokus & drag saat single click
+canvas.on('mouse:down', function(opt) {
+  if (canvas.getObjects().length === 0) return;
+  if (opt.e.button === 2) { // right click
+    opt.e.preventDefault();
+    if (opt.target) {
+      contextTarget = opt.target;
+      contextMenu.style.left = opt.e.clientX + 'px';
+      contextMenu.style.top = opt.e.clientY + 'px';
+      contextMenu.style.display = 'block';
+    } else {
+      contextMenu.style.display = 'none';
+      contextTarget = null;
+    }
+    return;
+  } else {
+    // Jika klik di luar context menu, sembunyikan
+    if (contextMenu.style.display === 'block') {
+      contextMenu.style.display = 'none';
+      contextTarget = null;
+    }
+  }
+  if (opt.target === baseRect) {
+    setBaseFocus(true);
+    baseRect.set({ selectable: true, evented: true });
+    if (canvas.getActiveObject() !== baseRect) {
+      canvas.setActiveObject(baseRect);
+    }
+    // Hide all cut labels
+    for (const cut of cuts) {
+      cut.labelW.set({ visible: false });
+      cut.labelH.set({ visible: false });
+    }
+    canvas.requestRenderAll();
+  } else if (cuts.some(cut => cut.rect === opt.target)) {
+    // If a cut is clicked, set it as active object
+    if (canvas.getActiveObject() !== opt.target) {
+      canvas.setActiveObject(opt.target);
+    }
+    // Show only the selected cut's labels, hide others
+    for (const cut of cuts) {
+      if (cut.rect === opt.target) {
+        const rect = cut.rect;
+        const widthPx = rect.width * rect.scaleX;
+        const heightPx = rect.height * rect.scaleY;
+        cut.labelW.set({
+          left: rect.left,
+          top: rect.top - heightPx/2 - 20,
+          visible: true
+        });
+        cut.labelH.set({
+          left: rect.left + widthPx/2 + 10,
+          top: rect.top,
+          visible: true
+        });
+      } else {
+        cut.labelW.set({ visible: false });
+        cut.labelH.set({ visible: false });
+      }
+    }
+    canvas.requestRenderAll();
+  } else if (!opt.target) {
+    // Only clear selection if there is an active object
+    if (canvas.getActiveObject()) {
+      canvas.discardActiveObject();
+      setBaseFocus(false);
+      // Hide all cut labels
+      for (const cut of cuts) {
+        cut.labelW.set({ visible: false });
+        cut.labelH.set({ visible: false });
+      }
+      canvas.requestRenderAll();
+    }
+  } else {
+    setBaseFocus(false);
+    // Hide all cut labels
+    for (const cut of cuts) {
+      cut.labelW.set({ visible: false });
+      cut.labelH.set({ visible: false });
+    }
+    canvas.requestRenderAll();
+  }
+});
+
+// Double click untuk edit
+canvas.on('mouse:dblclick', function(opt) {
+  if (opt.target === baseRect) {
+    modalBaseColor.value = baseRect.fill;
+    editModal.style.display = 'block';
+  }
+});
+
+// Enable drag jika fokus
+canvas.on('selection:created', function(opt) {
+  if (opt.target === baseRect) {
+    baseRect.set({ selectable: true, evented: true });
+  }
+});
+canvas.on('selection:cleared', function() {
+  setBaseFocus(false);
+});
+
+// Ganti warna plat dasar dari modal
+modalBaseColor.addEventListener('input', function() {
+  if (baseRect) {
+    baseRect.set('fill', modalBaseColor.value);
+    canvas.requestRenderAll();
+  }
+});
+
+// Rotate 90 derajat
+rotate90Btn.addEventListener('click', function() {
+  if (baseRect) {
+    let angle = baseRect.angle || 0;
+    baseRect.set('angle', angle + 90);
+    canvas.requestRenderAll();
+  }
+});
+
+// Tutup modal
+closeModalBtn.addEventListener('click', function() {
+  editModal.style.display = 'none';
+});
+
+// --- Undo (Ctrl+Z) ---
+let canvasHistory = [];
+let isRestoring = false;
+
+function saveHistory() {
+  if (!isRestoring) {
+    canvasHistory.push(JSON.stringify(canvas.toDatalessJSON()));
+    // Batasi history agar tidak membengkak
+    if (canvasHistory.length > 50) canvasHistory.shift();
+  }
+}
+
+function undo() {
+  if (canvasHistory.length > 1) {
+    isRestoring = true;
+    canvasHistory.pop(); // Hapus state sekarang
+    const prev = canvasHistory[canvasHistory.length - 1];
+    canvas.loadFromJSON(prev, () => {
+      canvas.renderAll();
+      isRestoring = false;
+    });
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault();
+    undo();
+  }
+});
+
+// Simpan history setiap ada perubahan
+canvas.on('object:added', saveHistory);
+canvas.on('object:modified', saveHistory);
+canvas.on('object:removed', saveHistory);
+
+// Simpan state awal
+canvas.on('after:render', function() {
+  if (canvasHistory.length === 0) saveHistory();
+});
+
+// --- Notifikasi popup ---
+function showNotification(msg) {
+  let notif = document.createElement('div');
+  notif.innerText = msg;
+  notif.style.position = 'fixed';
+  notif.style.left = '50%';
+  notif.style.top = '20%';
+  notif.style.transform = 'translate(-50%, 0)';
+  notif.style.background = '#fff';
+  notif.style.border = '1px solid #f00';
+  notif.style.padding = '16px 32px';
+  notif.style.zIndex = 3000;
+  notif.style.fontSize = '18px';
+  notif.style.boxShadow = '0 2px 10px #0002';
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 2000);
+}
+
+// Helper: cek overlap dua rect
+function isOverlap(r1, r2) {
+  return !(
+    r1.left + r1.width <= r2.left ||
+    r2.left + r2.width <= r1.left ||
+    r1.top + r1.height <= r2.top ||
+    r2.top + r2.height <= r1.top
+  );
+}
+
+// --- Remaining Weight Calculation ---
+function updateRemainingWeight() {
+  const baseWidth = parseFloat(document.getElementById('baseWidth').value);
+  const baseHeight = parseFloat(document.getElementById('baseHeight').value);
+  const baseWeight = parseFloat(document.getElementById('baseWeight').value);
+  const baseArea = baseWidth * baseHeight;
+  if (!baseRect || !baseArea || !baseWeight) {
+    document.getElementById('remainingWeight').innerText = '0';
+    return;
+  }
+  // Sum area of all cuts
+  let cutArea = 0;
+  for (const cut of cuts) {
+    // Each cut's width/height in px, convert to cm (scale = 5)
+    const widthCm = cut.rect.width / 5;
+    const heightCm = cut.rect.height / 5;
+    cutArea += widthCm * heightCm;
+  }
+  const remainingArea = Math.max(baseArea - cutArea, 0);
+  const remainingWeight = (baseWeight * (remainingArea / baseArea)).toFixed(2);
+  document.getElementById('remainingWeight').innerText = remainingWeight;
+}
+
+// Update remaining weight on relevant events
+['baseWidth', 'baseHeight', 'baseWeight'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateRemainingWeight);
+});
+
+// --- Save cutting report to localStorage ---
+function saveCutReport(type, cutData) {
+  const baseWidth = parseFloat(document.getElementById('baseWidth').value);
+  const baseHeight = parseFloat(document.getElementById('baseHeight').value);
+  const baseWeight = parseFloat(document.getElementById('baseWeight').value);
+  const remainingWeight = document.getElementById('remainingWeight').innerText;
+  const now = new Date();
+  const report = {
+    date: now.toISOString(),
+    baseWidth,
+    baseHeight,
+    baseWeight,
+    remainingWeight,
+    type, // 'manual' or 'auto'
+    ...cutData
+  };
+  let cutReportList = JSON.parse(localStorage.getItem('cutReportList')||'[]');
+  cutReportList.push(report);
+  localStorage.setItem('cutReportList', JSON.stringify(cutReportList));
+}
+
+// Wrap addCutAuto and addCut to save report
+const origAddCutAuto = addCutAuto;
+addCutAuto = function() {
+  const widthCm = parseFloat(document.getElementById('cutWidth').value);
+  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const color = document.getElementById('cutColor').value;
+  origAddCutAuto.apply(this, arguments);
+  saveCutReport('auto', {widthCm, heightCm, color});
+};
+
+const origAddCut = typeof addCut === 'function' ? addCut : null;
+if (origAddCut) {
+  addCut = function() {
+    const widthCm = parseFloat(document.getElementById('cutWidth').value);
+    const heightCm = parseFloat(document.getElementById('cutHeight').value);
+    const color = document.getElementById('cutColor').value;
+    origAddCut.apply(this, arguments);
+    saveCutReport('manual', {widthCm, heightCm, color});
+  };
+}
+
+// Show/hide labels on selection
+canvas.on('selection:created', function(opt) {
+  // Hide all labels first
+  for (const cut of cuts) {
+    cut.labelW.set({ visible: false });
+    cut.labelH.set({ visible: false });
+  }
+  // If a cut is selected, show its labels and position them
+  for (const cut of cuts) {
+    if (opt.target === cut.rect) {
+      const rect = cut.rect;
+      const widthPx = rect.width * rect.scaleX;
+      const heightPx = rect.height * rect.scaleY;
+      // Width label above
+      cut.labelW.set({
+        left: rect.left,
+        top: rect.top - heightPx/2 - 20,
+        visible: true
+      });
+      // Height label to the right
+      cut.labelH.set({
+        left: rect.left + widthPx/2 + 10,
+        top: rect.top,
+        visible: true
+      });
+      canvas.requestRenderAll();
+      break;
+    }
+  }
+});
+canvas.on('selection:updated', function(opt) {
+  // Same as selection:created
+  for (const cut of cuts) {
+    cut.labelW.set({ visible: false });
+    cut.labelH.set({ visible: false });
+  }
+  for (const cut of cuts) {
+    if (opt.target === cut.rect) {
+      const rect = cut.rect;
+      const widthPx = rect.width * rect.scaleX;
+      const heightPx = rect.height * rect.scaleY;
+      cut.labelW.set({
+        left: rect.left,
+        top: rect.top - heightPx/2 - 20,
+        visible: true
+      });
+      cut.labelH.set({
+        left: rect.left + widthPx/2 + 10,
+        top: rect.top,
+        visible: true
+      });
+      canvas.requestRenderAll();
+      break;
+    }
+  }
+});
+canvas.on('selection:cleared', function() {
+  // Hide all labels
+  for (const cut of cuts) {
+    cut.labelW.set({ visible: false });
+    cut.labelH.set({ visible: false });
+  }
+  setBaseFocus(false);
+  canvas.requestRenderAll();
+});
+
+// Cegah scroll browser saat mouse wheel button ditekan di canvas
+canvas.upperCanvasEl.addEventListener('mousedown', function(e) {
+  if (e.button === 1) {
+    e.preventDefault();
+  }
+});
+
+// Gunakan event contextmenu pada canvas
+canvas.upperCanvasEl.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  // Dapatkan posisi mouse relatif ke canvas
+  const pointer = canvas.getPointer(e);
+  // Cari objek di posisi mouse
+  const target = canvas.findTarget(e, false);
+  if (target && (target === baseRect || cuts.some(cut => cut.rect === target))) {
+    contextTarget = target;
+    contextMenu.style.left = e.clientX + 'px';
+    contextMenu.style.top = e.clientY + 'px';
+    contextMenu.style.display = 'block';
+  } else {
+    contextMenu.style.display = 'none';
+    contextTarget = null;
+  }
+});
+
+document.body.addEventListener('mousedown', function(e) {
+  // Jika klik pada menu rotate
+  if (e.target.classList.contains('rotateObjBtn')) {
+    if (!contextTarget) return;
+    let angle = contextTarget.angle || 0;
+    contextTarget.set('angle', angle + 90);
+    contextMenu.style.display = 'none';
+    contextTarget = null;
+    canvas.requestRenderAll();
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  }
+  // Jika klik pada menu hapus
+  if (e.target.classList.contains('deleteObjBtn')) {
+    if (!contextTarget) return;
+    if (contextTarget === baseRect) {
+      canvas.remove(baseRect);
+      baseRect = null;
+    } else {
+      for (let i = 0; i < cuts.length; i++) {
+        if (cuts[i].rect === contextTarget) {
+          canvas.remove(cuts[i].rect);
+          canvas.remove(cuts[i].labelW);
+          canvas.remove(cuts[i].labelH);
+          cuts.splice(i, 1);
+          break;
+        }
+        if (cuts[i].labelW === contextTarget || cuts[i].labelH === contextTarget) {
+          canvas.remove(cuts[i].rect);
+          canvas.remove(cuts[i].labelW);
+          canvas.remove(cuts[i].labelH);
+          cuts.splice(i, 1);
+          break;
+        }
+      }
+    }
+    contextMenu.style.display = 'none';
+    contextTarget = null;
+    canvas.requestRenderAll();
+    e.preventDefault();
+    e.stopPropagation();
+    return;
+  } else if (!contextMenu.contains(e.target)) {
+    // Klik di luar menu, sembunyikan
+    contextMenu.style.display = 'none';
+    contextTarget = null;
+  }
+});
+
+// Tambahkan event listener untuk tombol Tambah Potongan Otomatis
+const addCutAutoBtn = document.getElementById('addCutAuto');
+addCutAutoBtn.addEventListener('click', addCutAuto);
+
+// When a cut is deleted, update weight
+canvas.on('object:removed', function() {
+  updateRemainingWeight();
+});
+
+// Initial update
+updateRemainingWeight();
+
+// --- Download to PDF Feature ---
+document.getElementById('downloadPDF').addEventListener('click', async function() {
+  const { jsPDF } = window.jspdf;
+  const canvasEl = document.getElementById('c');
+  const baseWidth = document.getElementById('baseWidth').value;
+  const baseHeight = document.getElementById('baseHeight').value;
+  const baseWeight = document.getElementById('baseWeight').value;
+  const remainingWeight = document.getElementById('remainingWeight').innerText;
+
+  // Use html2canvas to capture the canvas as an image
+  const canvasImg = await html2canvas(canvasEl, {backgroundColor: null});
+  const imgData = canvasImg.toDataURL('image/png');
+
+  // Create PDF
+  const pdf = new jsPDF({ orientation: 'l', unit: 'px', format: 'a4' });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // Add title and info
+  pdf.setFont('Poppins', 'bold');
+  pdf.setFontSize(22);
+  pdf.text('Simulasi Pemotongan Plat', pageWidth/2, 40, {align: 'center'});
+  pdf.setFontSize(14);
+  pdf.setFont('Poppins', 'normal');
+  pdf.text(`Ukuran Plat Dasar: ${baseWidth} cm x ${baseHeight} cm`, 40, 80);
+  pdf.text(`Berat Awal: ${baseWeight} kg`, 40, 105);
+  pdf.text(`Sisa Berat Plat: ${remainingWeight} kg`, 40, 130);
+
+  // Add canvas image (fit to page, keep aspect ratio)
+  const imgWidth = pageWidth - 80;
+  const imgHeight = canvasEl.height * (imgWidth / canvasEl.width);
+  pdf.addImage(imgData, 'PNG', 40, 160, imgWidth, imgHeight);
+
+  pdf.save('simulasi_pemotongan_plat.pdf');
+});
+
+canvas.on('object:selected', function(opt) {
+  console.log('Selected:', opt.target);
+  // Hide all labels first
+  for (const cut of cuts) {
+    cut.labelW.set({ visible: false });
+    cut.labelH.set({ visible: false });
+  }
+  // If a cut is selected, show its labels and position them
+  for (const cut of cuts) {
+    if (opt.target === cut.rect) {
+      const rect = cut.rect;
+      const widthPx = rect.width * rect.scaleX;
+      const heightPx = rect.height * rect.scaleY;
+      // Width label above
+      cut.labelW.set({
+        left: rect.left,
+        top: rect.top - heightPx/2 - 20,
+        visible: true
+      });
+      // Height label to the right
+      cut.labelH.set({
+        left: rect.left + widthPx/2 + 10,
+        top: rect.top,
+        visible: true
+      });
+      canvas.requestRenderAll();
+      break;
+    }
+  }
+});
+
+// --- Draggable config box logic ---
+(function() {
+  const configBox = document.getElementById('configBox');
+  const dragHandle = configBox ? configBox.querySelector('.config-drag-handle') : null;
+  if (!configBox || !dragHandle) return;
+  let offsetX = 0, offsetY = 0, isDragging = false;
+  let startX, startY;
+
+  function onMouseDown(e) {
+    isDragging = true;
+    startX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+    startY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+    const rect = configBox.getBoundingClientRect();
+    offsetX = startX - rect.left;
+    offsetY = startY - rect.top;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('touchmove', onMouseMove, {passive:false});
+    document.addEventListener('touchend', onMouseUp);
+    e.preventDefault();
+  }
+  function onMouseMove(e) {
+    if (!isDragging) return;
+    let clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+    let clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+    let left = clientX - offsetX;
+    let top = clientY - offsetY;
+    // Keep within viewport
+    const minLeft = 0;
+    const minTop = 0;
+    const maxLeft = window.innerWidth - configBox.offsetWidth;
+    const maxTop = window.innerHeight - configBox.offsetHeight;
+    left = Math.max(minLeft, Math.min(left, maxLeft));
+    top = Math.max(minTop, Math.min(top, maxTop));
+    configBox.style.left = left + 'px';
+    configBox.style.top = top + 'px';
+  }
+  function onMouseUp() {
+    isDragging = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    document.removeEventListener('touchmove', onMouseMove);
+    document.removeEventListener('touchend', onMouseUp);
+  }
+  dragHandle.addEventListener('mousedown', onMouseDown);
+  dragHandle.addEventListener('touchstart', onMouseDown, {passive:false});
+})();
+
+// --- Manual Add Cut (default position) ---
+function addCut() {
+  const widthCm = parseFloat(document.getElementById('cutWidth').value);
+  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const color = document.getElementById('cutColor').value;
+  const scale = 5;
+  const widthPx = widthCm * scale;
+  const heightPx = heightCm * scale;
+  if (!baseRect) {
+    showNotification('Buat plat dasar terlebih dahulu!');
+    return;
+  }
+  // Area plat dasar
+  const baseLeft = baseRect.left - baseRect.width/2;
+  const baseTop = baseRect.top - baseRect.height/2;
+  const baseRight = baseLeft + baseRect.width;
+  const baseBottom = baseTop + baseRect.height;
+  // Ambil semua potongan yang ada di dalam plat dasar
+  let existingRects = cuts.map(cut => ({
+    left: cut.rect.left - cut.rect.width/2,
+    top: cut.rect.top - cut.rect.height/2,
+    width: cut.rect.width,
+    height: cut.rect.height
+  }));
+  // Cari posisi kosong (scan dari kiri atas)
+  let found = false;
+  let posX, posY;
+  outer: for (let y = baseTop; y <= baseBottom - heightPx; y += 5) {
+    for (let x = baseLeft; x <= baseRight - widthPx; x += 5) {
+      let newRect = { left: x, top: y, width: widthPx, height: heightPx };
+      let overlap = existingRects.some(r => isOverlap(r, newRect));
+      if (!overlap) {
+        posX = x + widthPx/2;
+        posY = y + heightPx/2;
+        found = true;
+        break outer;
+      }
+    }
+  }
+  if (!found) {
+    showNotification('Tidak ada ruang kosong yang cukup di plat dasar!');
+    return;
+  }
+  // Buat potongan baru di posisi yang ditemukan
+  const cutRect = new fabric.Rect({
+    left: posX,
+    top: posY,
+    width: widthPx,
+    height: heightPx,
+    fill: color,
+    selectable: true,
+    originX: 'center',
+    originY: 'center'
+  });
+  // Label ukuran lebar (atas)
+  const labelW = new fabric.Text(`${widthCm} cm`, {
+    left: posX,
+    top: posY - heightPx/2 - 20,
+    fontSize: 16,
+    fill: '#333',
+    originX: 'center',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  // Label ukuran tinggi (kanan)
+  const labelH = new fabric.Text(`${heightCm} cm`, {
+    left: posX + widthPx/2 + 10,
+    top: posY,
+    fontSize: 16,
+    fill: '#333',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  canvas.add(cutRect, labelW, labelH);
+  cuts.push({rect: cutRect, labelW, labelH});
+  updateRemainingWeight();
+  saveCutReport('manual', {widthCm, heightCm, color});
+}
+// Wire Add Cut button
+const addCutBtn = document.getElementById('addCut');
+addCutBtn.addEventListener('click', addCut); 
+
+window.addEventListener('DOMContentLoaded', () => {
+  const fullscreenBtn = document.getElementById('fullscreenBtn');
+  const canvasContainer = document.getElementById('canvas-container');
+  if (fullscreenBtn && canvasContainer) {
+    fullscreenBtn.addEventListener('click', () => {
+      if (!canvasContainer.classList.contains('fullscreen')) {
+        canvasContainer.classList.add('fullscreen');
+        fullscreenBtn.textContent = 'Exit Fullscreen';
+      } else {
+        canvasContainer.classList.remove('fullscreen');
+        fullscreenBtn.textContent = 'Fullscreen';
+      }
+      resizeCanvas();
+    });
+  }
+}); 
