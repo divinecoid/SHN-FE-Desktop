@@ -716,3 +716,76 @@ form button {
   margin: 0 !important;
 }
 
+/* --- Masterdata Dropdown Sidebar --- */
+.menu-masterdata {
+  position: relative;
+  width: 100%;
+}
+.menu-masterdata > .masterdata-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 24px;
+  border-radius: 6px 0 0 6px;
+  font-size: 1.08em;
+  color: #fff;
+  background: none;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  opacity: 0.92;
+  text-decoration: none;
+  position: relative;
+}
+.menu-masterdata > .masterdata-toggle .arrow {
+  font-size: 0.85em;
+  margin-left: 8px;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform 0.18s;
+}
+.menu-masterdata.open > .masterdata-toggle .arrow {
+  transform: rotate(180deg);
+}
+.menu-masterdata > .masterdata-toggle:hover,
+.menu-masterdata > .masterdata-toggle.active {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  opacity: 1;
+}
+.menu-masterdata .masterdata-submenu {
+  display: none;
+  flex-direction: column;
+  background: rgba(255,255,255,0.10);
+  border-radius: 0 0 8px 8px;
+  margin: 0 0 6px 0;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+  overflow: hidden;
+  position: static;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+.menu-masterdata .masterdata-submenu a {
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 28px 10px 36px;
+  font-size: 1em;
+  border-radius: 0;
+  background: none;
+  transition: background 0.18s, color 0.18s;
+  opacity: 0.92;
+  display: block;
+}
+.menu-masterdata .masterdata-submenu a:hover {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  opacity: 1;
+}
+.menu-masterdata.open .masterdata-submenu {
+  display: flex !important;
+}
+
