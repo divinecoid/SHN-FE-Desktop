@@ -192,14 +192,12 @@ canvas.on('mouse:down', function(opt) {
   if (opt.target === baseRect) {
     setBaseFocus(true);
     baseRect.set({ selectable: true, evented: true });
-    if (canvas.getActiveObject() !== baseRect) {
-      canvas.setActiveObject(baseRect);
-    }
     // Hide all cut labels
     for (const cut of cuts) {
       cut.labelW.set({ visible: false });
       cut.labelH.set({ visible: false });
     }
+    canvas.sendToBack(baseRect);
     canvas.requestRenderAll();
   } else if (cuts.some(cut => cut.rect === opt.target)) {
     // If a cut is clicked, set it as active object
@@ -463,6 +461,8 @@ function addCut() {
     originX: 'center',
     originY: 'center'
   });
+  cutRect.createdAt = Date.now();
+  cutRect.cutId = generateCutId();
   // Label ukuran lebar (atas)
   const labelW = new fabric.Text(`${widthCm} cm`, {
     left: posX,
@@ -571,6 +571,8 @@ function addCutHorizontal() {
     originX: 'center',
     originY: 'center'
   });
+  cutRect.createdAt = Date.now();
+  cutRect.cutId = generateCutId();
   const labelW = new fabric.Text(`${widthCm} cm`, {
     left: posX,
     top: posY - heightPx/2 - 20,
@@ -650,6 +652,8 @@ function addCutVertical() {
     originX: 'center',
     originY: 'center'
   });
+  cutRect.createdAt = Date.now();
+  cutRect.cutId = generateCutId();
   const labelW = new fabric.Text(`${widthCm} cm`, {
     left: posX,
     top: posY - heightPx/2 - 20,
@@ -902,3 +906,154 @@ function loadProgress() {
 
 document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
 document.getElementById('loadProgressBtn').addEventListener('click', loadProgress); 
+
+// --- Show Cut Layers Modal ---
+function formatDateTime(dt) {
+  const d = new Date(dt);
+  const pad = n => n.toString().padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+document.getElementById('showLayersBtn').addEventListener('click', function() {
+  const modal = document.getElementById('cutLayersModal');
+  const listDiv = document.getElementById('cutLayersList');
+  // Get all cuts in canvas order (bottom to top)
+  const objects = canvas.getObjects();
+  // Filter only cut rects (exclude baseRect)
+  const cutRects = cuts.map(cut => cut.rect);
+  let layers = objects
+    .map(obj => {
+      const cutIdx = cuts.findIndex(cut => cut.rect === obj);
+      if (cutIdx !== -1) {
+        return { idx: cutIdx, cut: cuts[cutIdx], obj };
+      }
+      return null;
+    })
+    .filter(Boolean);
+  // Reverse for descending (newest on top)
+  layers = layers.reverse();
+  // Build HTML
+  let html = '<ol style="padding-left:18px;">';
+  layers.forEach((layer, i) => {
+    const created = layer.cut.rect.createdAt ? formatDateTime(layer.cut.rect.createdAt) : '-';
+    const cutId = layer.cut.rect.cutId || '-';
+    const color = layer.cut.rect.fill || '#ccc';
+    html += `<li style="margin-bottom:10px; display:flex; align-items:center; gap:12px;">
+      <span style="display:inline-block; width:28px; height:18px; background:${color}; border:1px solid #ccc; border-radius:4px;"></span>
+      <span style="font-family:monospace; font-size:0.98em; color:#217dbb;">${cutId}</span>
+      <span style="color:#888; font-size:0.97em;">${created}</span>
+    </li>`;
+  });
+  html += '</ol>';
+  if (layers.length === 0) html = '<div style="color:#888;">Belum ada potongan.</div>';
+  listDiv.innerHTML = html;
+  modal.style.display = 'flex';
+});
+document.getElementById('closeLayersBtn').addEventListener('click', function() {
+  document.getElementById('cutLayersModal').style.display = 'none';
+});
+// Helper: generate unique cut id
+function generateCutId() {
+  return 'CUT-' + Date.now() + '-' + Math.floor(Math.random()*100000);
+}
+// Patch all cut creation points only if not already patched
+if (!window._cutLayerPatchApplied) {
+  window._cutLayerPatchApplied = true;
+  const origAddCut = addCut;
+  addCut = function() {
+    const widthCm = parseFloat(document.getElementById('cutWidth').value);
+    const heightCm = parseFloat(document.getElementById('cutHeight').value);
+    const color = document.getElementById('cutColor').value;
+    const scale = 5;
+    const widthPx = widthCm * scale;
+    const heightPx = heightCm * scale;
+    if (!baseRect) {
+      showNotification('Buat plat dasar terlebih dahulu!');
+      return;
+    }
+    // Area plat dasar
+    const baseLeft = baseRect.left - baseRect.width/2;
+    const baseTop = baseRect.top - baseRect.height/2;
+    const baseRight = baseLeft + baseRect.width;
+    const baseBottom = baseTop + baseRect.height;
+    let existingRects = cuts.map(cut => ({
+      left: cut.rect.left - cut.rect.width/2,
+      top: cut.rect.top - cut.rect.height/2,
+      width: cut.rect.width,
+      height: cut.rect.height
+    }));
+    let found = false;
+    let posX, posY;
+    outer: for (let y = baseTop; y <= baseBottom - heightPx; y += 5) {
+      for (let x = baseLeft; x <= baseRight - widthPx; x += 5) {
+        let newRect = { left: x, top: y, width: widthPx, height: heightPx };
+        let overlap = existingRects.some(r => isOverlap(r, newRect));
+        if (!overlap) {
+          posX = x + widthPx/2;
+          posY = y + heightPx/2;
+          found = true;
+          break outer;
+        }
+      }
+    }
+    if (!found) {
+      showNotification('Tidak ada ruang kosong yang cukup di plat dasar!');
+      return;
+    }
+    // Buat potongan baru di posisi yang ditemukan
+    const cutRect = new fabric.Rect({
+      left: posX,
+      top: posY,
+      width: widthPx,
+      height: heightPx,
+      fill: color,
+      selectable: true,
+      originX: 'center',
+      originY: 'center'
+    });
+    cutRect.createdAt = Date.now();
+    cutRect.cutId = generateCutId();
+    const labelW = new fabric.Text(`${widthCm} cm`, {
+      left: posX,
+      top: posY - heightPx/2 - 20,
+      fontSize: 16,
+      fill: '#333',
+      originX: 'center',
+      originY: 'middle',
+      selectable: false,
+      evented: false,
+      visible: false
+    });
+    const labelH = new fabric.Text(`${heightCm} cm`, {
+      left: posX + widthPx/2 + 10,
+      top: posY,
+      fontSize: 16,
+      fill: '#333',
+      originY: 'middle',
+      selectable: false,
+      evented: false,
+      visible: false
+    });
+    canvas.add(cutRect, labelW, labelH);
+    cuts.push({rect: cutRect, labelW, labelH});
+    updateRemainingWeight();
+    saveCutReport('manual', {widthCm, heightCm, color});
+  }
+  const origAddCutHorizontal = addCutHorizontal;
+  addCutHorizontal = function() {
+    const before = cuts.length;
+    origAddCutHorizontal();
+    if (cuts.length > before) {
+      cuts[cuts.length-1].rect.createdAt = Date.now();
+      cuts[cuts.length-1].rect.cutId = generateCutId();
+    }
+  }
+  const origAddCutVertical = addCutVertical;
+  addCutVertical = function() {
+    const before = cuts.length;
+    origAddCutVertical();
+    if (cuts.length > before) {
+      cuts[cuts.length-1].rect.createdAt = Date.now();
+      cuts[cuts.length-1].rect.cutId = generateCutId();
+    }
+  }
+} 
