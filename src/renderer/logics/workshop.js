@@ -105,32 +105,33 @@ function setBasePlate() {
 document.getElementById('setBase').addEventListener('click', setBasePlate);
 
 
-canvas.on('mouse:down', function(opt) {
-  if (canvas.getObjects().length === 0) return;
-  if (opt.e.button === 1) { // 1 = mouse wheel
+// Remove panning logic from canvas.on('mouse:down') for button 1
+// Add native event listeners for panning on the canvas background
+canvas.upperCanvasEl.addEventListener('mousedown', function(e) {
+  if (e.button === 1) { // Middle mouse button
     isPanning = true;
-    lastPosX = opt.e.clientX;
-    lastPosY = opt.e.clientY;
+    lastPosX = e.clientX;
+    lastPosY = e.clientY;
     canvas.setCursor('grab');
+    e.preventDefault();
   }
 });
-
-canvas.on('mouse:move', function(opt) {
+canvas.upperCanvasEl.addEventListener('mousemove', function(e) {
   if (isPanning) {
-    const e = opt.e;
     const vpt = canvas.viewportTransform;
     vpt[4] += e.clientX - lastPosX;
     vpt[5] += e.clientY - lastPosY;
     canvas.requestRenderAll();
     lastPosX = e.clientX;
     lastPosY = e.clientY;
+    e.preventDefault();
   }
 });
-
-canvas.on('mouse:up', function(opt) {
-  if (isPanning) {
+canvas.upperCanvasEl.addEventListener('mouseup', function(e) {
+  if (isPanning && e.button === 1) {
     isPanning = false;
     canvas.setCursor('default');
+    e.preventDefault();
   }
 });
 
