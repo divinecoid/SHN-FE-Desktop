@@ -195,15 +195,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function showCustomConfirm(msg, callback) {
+    const dialog = document.getElementById('customConfirm');
+    document.getElementById('customConfirmMsg').textContent = msg;
+    dialog.style.display = 'flex';
+    document.getElementById('customConfirmYes').onclick = () => {
+      dialog.style.display = 'none';
+      callback(true);
+    };
+    document.getElementById('customConfirmNo').onclick = () => {
+      dialog.style.display = 'none';
+      callback(false);
+    };
+  }
+
   // Logout logic
   var logoutLink = Array.from(document.querySelectorAll('a')).find(a => a.textContent.trim().toLowerCase() === 'logout');
   if (logoutLink) {
     logoutLink.addEventListener('click', function(e) {
       e.preventDefault();
-      if (confirm('Yakin ingin logout?')) {
-        localStorage.removeItem('isLoggedIn');
-        window.location.href = 'login.html';
-      }
+      showCustomConfirm('Yakin ingin logout?', function(result) {
+        if (result) {
+          localStorage.removeItem('isLoggedIn');
+          window.location.href = 'login.html';
+        }
+      });
     });
   }
 }); 
