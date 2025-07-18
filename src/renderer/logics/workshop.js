@@ -519,6 +519,167 @@ if (origAddCut) {
   };
 }
 
+function addCutHorizontal() {
+  const widthCm = parseFloat(document.getElementById('cutWidth').value);
+  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const color = document.getElementById('cutColor').value;
+  const scale = 5;
+  const widthPx = widthCm * scale;
+  const heightPx = heightCm * scale;
+  if (!baseRect) {
+    showNotification('Buat plat dasar terlebih dahulu!');
+    return;
+  }
+  // Area plat dasar
+  const baseLeft = baseRect.left - baseRect.width/2;
+  const baseTop = baseRect.top - baseRect.height/2;
+  const baseRight = baseLeft + baseRect.width;
+  const baseBottom = baseTop + baseRect.height;
+  let existingRects = cuts.map(cut => ({
+    left: cut.rect.left - cut.rect.width/2,
+    top: cut.rect.top - cut.rect.height/2,
+    width: cut.rect.width,
+    height: cut.rect.height
+  }));
+  // Scan horizontal: kiri ke kanan, lalu turun baris
+  let found = false;
+  let posX, posY;
+  outer: for (let y = baseTop; y <= baseBottom - heightPx; y += 5) {
+    for (let x = baseLeft; x <= baseRight - widthPx; x += 5) {
+      let newRect = { left: x, top: y, width: widthPx, height: heightPx };
+      let overlap = existingRects.some(r => isOverlap(r, newRect));
+      if (!overlap) {
+        posX = x + widthPx/2;
+        posY = y + heightPx/2;
+        found = true;
+        break outer;
+      }
+    }
+  }
+  if (!found) {
+    showNotification('Tidak ada ruang kosong yang cukup di plat dasar!');
+    return;
+  }
+  // Buat potongan baru di posisi yang ditemukan
+  const cutRect = new fabric.Rect({
+    left: posX,
+    top: posY,
+    width: widthPx,
+    height: heightPx,
+    fill: color,
+    selectable: true,
+    originX: 'center',
+    originY: 'center'
+  });
+  const labelW = new fabric.Text(`${widthCm} cm`, {
+    left: posX,
+    top: posY - heightPx/2 - 20,
+    fontSize: 16,
+    fill: '#333',
+    originX: 'center',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  const labelH = new fabric.Text(`${heightCm} cm`, {
+    left: posX + widthPx/2 + 10,
+    top: posY,
+    fontSize: 16,
+    fill: '#333',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  canvas.add(cutRect, labelW, labelH);
+  cuts.push({rect: cutRect, labelW, labelH});
+  updateRemainingWeight();
+  saveCutReport('manual', {widthCm, heightCm, color});
+}
+
+function addCutVertical() {
+  const widthCm = parseFloat(document.getElementById('cutWidth').value);
+  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const color = document.getElementById('cutColor').value;
+  const scale = 5;
+  const widthPx = widthCm * scale;
+  const heightPx = heightCm * scale;
+  if (!baseRect) {
+    showNotification('Buat plat dasar terlebih dahulu!');
+    return;
+  }
+  // Area plat dasar
+  const baseLeft = baseRect.left - baseRect.width/2;
+  const baseTop = baseRect.top - baseRect.height/2;
+  const baseRight = baseLeft + baseRect.width;
+  const baseBottom = baseTop + baseRect.height;
+  let existingRects = cuts.map(cut => ({
+    left: cut.rect.left - cut.rect.width/2,
+    top: cut.rect.top - cut.rect.height/2,
+    width: cut.rect.width,
+    height: cut.rect.height
+  }));
+  // Scan vertical: atas ke bawah, lalu geser kolom
+  let found = false;
+  let posX, posY;
+  outer: for (let x = baseLeft; x <= baseRight - widthPx; x += 5) {
+    for (let y = baseTop; y <= baseBottom - heightPx; y += 5) {
+      let newRect = { left: x, top: y, width: widthPx, height: heightPx };
+      let overlap = existingRects.some(r => isOverlap(r, newRect));
+      if (!overlap) {
+        posX = x + widthPx/2;
+        posY = y + heightPx/2;
+        found = true;
+        break outer;
+      }
+    }
+  }
+  if (!found) {
+    showNotification('Tidak ada ruang kosong yang cukup di plat dasar!');
+    return;
+  }
+  // Buat potongan baru di posisi yang ditemukan
+  const cutRect = new fabric.Rect({
+    left: posX,
+    top: posY,
+    width: widthPx,
+    height: heightPx,
+    fill: color,
+    selectable: true,
+    originX: 'center',
+    originY: 'center'
+  });
+  const labelW = new fabric.Text(`${widthCm} cm`, {
+    left: posX,
+    top: posY - heightPx/2 - 20,
+    fontSize: 16,
+    fill: '#333',
+    originX: 'center',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  const labelH = new fabric.Text(`${heightCm} cm`, {
+    left: posX + widthPx/2 + 10,
+    top: posY,
+    fontSize: 16,
+    fill: '#333',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  canvas.add(cutRect, labelW, labelH);
+  cuts.push({rect: cutRect, labelW, labelH});
+  updateRemainingWeight();
+  saveCutReport('manual', {widthCm, heightCm, color});
+}
+
+document.getElementById('addCutHorizontalBtn').addEventListener('click', addCutHorizontal);
+document.getElementById('addCutVerticalBtn').addEventListener('click', addCutVertical);
+
 // Show/hide labels on selection
 canvas.on('selection:created', function(opt) {
   // Hide all labels first
@@ -719,3 +880,25 @@ updateRemainingWeight();
   dragHandle.addEventListener('mousedown', onMouseDown);
   dragHandle.addEventListener('touchstart', onMouseDown, {passive:false});
 })(); 
+
+// --- Save/Load Progress Pemotongan Plat ---
+function saveProgress() {
+  const json = canvas.toDatalessJSON();
+  localStorage.setItem('workshopProgress', JSON.stringify(json));
+  showNotification('Progress pemotongan disimpan!');
+}
+
+function loadProgress() {
+  const json = localStorage.getItem('workshopProgress');
+  if (!json) {
+    showNotification('Tidak ada progress tersimpan!');
+    return;
+  }
+  canvas.loadFromJSON(JSON.parse(json), () => {
+    canvas.renderAll();
+    showNotification('Progress pemotongan dimuat!');
+  });
+}
+
+document.getElementById('saveProgressBtn').addEventListener('click', saveProgress);
+document.getElementById('loadProgressBtn').addEventListener('click', loadProgress); 
