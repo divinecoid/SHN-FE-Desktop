@@ -194,4 +194,16 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Logout logic
+  var logoutLink = Array.from(document.querySelectorAll('a')).find(a => a.textContent.trim().toLowerCase() === 'logout');
+  if (logoutLink) {
+    logoutLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (confirm('Yakin ingin logout?')) {
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'login.html';
+      }
+    });
+  }
 }); 

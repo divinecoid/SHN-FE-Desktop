@@ -9,7 +9,7 @@ function createWindow () {
   })
   win.maximize();
 
-  win.loadFile('src/renderer/pages/index.html')
+  win.loadFile('src/renderer/pages/login.html')
 
   // Disable zoom in/out and set zoom to 100%
   win.webContents.on('did-finish-load', () => {
