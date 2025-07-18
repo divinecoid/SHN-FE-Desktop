@@ -409,6 +409,95 @@ function saveCutReport(type, cutData) {
   localStorage.setItem('cutReportList', JSON.stringify(cutReportList));
 }
 
+// --- Manual Add Cut (default position) ---
+function addCut() {
+  const widthCm = parseFloat(document.getElementById('cutWidth').value);
+  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const color = document.getElementById('cutColor').value;
+  const scale = 5;
+  const widthPx = widthCm * scale;
+  const heightPx = heightCm * scale;
+  if (!baseRect) {
+    showNotification('Buat plat dasar terlebih dahulu!');
+    return;
+  }
+  // Area plat dasar
+  const baseLeft = baseRect.left - baseRect.width/2;
+  const baseTop = baseRect.top - baseRect.height/2;
+  const baseRight = baseLeft + baseRect.width;
+  const baseBottom = baseTop + baseRect.height;
+  // Ambil semua potongan yang ada di dalam plat dasar
+  let existingRects = cuts.map(cut => ({
+    left: cut.rect.left - cut.rect.width/2,
+    top: cut.rect.top - cut.rect.height/2,
+    width: cut.rect.width,
+    height: cut.rect.height
+  }));
+  // Cari posisi kosong (scan dari kiri atas)
+  let found = false;
+  let posX, posY;
+  outer: for (let y = baseTop; y <= baseBottom - heightPx; y += 5) {
+    for (let x = baseLeft; x <= baseRight - widthPx; x += 5) {
+      let newRect = { left: x, top: y, width: widthPx, height: heightPx };
+      let overlap = existingRects.some(r => isOverlap(r, newRect));
+      if (!overlap) {
+        posX = x + widthPx/2;
+        posY = y + heightPx/2;
+        found = true;
+        break outer;
+      }
+    }
+  }
+  if (!found) {
+    showNotification('Tidak ada ruang kosong yang cukup di plat dasar!');
+    return;
+  }
+  // Buat potongan baru di posisi yang ditemukan
+  const cutRect = new fabric.Rect({
+    left: posX,
+    top: posY,
+    width: widthPx,
+    height: heightPx,
+    fill: color,
+    selectable: true,
+    originX: 'center',
+    originY: 'center'
+  });
+  // Label ukuran lebar (atas)
+  const labelW = new fabric.Text(`${widthCm} cm`, {
+    left: posX,
+    top: posY - heightPx/2 - 20,
+    fontSize: 16,
+    fill: '#333',
+    originX: 'center',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  // Label ukuran tinggi (kanan)
+  const labelH = new fabric.Text(`${heightCm} cm`, {
+    left: posX + widthPx/2 + 10,
+    top: posY,
+    fontSize: 16,
+    fill: '#333',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  canvas.add(cutRect, labelW, labelH);
+  cuts.push({rect: cutRect, labelW, labelH});
+  updateRemainingWeight();
+  saveCutReport('manual', {widthCm, heightCm, color});
+}
+
+function addCutAuto() {
+  // Implementasi logika auto cut sesuai kebutuhan
+  // Placeholder: panggil addCut() sebagai contoh
+  addCut();
+}
+
 // Wrap addCutAuto and addCut to save report
 const origAddCutAuto = addCutAuto;
 addCutAuto = function() {
@@ -581,74 +670,7 @@ canvas.on('object:removed', function() {
 });
 
 // Initial update
-updateRemainingWeight();
-
-// --- Download to PDF Feature ---
-document.getElementById('downloadPDF').addEventListener('click', async function() {
-  const { jsPDF } = window.jspdf;
-  const canvasEl = document.getElementById('c');
-  const baseWidth = document.getElementById('baseWidth').value;
-  const baseHeight = document.getElementById('baseHeight').value;
-  const baseWeight = document.getElementById('baseWeight').value;
-  const remainingWeight = document.getElementById('remainingWeight').innerText;
-
-  // Use html2canvas to capture the canvas as an image
-  const canvasImg = await html2canvas(canvasEl, {backgroundColor: null});
-  const imgData = canvasImg.toDataURL('image/png');
-
-  // Create PDF
-  const pdf = new jsPDF({ orientation: 'l', unit: 'px', format: 'a4' });
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-
-  // Add title and info
-  pdf.setFont('Poppins', 'bold');
-  pdf.setFontSize(22);
-  pdf.text('Simulasi Pemotongan Plat', pageWidth/2, 40, {align: 'center'});
-  pdf.setFontSize(14);
-  pdf.setFont('Poppins', 'normal');
-  pdf.text(`Ukuran Plat Dasar: ${baseWidth} cm x ${baseHeight} cm`, 40, 80);
-  pdf.text(`Berat Awal: ${baseWeight} kg`, 40, 105);
-  pdf.text(`Sisa Berat Plat: ${remainingWeight} kg`, 40, 130);
-
-  // Add canvas image (fit to page, keep aspect ratio)
-  const imgWidth = pageWidth - 80;
-  const imgHeight = canvasEl.height * (imgWidth / canvasEl.width);
-  pdf.addImage(imgData, 'PNG', 40, 160, imgWidth, imgHeight);
-
-  pdf.save('simulasi_pemotongan_plat.pdf');
-});
-
-canvas.on('object:selected', function(opt) {
-  console.log('Selected:', opt.target);
-  // Hide all labels first
-  for (const cut of cuts) {
-    cut.labelW.set({ visible: false });
-    cut.labelH.set({ visible: false });
-  }
-  // If a cut is selected, show its labels and position them
-  for (const cut of cuts) {
-    if (opt.target === cut.rect) {
-      const rect = cut.rect;
-      const widthPx = rect.width * rect.scaleX;
-      const heightPx = rect.height * rect.scaleY;
-      // Width label above
-      cut.labelW.set({
-        left: rect.left,
-        top: rect.top - heightPx/2 - 20,
-        visible: true
-      });
-      // Height label to the right
-      cut.labelH.set({
-        left: rect.left + widthPx/2 + 10,
-        top: rect.top,
-        visible: true
-      });
-      canvas.requestRenderAll();
-      break;
-    }
-  }
-});
+updateRemainingWeight(); 
 
 // --- Draggable config box logic ---
 (function() {
@@ -696,107 +718,4 @@ canvas.on('object:selected', function(opt) {
   }
   dragHandle.addEventListener('mousedown', onMouseDown);
   dragHandle.addEventListener('touchstart', onMouseDown, {passive:false});
-})();
-
-// --- Manual Add Cut (default position) ---
-function addCut() {
-  const widthCm = parseFloat(document.getElementById('cutWidth').value);
-  const heightCm = parseFloat(document.getElementById('cutHeight').value);
-  const color = document.getElementById('cutColor').value;
-  const scale = 5;
-  const widthPx = widthCm * scale;
-  const heightPx = heightCm * scale;
-  if (!baseRect) {
-    showNotification('Buat plat dasar terlebih dahulu!');
-    return;
-  }
-  // Area plat dasar
-  const baseLeft = baseRect.left - baseRect.width/2;
-  const baseTop = baseRect.top - baseRect.height/2;
-  const baseRight = baseLeft + baseRect.width;
-  const baseBottom = baseTop + baseRect.height;
-  // Ambil semua potongan yang ada di dalam plat dasar
-  let existingRects = cuts.map(cut => ({
-    left: cut.rect.left - cut.rect.width/2,
-    top: cut.rect.top - cut.rect.height/2,
-    width: cut.rect.width,
-    height: cut.rect.height
-  }));
-  // Cari posisi kosong (scan dari kiri atas)
-  let found = false;
-  let posX, posY;
-  outer: for (let y = baseTop; y <= baseBottom - heightPx; y += 5) {
-    for (let x = baseLeft; x <= baseRight - widthPx; x += 5) {
-      let newRect = { left: x, top: y, width: widthPx, height: heightPx };
-      let overlap = existingRects.some(r => isOverlap(r, newRect));
-      if (!overlap) {
-        posX = x + widthPx/2;
-        posY = y + heightPx/2;
-        found = true;
-        break outer;
-      }
-    }
-  }
-  if (!found) {
-    showNotification('Tidak ada ruang kosong yang cukup di plat dasar!');
-    return;
-  }
-  // Buat potongan baru di posisi yang ditemukan
-  const cutRect = new fabric.Rect({
-    left: posX,
-    top: posY,
-    width: widthPx,
-    height: heightPx,
-    fill: color,
-    selectable: true,
-    originX: 'center',
-    originY: 'center'
-  });
-  // Label ukuran lebar (atas)
-  const labelW = new fabric.Text(`${widthCm} cm`, {
-    left: posX,
-    top: posY - heightPx/2 - 20,
-    fontSize: 16,
-    fill: '#333',
-    originX: 'center',
-    originY: 'middle',
-    selectable: false,
-    evented: false,
-    visible: false
-  });
-  // Label ukuran tinggi (kanan)
-  const labelH = new fabric.Text(`${heightCm} cm`, {
-    left: posX + widthPx/2 + 10,
-    top: posY,
-    fontSize: 16,
-    fill: '#333',
-    originY: 'middle',
-    selectable: false,
-    evented: false,
-    visible: false
-  });
-  canvas.add(cutRect, labelW, labelH);
-  cuts.push({rect: cutRect, labelW, labelH});
-  updateRemainingWeight();
-  saveCutReport('manual', {widthCm, heightCm, color});
-}
-// Wire Add Cut button
-const addCutBtn = document.getElementById('addCut');
-addCutBtn.addEventListener('click', addCut); 
-
-window.addEventListener('DOMContentLoaded', () => {
-  const fullscreenBtn = document.getElementById('fullscreenBtn');
-  const canvasContainer = document.getElementById('canvas-container');
-  if (fullscreenBtn && canvasContainer) {
-    fullscreenBtn.addEventListener('click', () => {
-      if (!canvasContainer.classList.contains('fullscreen')) {
-        canvasContainer.classList.add('fullscreen');
-        fullscreenBtn.textContent = 'Exit Fullscreen';
-      } else {
-        canvasContainer.classList.remove('fullscreen');
-        fullscreenBtn.textContent = 'Fullscreen';
-      }
-      resizeCanvas();
-    });
-  }
-}); 
+})(); 
