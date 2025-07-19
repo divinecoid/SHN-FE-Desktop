@@ -1058,3 +1058,46 @@ if (!window._cutLayerPatchApplied) {
     }
   }
 } 
+
+canvas.on('object:modified', function(opt) {
+  // Only for cut rects
+  const cutIdx = cuts.findIndex(cut => cut.rect === opt.target);
+  if (cutIdx === -1) return;
+  const cut = cuts[cutIdx];
+  const widthPx = cut.rect.width * (cut.rect.scaleX || 1);
+  const heightPx = cut.rect.height * (cut.rect.scaleY || 1);
+  if (!baseRect) return;
+  // Area plat dasar
+  const baseLeft = baseRect.left - baseRect.width/2;
+  const baseTop = baseRect.top - baseRect.height/2;
+  const baseRight = baseLeft + baseRect.width;
+  const baseBottom = baseTop + baseRect.height;
+  // Exclude this cut from overlap check
+  let existingRects = cuts.filter((c, i) => i !== cutIdx).map(cut => ({
+    left: cut.rect.left - cut.rect.width/2,
+    top: cut.rect.top - cut.rect.height/2,
+    width: cut.rect.width,
+    height: cut.rect.height
+  }));
+  // Scan dari atas ke bawah, lalu geser ke kanan
+  let found = false;
+  let posX, posY;
+  outer: for (let x = baseLeft; x <= baseRight - widthPx; x += 5) {
+    for (let y = baseTop; y <= baseBottom - heightPx; y += 5) {
+      let newRect = { left: x, top: y, width: widthPx, height: heightPx };
+      let overlap = existingRects.some(r => isOverlap(r, newRect));
+      if (!overlap) {
+        posX = x + widthPx/2;
+        posY = y + heightPx/2;
+        found = true;
+        break outer;
+      }
+    }
+  }
+  if (found) {
+    cut.rect.left = posX;
+    cut.rect.top = posY;
+    cut.rect.setCoords();
+    canvas.requestRenderAll();
+  }
+}); 
