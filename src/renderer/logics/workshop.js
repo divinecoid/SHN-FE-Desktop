@@ -23,8 +23,12 @@ let baseRect = null;
 
 // --- Pan (geser view) dengan mouse scroll wheel ---
 let isPanning = false;
-let lastPosX = 0;
-let lastPosY = 0;
+let lastPanPoint = { x: 0, y: 0 };
+let minimapVisible = false;
+let minimapCanvas = null;
+let minimapCtx = null;
+let minimapContainer = null;
+let viewportIndicator = null;
 
 // Variabel untuk menyimpan daftar potongan dan labelnya
 let cuts = [];
@@ -76,6 +80,7 @@ function setBasePlate() {
   });
   canvas.add(baseRect);
   canvas.sendToBack(baseRect);
+  if (minimapVisible) updateMinimap();
 
   // Label ukuran lebar (kanan)
   baseRectLabelW = new fabric.Text(`${widthCm} cm`, {
@@ -105,32 +110,38 @@ function setBasePlate() {
 document.getElementById('setBase').addEventListener('click', setBasePlate);
 
 
-// Remove panning logic from canvas.on('mouse:down') for button 1
-// Add native event listeners for panning on the canvas background
+// Add native event listeners for panning on the canvas background with minimap
 canvas.upperCanvasEl.addEventListener('mousedown', function(e) {
   if (e.button === 1) { // Middle mouse button
     isPanning = true;
-    lastPosX = e.clientX;
-    lastPosY = e.clientY;
-    canvas.setCursor('grab');
+    lastPanPoint = { x: e.clientX, y: e.clientY };
+    canvas.selection = false;
+    canvas.defaultCursor = 'grabbing';
+    showMinimap();
     e.preventDefault();
   }
 });
 canvas.upperCanvasEl.addEventListener('mousemove', function(e) {
   if (isPanning) {
+    const deltaX = e.clientX - lastPanPoint.x;
+    const deltaY = e.clientY - lastPanPoint.y;
+    
     const vpt = canvas.viewportTransform;
-    vpt[4] += e.clientX - lastPosX;
-    vpt[5] += e.clientY - lastPosY;
-    canvas.requestRenderAll();
-    lastPosX = e.clientX;
-    lastPosY = e.clientY;
+    vpt[4] += deltaX;
+    vpt[5] += deltaY;
+    canvas.setViewportTransform(vpt);
+    
+    lastPanPoint = { x: e.clientX, y: e.clientY };
+    updateMinimap();
     e.preventDefault();
   }
 });
 canvas.upperCanvasEl.addEventListener('mouseup', function(e) {
-  if (isPanning && e.button === 1) {
+  if (e.button === 1) {
     isPanning = false;
-    canvas.setCursor('default');
+    canvas.selection = true;
+    canvas.defaultCursor = 'default';
+    hideMinimap();
     e.preventDefault();
   }
 });
@@ -490,6 +501,7 @@ function addCut() {
   canvas.add(cutRect, labelW, labelH);
   cuts.push({rect: cutRect, labelW, labelH});
   updateRemainingWeight();
+  if (minimapVisible) updateMinimap();
   saveCutReport('manual', {widthCm, heightCm, color});
 }
 
@@ -598,6 +610,7 @@ function addCutHorizontal() {
   canvas.add(cutRect, labelW, labelH);
   cuts.push({rect: cutRect, labelW, labelH});
   updateRemainingWeight();
+  if (minimapVisible) updateMinimap();
   saveCutReport('manual', {widthCm, heightCm, color});
 }
 
@@ -679,6 +692,7 @@ function addCutVertical() {
   canvas.add(cutRect, labelW, labelH);
   cuts.push({rect: cutRect, labelW, labelH});
   updateRemainingWeight();
+  if (minimapVisible) updateMinimap();
   saveCutReport('manual', {widthCm, heightCm, color});
 }
 
@@ -1099,5 +1113,161 @@ canvas.on('object:modified', function(opt) {
     cut.rect.top = posY;
     cut.rect.setCoords();
     canvas.requestRenderAll();
+    if (minimapVisible) updateMinimap();
   }
 }); 
+
+function initMinimap() {
+  // Create minimap container
+  minimapContainer = document.createElement('div');
+  minimapContainer.id = 'minimap-container';
+  minimapContainer.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 200px;
+    height: 150px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+  `;
+
+  // Create minimap canvas
+  minimapCanvas = document.createElement('canvas');
+  minimapCanvas.width = 200;
+  minimapCanvas.height = 150;
+  minimapCanvas.style.cssText = `
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+  `;
+  minimapCtx = minimapCanvas.getContext('2d');
+
+  // Create viewport indicator
+  viewportIndicator = document.createElement('div');
+  viewportIndicator.style.cssText = `
+    position: absolute;
+    border: 2px solid #ff4444;
+    background: rgba(255, 68, 68, 0.2);
+    pointer-events: none;
+    z-index: 1001;
+  `;
+
+  minimapContainer.appendChild(minimapCanvas);
+  minimapContainer.appendChild(viewportIndicator);
+  document.body.appendChild(minimapContainer);
+
+  // Add click handler for minimap navigation
+  minimapCanvas.addEventListener('click', function(e) {
+    const rect = minimapCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Convert minimap coordinates to canvas coordinates
+    const canvasX = (x / minimapCanvas.width) * canvas.width - canvas.width / 2;
+    const canvasY = (y / minimapCanvas.height) * canvas.height - canvas.height / 2;
+    
+    // Center the view on the clicked position
+    canvas.setViewportTransform([1, 0, 0, 1, -canvasX, -canvasY]);
+    canvas.requestRenderAll();
+    updateMinimap();
+  });
+}
+
+function showMinimap() {
+  if (!minimapContainer) {
+    initMinimap();
+  }
+  minimapContainer.style.display = 'block';
+  minimapVisible = true;
+  updateMinimap();
+}
+
+function hideMinimap() {
+  if (minimapContainer) {
+    minimapContainer.style.display = 'none';
+    minimapVisible = false;
+  }
+}
+
+function updateMinimap() {
+  if (!minimapVisible || !minimapCtx) return;
+
+  const ctx = minimapCtx;
+  const width = minimapCanvas.width;
+  const height = minimapCanvas.height;
+
+  // Clear minimap
+  ctx.clearRect(0, 0, width, height);
+
+  // Draw background
+  ctx.fillStyle = '#f0f0f0';
+  ctx.fillRect(0, 0, width, height);
+
+  // Calculate scale factors
+  const scaleX = width / canvas.width;
+  const scaleY = height / canvas.height;
+  const scale = Math.min(scaleX, scaleY);
+
+  // Calculate offset to center the minimap
+  const offsetX = (width - canvas.width * scale) / 2;
+  const offsetY = (height - canvas.height * scale) / 2;
+
+  // Draw base plate
+  if (baseRect) {
+    ctx.fillStyle = '#ddd';
+    ctx.fillRect(
+      offsetX + (baseRect.left - baseRect.width/2) * scale,
+      offsetY + (baseRect.top - baseRect.height/2) * scale,
+      baseRect.width * scale,
+      baseRect.height * scale
+    );
+    ctx.strokeStyle = '#999';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      offsetX + (baseRect.left - baseRect.width/2) * scale,
+      offsetY + (baseRect.top - baseRect.height/2) * scale,
+      baseRect.width * scale,
+      baseRect.height * scale
+    );
+  }
+
+  // Draw cuts
+  cuts.forEach(cut => {
+    const cutWidth = cut.rect.width * (cut.rect.scaleX || 1);
+    const cutHeight = cut.rect.height * (cut.rect.scaleY || 1);
+    
+    ctx.fillStyle = cut.color || '#ff6b6b';
+    ctx.fillRect(
+      offsetX + (cut.rect.left - cutWidth/2) * scale,
+      offsetY + (cut.rect.top - cutHeight/2) * scale,
+      cutWidth * scale,
+      cutHeight * scale
+    );
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      offsetX + (cut.rect.left - cutWidth/2) * scale,
+      offsetY + (cut.rect.top - cutHeight/2) * scale,
+      cutWidth * scale,
+      cutHeight * scale
+    );
+  });
+
+  // Draw viewport indicator
+  const vpt = canvas.viewportTransform;
+  const viewportLeft = -vpt[4] / vpt[0];
+  const viewportTop = -vpt[5] / vpt[3];
+  const viewportWidth = canvas.width / vpt[0];
+  const viewportHeight = canvas.height / vpt[3];
+
+  viewportIndicator.style.left = (offsetX + viewportLeft * scale) + 'px';
+  viewportIndicator.style.top = (offsetY + viewportTop * scale) + 'px';
+  viewportIndicator.style.width = (viewportWidth * scale) + 'px';
+  viewportIndicator.style.height = (viewportHeight * scale) + 'px';
+}
+
