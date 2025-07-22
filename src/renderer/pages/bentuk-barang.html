@@ -7,11 +7,7 @@
   <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
   <style>
     .content {
-      margin-left: 220px;
-      padding: 36px 32px 32px 32px;
-      width: 100%;
-      max-width: calc(100vw - 220px);
-      overflow-x: hidden;
+      padding: 20px;
       box-sizing: border-box;
     }
     .bentuk-main-wrapper {
@@ -41,42 +37,19 @@
   </style>
 </head>
 <body>
-  <div class="sidebar">
-    <div class="sidebar-header" style="display:flex; align-items:center; gap:8px;">
-      <span class="sidebar-icon" aria-label="icon"><img src="../assets/logo.png" alt="Logo" style="width:40px; height:auto; aspect-ratio:1/1; object-fit:contain; border-radius:6px; margin-right:0;"></span>
-      <span class="sidebar-title" style="display:flex; flex-direction:column; justify-content:center; align-items:flex-start; font-size:0.85em; line-height:1.05; height:40px; margin:0;">
-        <span style="font-weight:700; letter-spacing:1px;">SURYA</span>
-        <span style="font-weight:700; letter-spacing:1px;">LOGAM</span>
-        <span style="font-weight:700; letter-spacing:1px;">JAYA</span>
-      </span>
-      <button id="sidebarToggle" class="sidebar-toggle">☰</button>
-    </div>
-    <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="fui.html" id="fuiMenu">FUI</a>
-      <a href="index.html">Input PO</a>
-      <a href="arap.html">AR / AP</a>
-      <a href="mutasi.html">Mutasi</a>
-      <a href="workshop.html">Workshop</a>
-      <a href="report.html">Report</a>
-      <div class="menu-masterdata">
-        <a href="#" class="masterdata-toggle">Masterdata <span class="arrow">▼</span></a>
-        <div class="masterdata-submenu" style="display:none; flex-direction:column; margin-left:16px;">
-          <a href="jenis-barang.html" class="submenu-item">Jenis Barang</a>
-          <a href="bentuk-barang.html" class="submenu-item active">Bentuk Barang</a>
-          <a href="#" class="submenu-item">Grade Barang</a>
-          <a href="#" class="submenu-item">Item Barang</a>
-          <a href="#" class="submenu-item">Jenis Mutasi Stock</a>
-          <a href="#" class="submenu-item">Supplier</a>
-          <a href="#" class="submenu-item">Pelanggan</a>
-          <a href="#" class="submenu-item">Gudang</a>
-          <a href="#" class="submenu-item">Pelaksana</a>
-          <a href="#" class="submenu-item">Jenis Transaksi Kas</a>
-        </div>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
       </div>
-      <a href="#" id="logoutMenu">Logout</a>
-      <a href="#" id="clearDataMenu" style="color:#ff4444;">Clear Data</a>
-    </nav>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
   </div>
   <div class="content">
     <div class="bentuk-main-wrapper">
@@ -260,27 +233,6 @@
     }
   </script>
   <script src="../logics/ui.js"></script>
-  <script>
-    // Toggle Masterdata submenu
-    document.addEventListener('DOMContentLoaded', function() {
-      var menu = document.querySelector('.menu-masterdata');
-      var toggle = document.querySelector('.masterdata-toggle');
-      var submenu = document.querySelector('.masterdata-submenu');
-      if(toggle && menu) {
-        toggle.addEventListener('click', function(e) {
-          e.preventDefault();
-          submenu.style.display = submenu.style.display === 'flex' ? 'none' : 'flex';
-        });
-      }
-      // Close submenu and redirect on submenu item click
-      submenu.addEventListener('click', function(e) {
-        if(e.target.classList.contains('submenu-item') && e.target.getAttribute('href') !== '#') {
-          submenu.style.display = 'none';
-          // Allow default navigation
-        }
-      });
-    });
-  </script>
 </body>
 <!-- Custom Confirm Dialog -->
 <div id="customConfirm" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:9999; align-items:center; justify-content:center;">

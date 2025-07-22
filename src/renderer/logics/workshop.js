@@ -1269,5 +1269,5 @@ function updateMinimap() {
   viewportIndicator.style.top = (offsetY + viewportTop * scale) + 'px';
   viewportIndicator.style.width = (viewportWidth * scale) + 'px';
   viewportIndicator.style.height = (viewportHeight * scale) + 'px';
-}
+  }
 

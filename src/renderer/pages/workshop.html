@@ -10,41 +10,19 @@
   <title>SURYA LOGAM JAYA | PT. SURYA HARSA NAGARA</title>
 </head>
 <body class="workshop-page">
-  <div class="sidebar">
-    <div class="sidebar-header" style="display:flex; align-items:center; gap:8px;">
-      <span class="sidebar-icon" aria-label="icon"><img src="../assets/logo.png" alt="Logo" style="width:40px; height:auto; aspect-ratio:1/1; object-fit:contain; border-radius:6px; margin-right:0;"></span>
-      <span class="sidebar-title" style="display:flex; flex-direction:column; justify-content:center; align-items:flex-start; font-size:0.85em; line-height:1.05; height:40px; margin:0;">
-        <span style="font-weight:700; letter-spacing:1px;">SURYA</span>
-        <span style="font-weight:700; letter-spacing:1px;">LOGAM</span>
-        <span style="font-weight:700; letter-spacing:1px;">JAYA</span>
-      </span>
-      <button id="sidebarToggle" class="sidebar-toggle">☰</button>
-    </div>
-    <nav>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="fui.html" id="fuiMenu">FUI</a>
-      <a href="index.html">Input PO</a>
-      <a href="arap.html">AR / AP</a>
-      <a href="workshop.html" class="active">Workshop</a>
-      <a href="report.html">Report</a>
-      <div class="menu-masterdata">
-        <a href="#" class="masterdata-toggle">Masterdata <span class="arrow">▼</span></a>
-        <div class="masterdata-submenu" style="display:none; flex-direction:column; margin-left:16px;">
-          <a href="jenis-barang.html" class="submenu-item">Jenis Barang</a>
-          <a href="#">Bentuk Barang</a>
-          <a href="#">Grade Barang</a>
-          <a href="#">Item Barang</a>
-          <a href="#">Jenis Mutasi Stock</a>
-          <a href="#">Supplier</a>
-          <a href="#">Pelanggan</a>
-          <a href="#">Gudang</a>
-          <a href="#">Pelaksana</a>
-          <a href="#">Jenis Transaksi Kas</a>
-        </div>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
       </div>
-      <a href="#" id="logoutMenu">Logout</a>
-      <a href="#" id="clearDataMenu" style="color:#ff4444;">Clear Data</a>
-    </nav>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
   </div>
   <div class="content">
     <div id="configBox">
@@ -127,18 +105,5 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="../logics/workshop.js"></script>
   <script src="../logics/ui.js"></script>
-  <script>
-    // Toggle Masterdata submenu
-    document.addEventListener('DOMContentLoaded', function() {
-      var menu = document.querySelector('.menu-masterdata');
-      var toggle = document.querySelector('.masterdata-toggle');
-      if(toggle && menu) {
-        toggle.addEventListener('click', function(e) {
-          e.preventDefault();
-          menu.classList.toggle('open');
-        });
-      }
-    });
-  </script>
 </body>
 </html>
