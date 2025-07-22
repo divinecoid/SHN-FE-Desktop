@@ -6,101 +6,253 @@
   <title>Login | SURYA LOGAM JAYA</title>
   <link rel="stylesheet" href="../styles/style.css">
   <style>
+    /* Hide topbar on login page */
+    .header-bar {
+      display: none !important;
+    }
+    
     body {
-      background: linear-gradient(135deg, #3498db 70%, #217dbb 100%);
+      background: #f8f9fa;
       min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    
+    .login-page-container {
+      display: flex;
+      min-height: 100vh;
+      background: #fff;
+      position: relative;
+    }
+    
+    .login-left {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0;
+      overflow: hidden;
+      z-index: 1;
     }
-    .login-container {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 32px rgba(44,62,80,0.13);
-      padding: 40px 36px 32px 36px;
-      min-width: 320px;
-      max-width: 98vw;
+    
+    .login-left::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/><circle cx="200" cy="150" r="80" fill="rgba(255,255,255,0.1)"/><circle cx="600" cy="400" r="120" fill="rgba(255,255,255,0.08)"/><path d="M 100 300 Q 200 200 300 300 T 500 300" stroke="rgba(255,255,255,0.15)" stroke-width="3" fill="none"/><path d="M 150 450 Q 250 350 350 450 T 550 450" stroke="rgba(255,255,255,0.12)" stroke-width="2" fill="none"/></svg>');
+      opacity: 0.6;
+    }
+    
+    .welding-icon {
+      position: relative;
+      z-index: 2;
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
     }
+    
+    .welding-icon svg {
+      width: 240px;
+      height: 240px;
+      fill: rgba(255, 255, 255, 0.9);
+    }
+    
+    .login-right {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 2;
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .login-container {
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+    }
+    
     .login-logo {
       width: 60px;
       height: 60px;
       border-radius: 12px;
-      margin-bottom: 18px;
+      margin: 0 auto 20px;
       object-fit: contain;
-      box-shadow: 0 2px 8px #217dbb22;
+      box-shadow: 0 4px 20px rgba(52, 152, 219, 0.2);
     }
+    
     .login-title {
-      font-size: 1.5em;
+      font-size: 1.8em;
       font-weight: 700;
-      color: #217dbb;
-      margin-bottom: 8px;
+      color: #2d3a4b;
+      margin-bottom: 6px;
       letter-spacing: 1px;
     }
+    
     .login-subtitle {
-      font-size: 1.05em;
-      color: #888;
-      margin-bottom: 24px;
+      font-size: 1em;
+      color: #6c757d;
+      margin-bottom: 30px;
+      font-weight: 500;
     }
+    
     .login-form {
-      width: 100%;
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-    .login-form input {
-      padding: 12px 14px;
-      font-size: 1.08em;
-      border: 1.5px solid #d0d7de;
-      border-radius: 8px;
+    
+    .form-group {
+      position: relative;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 1em;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
       outline: none;
-      transition: border 0.2s;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+      box-sizing: border-box;
     }
-    .login-form input:focus {
-      border: 1.5px solid #3498db;
+    
+    .form-group input:focus {
+      border-color: #3498db;
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
     }
+    
+    .form-group input::placeholder {
+      color: #adb5bd;
+      font-weight: 500;
+    }
+    
     .login-form button {
-      background: #3498db;
+      background: linear-gradient(135deg, #3498db 0%, #217dbb 100%);
       color: #fff;
       border: none;
-      border-radius: 8px;
-      padding: 16px 0 15px 0;
-      line-height: 1.2;
-      font-size: 1.15em;
+      border-radius: 10px;
+      padding: 14px 0;
+      font-size: 1.1em;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.3s ease;
       margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
     }
+    
     .login-form button:hover {
-      background: #217dbb;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
     }
+    
+    .login-form button:active {
+      transform: translateY(0);
+    }
+    
     .login-error {
       color: #e74c3c;
-      font-size: 1em;
-      margin-top: 4px;
+      font-size: 0.9em;
+      margin-top: 6px;
       text-align: center;
-      min-height: 24px;
+      min-height: 18px;
+      font-weight: 500;
+    }
+    
+    .login-footer {
+      margin-top: 20px;
+      color: #6c757d;
+      font-size: 0.85em;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .login-right {
+        position: relative;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.98);
+        min-height: 100vh;
+      }
+      
+      .welding-icon {
+        width: 200px;
+        height: 200px;
+      }
+      
+      .welding-icon svg {
+        width: 120px;
+        height: 120px;
+      }
+      
+      .login-container {
+        max-width: 280px;
+      }
+      
+      .login-title {
+        font-size: 1.6em;
+      }
+      
+      .login-subtitle {
+        font-size: 0.95em;
+        margin-bottom: 25px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <img src="../assets/logo.png" alt="Logo" class="login-logo" />
-    <div class="login-title">SURYA LOGAM JAYA</div>
-    <div class="login-subtitle">PT. SURYA HARSA NAGARA</div>
-    <form class="login-form" id="loginForm" autocomplete="off">
-      <input type="text" id="username" placeholder="Username" required autofocus />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-      <div class="login-error" id="loginError"></div>
-    </form>
+  <div class="login-page-container">
+    <div class="login-left">
+      <div class="welding-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
+          <path d="M19 15L19.5 16.5L21 17L19.5 17.5L19 19L18.5 17.5L17 17L18.5 16.5L19 15Z"/>
+          <path d="M5 15L5.5 16.5L7 17L5.5 17.5L5 19L4.5 17.5L3 17L4.5 16.5L5 15Z"/>
+          <path d="M12 18L12.5 19.5L14 20L12.5 20.5L12 22L11.5 20.5L10 20L11.5 19.5L12 18Z"/>
+        </svg>
+      </div>
+    </div>
+    <div class="login-right">
+      <div class="login-container">
+        <img src="../assets/logo.png" alt="Logo" class="login-logo" />
+        <div class="login-title">SURYA LOGAM JAYA</div>
+        <div class="login-subtitle">PT. SURYA HARSA NAGARA</div>
+        <form class="login-form" id="loginForm" autocomplete="off">
+          <div class="form-group">
+            <input type="text" id="username" placeholder="Username" required autofocus />
+          </div>
+          <div class="form-group">
+            <input type="password" id="password" placeholder="Password" required />
+          </div>
+          <button type="submit">Login</button>
+          <div class="login-error" id="loginError"></div>
+        </form>
+        <div class="login-footer">
+          Inventory Management System
+        </div>
+      </div>
+    </div>
   </div>
   <script>
     document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -108,14 +260,24 @@
       const user = document.getElementById('username').value.trim();
       const pass = document.getElementById('password').value;
       const errorDiv = document.getElementById('loginError');
+      const button = this.querySelector('button');
+      
       if (user === 'admin' && pass === 'admin') {
         errorDiv.textContent = '';
-        localStorage.setItem('isLoggedIn', '1');
-        window.location.href = 'dashboard.html';
+        button.textContent = 'Logging in...';
+        button.disabled = true;
+        
+        setTimeout(() => {
+          localStorage.setItem('isLoggedIn', '1');
+          window.location.href = 'dashboard.html';
+        }, 1000);
       } else {
         errorDiv.textContent = 'Username atau password salah!';
+        button.textContent = 'Login';
+        button.disabled = false;
       }
     });
+    
     // Jika sudah login, langsung ke dashboard
     if (localStorage.getItem('isLoggedIn') === '1') {
       window.location.href = 'dashboard.html';
