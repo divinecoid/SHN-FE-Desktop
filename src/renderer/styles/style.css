@@ -79,16 +79,21 @@ body {
 body.workshop-page .content {
   height: calc(100vh - 60px);
   overflow: hidden;
+  position: relative;
+  padding: 0;
 }
 
 #canvas-container {
   flex: 1 1 0;
   display: flex;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   min-height: 0;
   min-width: 0;
+  z-index: 1;
 }
 
 #c {
@@ -566,16 +571,6 @@ label {
   }
 }
 
-.canvas-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
 #editModal {
   position: fixed;
   left: 50%;
@@ -609,16 +604,18 @@ label {
   position: absolute;
   top: 20px;
   left: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 16px;
-  z-index: 1000;
   width: 30%;
   min-width: 280px;
   max-width: 400px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 
 @media (max-width: 900px) {
@@ -721,7 +718,8 @@ form button {
   z-index: 10000;
 }
 
-#canvas-container, .canvas-container {
+/* General canvas container styles (for non-workshop pages) */
+.canvas-container {
   position: relative;
   width: 100%;
   height: 100%;
