@@ -27,16 +27,16 @@
       <div class="menu-masterdata">
         <a href="#" class="masterdata-toggle">Masterdata <span class="arrow">▼</span></a>
         <div class="masterdata-submenu" style="display:none; flex-direction:column; margin-left:16px;">
-          <a href="#">Jenis Barang</a>
-          <a href="#">Bentuk Barang</a>
-          <a href="#">Grade Barang</a>
-          <a href="#">Item Barang</a>
-          <a href="#">Jenis Mutasi Stock</a>
-          <a href="#">Supplier</a>
-          <a href="#">Pelanggan</a>
-          <a href="#">Gudang</a>
-          <a href="#">Pelaksana</a>
-          <a href="#">Jenis Transaksi Kas</a>
+          <a href="jenis-barang.html" class="submenu-item">Jenis Barang</a>
+          <a href="#" class="submenu-item">Bentuk Barang</a>
+          <a href="#" class="submenu-item">Grade Barang</a>
+          <a href="#" class="submenu-item">Item Barang</a>
+          <a href="#" class="submenu-item">Jenis Mutasi Stock</a>
+          <a href="#" class="submenu-item">Supplier</a>
+          <a href="#" class="submenu-item">Pelanggan</a>
+          <a href="#" class="submenu-item">Gudang</a>
+          <a href="#" class="submenu-item">Pelaksana</a>
+          <a href="#" class="submenu-item">Jenis Transaksi Kas</a>
         </div>
       </div>
       <a href="#" id="logoutMenu">Logout</a>
@@ -95,12 +95,20 @@
     document.addEventListener('DOMContentLoaded', function() {
       var menu = document.querySelector('.menu-masterdata');
       var toggle = document.querySelector('.masterdata-toggle');
+      var submenu = document.querySelector('.masterdata-submenu');
       if(toggle && menu) {
         toggle.addEventListener('click', function(e) {
           e.preventDefault();
-          menu.classList.toggle('open');
+          submenu.style.display = submenu.style.display === 'flex' ? 'none' : 'flex';
         });
       }
+      // Close submenu and redirect on submenu item click
+      submenu.addEventListener('click', function(e) {
+        if(e.target.classList.contains('submenu-item') && e.target.getAttribute('href') !== '#') {
+          submenu.style.display = 'none';
+          // Allow default navigation
+        }
+      });
     });
   </script>
 </body>
