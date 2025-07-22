@@ -181,6 +181,13 @@
           field.style.display = 'none';
         });
         
+        // Hide horizontal and vertical cut buttons for 1D
+        document.getElementById('addCutHorizontalBtn').style.display = 'none';
+        document.getElementById('addCutVerticalBtn').style.display = 'none';
+        
+        // Show auto cut button for 1D
+        document.getElementById('addCutAuto').style.display = 'block';
+        
         // Update labels for 1D
         document.querySelector('label[for="baseWidth"]').textContent = 'Base Length (cm):';
         document.querySelector('label[for="cutWidth"]').textContent = 'Cut Length (cm):';
@@ -195,6 +202,13 @@
         document.querySelectorAll('.height-field').forEach(field => {
           field.style.display = 'block';
         });
+        
+        // Show horizontal and vertical cut buttons for 2D
+        document.getElementById('addCutHorizontalBtn').style.display = 'block';
+        document.getElementById('addCutVerticalBtn').style.display = 'block';
+        
+        // Hide auto cut button for 2D
+        document.getElementById('addCutAuto').style.display = 'none';
         
         // Update labels for 2D
         document.querySelector('label[for="baseWidth"]').textContent = 'Base Width (cm):';
