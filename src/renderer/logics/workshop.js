@@ -46,11 +46,16 @@ document.body.appendChild(contextMenu);
 
 let contextTarget = null;
 
+// Get current shape type
+function getShapeType() {
+  return localStorage.getItem('workshopShapeType') || '2D';
+}
+
 // Fungsi untuk membuat atau update plat dasar
 function setBasePlate() {
   // Ambil input dalam cm, konversi ke mm
   const widthCm = parseFloat(document.getElementById('baseWidth').value);
-  const heightCm = parseFloat(document.getElementById('baseHeight').value);
+  const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('baseHeight').value); // Fixed height for 1D
   const color = document.getElementById('baseColor').value;
 
   // Konversi ke mm (jika ingin presisi, tapi untuk canvas, kita pakai skala pixel)
@@ -92,18 +97,24 @@ function setBasePlate() {
     selectable: false,
     evented: false
   });
-  // Label ukuran tinggi (atas)
-  baseRectLabelH = new fabric.Text(`${heightCm} cm`, {
-    left: 50 + widthPx / 2,
-    top: 50 - 24,
-    fontSize: 18,
-    fill: '#333',
-    originX: 'center',
-    originY: 'middle',
-    selectable: false,
-    evented: false
-  });
-
+  
+  // Label ukuran tinggi (atas) - only for 2D
+  if (getShapeType() === '2D') {
+    baseRectLabelH = new fabric.Text(`${heightCm} cm`, {
+      left: 50 + widthPx / 2,
+      top: 50 - 24,
+      fontSize: 18,
+      fill: '#333',
+      originX: 'center',
+      originY: 'middle',
+      selectable: false,
+      evented: false
+    });
+    canvas.add(baseRectLabelH);
+  }
+  
+  canvas.add(baseRectLabelW);
+  canvas.requestRenderAll();
   updateRemainingWeight();
 }
 
@@ -207,7 +218,7 @@ canvas.on('mouse:down', function(opt) {
     // Hide all cut labels
     for (const cut of cuts) {
       cut.labelW.set({ visible: false });
-      cut.labelH.set({ visible: false });
+      if (cut.labelH) cut.labelH.set({ visible: false });
     }
     canvas.sendToBack(baseRect);
     canvas.requestRenderAll();
@@ -227,14 +238,16 @@ canvas.on('mouse:down', function(opt) {
           top: rect.top - heightPx/2 - 20,
           visible: true
         });
-        cut.labelH.set({
-          left: rect.left + widthPx/2 + 10,
-          top: rect.top,
-          visible: true
-        });
+        if (cut.labelH) {
+          cut.labelH.set({
+            left: rect.left + widthPx/2 + 10,
+            top: rect.top,
+            visible: true
+          });
+        }
       } else {
         cut.labelW.set({ visible: false });
-        cut.labelH.set({ visible: false });
+        if (cut.labelH) cut.labelH.set({ visible: false });
       }
     }
     canvas.requestRenderAll();
@@ -246,7 +259,7 @@ canvas.on('mouse:down', function(opt) {
       // Hide all cut labels
       for (const cut of cuts) {
         cut.labelW.set({ visible: false });
-        cut.labelH.set({ visible: false });
+        if (cut.labelH) cut.labelH.set({ visible: false });
       }
       canvas.requestRenderAll();
     }
@@ -255,7 +268,7 @@ canvas.on('mouse:down', function(opt) {
     // Hide all cut labels
     for (const cut of cuts) {
       cut.labelW.set({ visible: false });
-      cut.labelH.set({ visible: false });
+      if (cut.labelH) cut.labelH.set({ visible: false });
     }
     canvas.requestRenderAll();
   }
@@ -373,7 +386,7 @@ function isOverlap(r1, r2) {
 // --- Remaining Weight Calculation ---
 function updateRemainingWeight() {
   const baseWidth = parseFloat(document.getElementById('baseWidth').value);
-  const baseHeight = parseFloat(document.getElementById('baseHeight').value);
+  const baseHeight = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('baseHeight').value); // Fixed height for 1D
   const baseWeight = parseFloat(document.getElementById('baseWeight').value);
   const baseArea = baseWidth * baseHeight;
   if (!baseRect || !baseArea || !baseWeight) {
@@ -401,7 +414,7 @@ function updateRemainingWeight() {
 // --- Save cutting report to localStorage ---
 function saveCutReport(type, cutData) {
   const baseWidth = parseFloat(document.getElementById('baseWidth').value);
-  const baseHeight = parseFloat(document.getElementById('baseHeight').value);
+  const baseHeight = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('baseHeight').value); // Fixed height for 1D
   const baseWeight = parseFloat(document.getElementById('baseWeight').value);
   const remainingWeight = document.getElementById('remainingWeight').innerText;
   const now = new Date();
@@ -422,7 +435,7 @@ function saveCutReport(type, cutData) {
 // --- Manual Add Cut (default position) ---
 function addCut() {
   const widthCm = parseFloat(document.getElementById('cutWidth').value);
-  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('cutHeight').value); // Fixed height for 1D
   const color = document.getElementById('cutColor').value;
   const scale = 5;
   const widthPx = widthCm * scale;
@@ -475,6 +488,7 @@ function addCut() {
   });
   cutRect.createdAt = Date.now();
   cutRect.cutId = generateCutId();
+  
   // Label ukuran lebar (atas)
   const labelW = new fabric.Text(`${widthCm} cm`, {
     left: posX,
@@ -487,19 +501,28 @@ function addCut() {
     evented: false,
     visible: false
   });
-  // Label ukuran tinggi (kanan)
-  const labelH = new fabric.Text(`${heightCm} cm`, {
-    left: posX + widthPx/2 + 10,
-    top: posY,
-    fontSize: 16,
-    fill: '#333',
-    originY: 'middle',
-    selectable: false,
-    evented: false,
-    visible: false
-  });
-  canvas.add(cutRect, labelW, labelH);
-  cuts.push({rect: cutRect, labelW, labelH});
+  
+  // Label ukuran tinggi (kanan) - only for 2D
+  let labelH = null;
+  if (getShapeType() === '2D') {
+    labelH = new fabric.Text(`${heightCm} cm`, {
+      left: posX + widthPx/2 + 10,
+      top: posY,
+      fontSize: 16,
+      fill: '#333',
+      originY: 'middle',
+      selectable: false,
+      evented: false,
+      visible: false
+    });
+    canvas.add(cutRect, labelW, labelH);
+    cuts.push({rect: cutRect, labelW, labelH});
+  } else {
+    // For 1D, only add width label
+    canvas.add(cutRect, labelW);
+    cuts.push({rect: cutRect, labelW, labelH: null});
+  }
+  
   updateRemainingWeight();
   if (minimapVisible) updateMinimap();
   saveCutReport('manual', {widthCm, heightCm, color});
@@ -515,7 +538,7 @@ function addCutAuto() {
 const origAddCutAuto = addCutAuto;
 addCutAuto = function() {
   const widthCm = parseFloat(document.getElementById('cutWidth').value);
-  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('cutHeight').value); // Fixed height for 1D
   const color = document.getElementById('cutColor').value;
   origAddCutAuto.apply(this, arguments);
   saveCutReport('auto', {widthCm, heightCm, color});
@@ -525,7 +548,7 @@ const origAddCut = typeof addCut === 'function' ? addCut : null;
 if (origAddCut) {
   addCut = function() {
     const widthCm = parseFloat(document.getElementById('cutWidth').value);
-    const heightCm = parseFloat(document.getElementById('cutHeight').value);
+    const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('cutHeight').value); // Fixed height for 1D
     const color = document.getElementById('cutColor').value;
     origAddCut.apply(this, arguments);
     saveCutReport('manual', {widthCm, heightCm, color});
@@ -534,7 +557,7 @@ if (origAddCut) {
 
 function addCutHorizontal() {
   const widthCm = parseFloat(document.getElementById('cutWidth').value);
-  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('cutHeight').value); // Fixed height for 1D
   const color = document.getElementById('cutColor').value;
   const scale = 5;
   const widthPx = widthCm * scale;
@@ -597,18 +620,28 @@ function addCutHorizontal() {
     evented: false,
     visible: false
   });
-  const labelH = new fabric.Text(`${heightCm} cm`, {
-    left: posX + widthPx/2 + 10,
-    top: posY,
-    fontSize: 16,
-    fill: '#333',
-    originY: 'middle',
-    selectable: false,
-    evented: false,
-    visible: false
-  });
-  canvas.add(cutRect, labelW, labelH);
-  cuts.push({rect: cutRect, labelW, labelH});
+  
+  // Label ukuran tinggi (kanan) - only for 2D
+  let labelH = null;
+  if (getShapeType() === '2D') {
+    labelH = new fabric.Text(`${heightCm} cm`, {
+      left: posX + widthPx/2 + 10,
+      top: posY,
+      fontSize: 16,
+      fill: '#333',
+      originY: 'middle',
+      selectable: false,
+      evented: false,
+      visible: false
+    });
+    canvas.add(cutRect, labelW, labelH);
+    cuts.push({rect: cutRect, labelW, labelH});
+  } else {
+    // For 1D, only add width label
+    canvas.add(cutRect, labelW);
+    cuts.push({rect: cutRect, labelW, labelH: null});
+  }
+  
   updateRemainingWeight();
   if (minimapVisible) updateMinimap();
   saveCutReport('manual', {widthCm, heightCm, color});
@@ -616,7 +649,7 @@ function addCutHorizontal() {
 
 function addCutVertical() {
   const widthCm = parseFloat(document.getElementById('cutWidth').value);
-  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('cutHeight').value); // Fixed height for 1D
   const color = document.getElementById('cutColor').value;
   const scale = 5;
   const widthPx = widthCm * scale;
@@ -679,18 +712,28 @@ function addCutVertical() {
     evented: false,
     visible: false
   });
-  const labelH = new fabric.Text(`${heightCm} cm`, {
-    left: posX + widthPx/2 + 10,
-    top: posY,
-    fontSize: 16,
-    fill: '#333',
-    originY: 'middle',
-    selectable: false,
-    evented: false,
-    visible: false
-  });
-  canvas.add(cutRect, labelW, labelH);
-  cuts.push({rect: cutRect, labelW, labelH});
+  
+  // Label ukuran tinggi (kanan) - only for 2D
+  let labelH = null;
+  if (getShapeType() === '2D') {
+    labelH = new fabric.Text(`${heightCm} cm`, {
+      left: posX + widthPx/2 + 10,
+      top: posY,
+      fontSize: 16,
+      fill: '#333',
+      originY: 'middle',
+      selectable: false,
+      evented: false,
+      visible: false
+    });
+    canvas.add(cutRect, labelW, labelH);
+    cuts.push({rect: cutRect, labelW, labelH});
+  } else {
+    // For 1D, only add width label
+    canvas.add(cutRect, labelW);
+    cuts.push({rect: cutRect, labelW, labelH: null});
+  }
+  
   updateRemainingWeight();
   if (minimapVisible) updateMinimap();
   saveCutReport('manual', {widthCm, heightCm, color});
@@ -704,7 +747,7 @@ canvas.on('selection:created', function(opt) {
   // Hide all labels first
   for (const cut of cuts) {
     cut.labelW.set({ visible: false });
-    cut.labelH.set({ visible: false });
+    if (cut.labelH) cut.labelH.set({ visible: false });
   }
   // If a cut is selected, show its labels and position them
   for (const cut of cuts) {
@@ -719,11 +762,13 @@ canvas.on('selection:created', function(opt) {
         visible: true
       });
       // Height label to the right
-      cut.labelH.set({
-        left: rect.left + widthPx/2 + 10,
-        top: rect.top,
-        visible: true
-      });
+      if (cut.labelH) {
+        cut.labelH.set({
+          left: rect.left + widthPx/2 + 10,
+          top: rect.top,
+          visible: true
+        });
+      }
       canvas.requestRenderAll();
       break;
     }
@@ -733,7 +778,7 @@ canvas.on('selection:updated', function(opt) {
   // Same as selection:created
   for (const cut of cuts) {
     cut.labelW.set({ visible: false });
-    cut.labelH.set({ visible: false });
+    if (cut.labelH) cut.labelH.set({ visible: false });
   }
   for (const cut of cuts) {
     if (opt.target === cut.rect) {
@@ -745,11 +790,13 @@ canvas.on('selection:updated', function(opt) {
         top: rect.top - heightPx/2 - 20,
         visible: true
       });
-      cut.labelH.set({
-        left: rect.left + widthPx/2 + 10,
-        top: rect.top,
-        visible: true
-      });
+      if (cut.labelH) {
+        cut.labelH.set({
+          left: rect.left + widthPx/2 + 10,
+          top: rect.top,
+          visible: true
+        });
+      }
       canvas.requestRenderAll();
       break;
     }
@@ -759,7 +806,7 @@ canvas.on('selection:cleared', function() {
   // Hide all labels
   for (const cut of cuts) {
     cut.labelW.set({ visible: false });
-    cut.labelH.set({ visible: false });
+    if (cut.labelH) cut.labelH.set({ visible: false });
   }
   setBaseFocus(false);
   canvas.requestRenderAll();
@@ -814,14 +861,14 @@ document.body.addEventListener('mousedown', function(e) {
         if (cuts[i].rect === contextTarget) {
           canvas.remove(cuts[i].rect);
           canvas.remove(cuts[i].labelW);
-          canvas.remove(cuts[i].labelH);
+          if (cuts[i].labelH) canvas.remove(cuts[i].labelH);
           cuts.splice(i, 1);
           break;
         }
         if (cuts[i].labelW === contextTarget || cuts[i].labelH === contextTarget) {
           canvas.remove(cuts[i].rect);
           canvas.remove(cuts[i].labelW);
-          canvas.remove(cuts[i].labelH);
+          if (cuts[i].labelH) canvas.remove(cuts[i].labelH);
           cuts.splice(i, 1);
           break;
         }
@@ -976,7 +1023,7 @@ if (!window._cutLayerPatchApplied) {
   const origAddCut = addCut;
   addCut = function() {
   const widthCm = parseFloat(document.getElementById('cutWidth').value);
-  const heightCm = parseFloat(document.getElementById('cutHeight').value);
+  const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('cutHeight').value); // Fixed height for 1D
   const color = document.getElementById('cutColor').value;
   const scale = 5;
   const widthPx = widthCm * scale;
@@ -1038,18 +1085,27 @@ if (!window._cutLayerPatchApplied) {
     evented: false,
     visible: false
   });
-  const labelH = new fabric.Text(`${heightCm} cm`, {
-    left: posX + widthPx/2 + 10,
-    top: posY,
-    fontSize: 16,
-    fill: '#333',
-    originY: 'middle',
-    selectable: false,
-    evented: false,
-    visible: false
-  });
-  canvas.add(cutRect, labelW, labelH);
-  cuts.push({rect: cutRect, labelW, labelH});
+  
+  // Label ukuran tinggi (kanan) - only for 2D
+  let labelH = null;
+  if (getShapeType() === '2D') {
+    labelH = new fabric.Text(`${heightCm} cm`, {
+      left: posX + widthPx/2 + 10,
+      top: posY,
+      fontSize: 16,
+      fill: '#333',
+      originY: 'middle',
+      selectable: false,
+      evented: false,
+      visible: false
+    });
+    canvas.add(cutRect, labelW, labelH);
+    cuts.push({rect: cutRect, labelW, labelH});
+  } else {
+    // For 1D, only add width label
+    canvas.add(cutRect, labelW);
+    cuts.push({rect: cutRect, labelW, labelH: null});
+  }
   updateRemainingWeight();
   saveCutReport('manual', {widthCm, heightCm, color});
 }
