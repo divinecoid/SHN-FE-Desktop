@@ -5,6 +5,121 @@
   <title>SURYA LOGAM JAYA | PT. SURYA HARSA NAGARA</title>
   <link rel="stylesheet" href="../styles/style.css">
   <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .dashboard-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(44,62,80,0.07);
+      padding: 16px 20px;
+      min-height: 120px;
+    }
+    
+    .dashboard-card h3 {
+      margin: 0 0 12px 0;
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #2c3e50;
+      border-bottom: 2px solid #ecf0f1;
+      padding-bottom: 6px;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 220px;
+      margin-top: 12px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 12px 8px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #2c3e50;
+    }
+    
+    .stat-value {
+      font-size: 1.5em;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 2px;
+    }
+    
+    .stat-label {
+      font-size: 0.9em;
+      color: #6c757d;
+      font-weight: 500;
+    }
+    
+    .recent-activity {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(44,62,80,0.07);
+      padding: 16px 20px;
+      max-width: none;
+    }
+    
+    .activity-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #ecf0f1;
+    }
+    
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+    
+    .activity-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      font-size: 12px;
+    }
+    
+    .activity-content {
+      flex: 1;
+    }
+    
+    .activity-title {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 2px;
+    }
+    
+    .activity-time {
+      font-size: 0.85em;
+      color: #6c757d;
+    }
+    
+    .activity-amount {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .icon-purchase { background: #e3f2fd; color: #1976d2; }
+    .icon-sale { background: #e8f5e8; color: #388e3c; }
+    .icon-production { background: #fff3e0; color: #f57c00; }
+    .icon-inventory { background: #f3e5f5; color: #7b1fa2; }
+  </style>
 </head>
 <body>
   <div class="header-bar">
@@ -19,34 +134,226 @@
       <div class="header-version">v1.0.0</div>
     </div>
   </div>
-  <div class="content">
+  <div class="content" style="overflow-y: auto; max-height: calc(100vh - 80px); padding-bottom: 40px;">
     <h1>Dashboard</h1>
     <div style="margin-bottom:28px; font-size:1.15em; color:#2c3e50; font-weight:600;">Selamat datang di Sistem Inventory & Workshop SURYA LOGAM JAYA</div>
-    <div class="dashboard-cards" style="display:flex; gap:24px; flex-wrap:wrap; margin-bottom:32px;">
-      <div class="dashboard-card" style="background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(44,62,80,0.07); padding:24px 32px; min-width:220px; flex:1;">
+    
+    <!-- Key Metrics Cards -->
+    <div class="dashboard-cards" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:24px;">
+      <div class="dashboard-card" style="min-width:220px; flex:1;">
         <div style="font-size:1.1em; color:#888;">Total PO</div>
-        <div id="cardTotalPO" style="font-size:1.4em; font-weight:700; color:#2c3e50;">0</div>
+        <div id="cardTotalPO" style="font-size:1.4em; font-weight:700; color:#2c3e50;">24</div>
       </div>
-      <div class="dashboard-card" style="background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(44,62,80,0.07); padding:24px 32px; min-width:220px; flex:1;">
+      <div class="dashboard-card" style="min-width:220px; flex:1;">
         <div style="font-size:1.1em; color:#888;">Total Pembelian Plat</div>
-        <div id="cardTotalPembelian" style="font-size:1.4em; font-weight:700; color:#2c3e50;">Rp 0</div>
+        <div id="cardTotalPembelian" style="font-size:1.4em; font-weight:700; color:#2c3e50;">Rp 156.750.000</div>
       </div>
-      <div class="dashboard-card" style="background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(44,62,80,0.07); padding:24px 32px; min-width:220px; flex:1;">
+      <div class="dashboard-card" style="min-width:220px; flex:1;">
         <div style="font-size:1.1em; color:#888;">Total AR (Piutang)</div>
-        <div id="cardTotalAR" style="font-size:1.4em; font-weight:700; color:#2c3e50;">Rp 0</div>
+        <div id="cardTotalAR" style="font-size:1.4em; font-weight:700; color:#2c3e50;">Rp 89.500.000</div>
       </div>
-      <div class="dashboard-card" style="background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(44,62,80,0.07); padding:24px 32px; min-width:220px; flex:1;">
+      <div class="dashboard-card" style="min-width:220px; flex:1;">
         <div style="font-size:1.1em; color:#888;">Total AP (Hutang)</div>
-        <div id="cardTotalAP" style="font-size:1.4em; font-weight:700; color:#2c3e50;">Rp 0</div>
+        <div id="cardTotalAP" style="font-size:1.4em; font-weight:700; color:#2c3e50;">Rp 45.200.000</div>
       </div>
     </div>
-    <div style="background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(44,62,80,0.07); padding:24px 32px; max-width:700px;">
-      <div style="font-size:1.15em; font-weight:600; color:#2c3e50; margin-bottom:12px;">Aktivitas Terbaru</div>
-      <ul id="recentActivity" style="list-style:none; padding:0; margin:0; color:#444; font-size:1.05em;"></ul>
+    
+    <!-- Charts Grid -->
+    <div class="dashboard-grid" style="margin-bottom: 24px;">
+      <!-- Monthly Purchase Chart -->
+      <div class="dashboard-card">
+        <h3>Pembelian Bulanan (2024)</h3>
+        <div class="chart-container">
+          <canvas id="monthlyPurchaseChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Material Distribution Chart -->
+      <div class="dashboard-card">
+        <h3>Distribusi Material</h3>
+        <div class="chart-container">
+          <canvas id="materialDistributionChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- Production Statistics -->
+      <div class="dashboard-card">
+        <h3>Statistik Produksi</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value">156</div>
+            <div class="stat-label">Total Produksi</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">89%</div>
+            <div class="stat-label">Efisiensi</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">12</div>
+            <div class="stat-label">Proyek Aktif</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">2.4</div>
+            <div class="stat-label">Rata-rata Hari</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Inventory Status -->
+      <div class="dashboard-card">
+        <h3>Status Inventory</h3>
+        <div class="chart-container">
+          <canvas id="inventoryStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+      <div style="font-size:1.15em; font-weight:600; color:#2c3e50; margin-bottom:16px;">Aktivitas Terbaru</div>
+      <div id="recentActivity">
+        <div class="activity-item">
+          <div class="activity-icon icon-purchase">📦</div>
+          <div class="activity-content">
+            <div class="activity-title">Pembelian Aluminium 500kg</div>
+            <div class="activity-time">2 jam yang lalu</div>
+          </div>
+          <div class="activity-amount">Rp 12.500.000</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon icon-sale">💰</div>
+          <div class="activity-content">
+            <div class="activity-title">Penjualan Plat Baja</div>
+            <div class="activity-time">4 jam yang lalu</div>
+          </div>
+          <div class="activity-amount">Rp 8.750.000</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon icon-production">⚙️</div>
+          <div class="activity-content">
+            <div class="activity-title">Produksi Shaft Selesai</div>
+            <div class="activity-time">6 jam yang lalu</div>
+          </div>
+          <div class="activity-amount">50 unit</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon icon-inventory">📊</div>
+          <div class="activity-content">
+            <div class="activity-title">Update Inventory Copper</div>
+            <div class="activity-time">8 jam yang lalu</div>
+          </div>
+          <div class="activity-amount">+200kg</div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-icon icon-purchase">📦</div>
+          <div class="activity-content">
+            <div class="activity-title">Pembelian Bronze 300kg</div>
+            <div class="activity-time">1 hari yang lalu</div>
+          </div>
+          <div class="activity-amount">Rp 9.800.000</div>
+        </div>
+      </div>
     </div>
   </div>
   <script src="../logics/dashboard.js"></script>
   <script src="../logics/ui.js"></script>
+  <script>
+    // Initialize charts with dummy data
+    document.addEventListener('DOMContentLoaded', function() {
+      // Monthly Purchase Chart (Bar Chart)
+      const monthlyPurchaseCtx = document.getElementById('monthlyPurchaseChart').getContext('2d');
+      new Chart(monthlyPurchaseCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+          datasets: [{
+            label: 'Pembelian (Juta Rupiah)',
+            data: [12.5, 15.2, 18.7, 14.3, 22.1, 19.8, 25.4, 21.6, 28.9, 24.3, 31.2, 27.8],
+            backgroundColor: 'rgba(44, 62, 80, 0.8)',
+            borderColor: 'rgba(44, 62, 80, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return 'Rp ' + value + 'M';
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+      
+      // Material Distribution Chart (Pie Chart)
+      const materialDistributionCtx = document.getElementById('materialDistributionChart').getContext('2d');
+      new Chart(materialDistributionCtx, {
+        type: 'pie',
+        data: {
+          labels: ['Aluminium', 'Copper', 'Bronze', 'Steel', 'Other'],
+          datasets: [{
+            data: [35, 25, 20, 15, 5],
+            backgroundColor: [
+              'rgba(44, 62, 80, 0.8)',
+              'rgba(231, 76, 60, 0.8)',
+              'rgba(241, 196, 15, 0.8)',
+              'rgba(46, 204, 113, 0.8)',
+              'rgba(155, 89, 182, 0.8)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+      
+      // Inventory Status Chart (Doughnut Chart)
+      const inventoryStatusCtx = document.getElementById('inventoryStatusChart').getContext('2d');
+      new Chart(inventoryStatusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Tersedia', 'Low Stock', 'Habis'],
+          datasets: [{
+            data: [65, 25, 10],
+            backgroundColor: [
+              'rgba(46, 204, 113, 0.8)',
+              'rgba(241, 196, 15, 0.8)',
+              'rgba(231, 76, 60, 0.8)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    });
+  </script>
 </body>
 <!-- Custom Confirm Dialog -->
 <div id="customConfirm" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:9999; align-items:center; justify-content:center;">
