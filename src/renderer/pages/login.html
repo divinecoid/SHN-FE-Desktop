@@ -60,10 +60,10 @@
       align-items: center;
       justify-content: center;
       padding: 40px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(20px);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(25px);
       z-index: 2;
-      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
     }
     
     .login-container {
@@ -78,28 +78,30 @@
       border-radius: 12px;
       margin: 0 auto 20px;
       object-fit: contain;
-      box-shadow: 0 4px 20px rgba(52, 152, 219, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
     
     .login-title {
       font-size: 1.8em;
       font-weight: 700;
-      color: #2d3a4b;
+      color: #1a1a1a;
       margin-bottom: 6px;
       letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .login-subtitle {
       font-size: 1em;
-      color: #6c757d;
+      color: #333333;
       margin-bottom: 30px;
       font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
     }
     
     .form-group {
@@ -108,44 +110,56 @@
     
     .form-group input {
       width: 100%;
-      padding: 14px 16px;
+      padding: 16px 18px;
       font-size: 1em;
-      border: 2px solid #e9ecef;
-      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
       outline: none;
       transition: all 0.3s ease;
-      background: #f8f9fa;
+      background: #ffffff;
+      color: #000000;
       box-sizing: border-box;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-group input:hover {
+      border-color: #3498db;
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
     }
     
     .form-group input:focus {
       border-color: #3498db;
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15), 0 4px 12px rgba(52, 152, 219, 0.2);
+      transform: translateY(-1px);
     }
     
     .form-group input::placeholder {
-      color: #adb5bd;
-      font-weight: 500;
+      color: #999999;
+      font-weight: 400;
     }
     
     .login-form button {
-      background: linear-gradient(135deg, #3498db 0%, #217dbb 100%);
-      color: #fff;
+      background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+      color: #ffffff;
       border: none;
-      border-radius: 10px;
-      padding: 14px 0;
+      border-radius: 12px;
+      padding: 16px 0;
       font-size: 1.1em;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       margin-top: 8px;
-      box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .login-form button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #3a3a3a 0%, #222222 100%);
+      border-color: rgba(255, 255, 255, 0.2);
     }
     
     .login-form button:active {
@@ -153,18 +167,20 @@
     }
     
     .login-error {
-      color: #e74c3c;
+      color: #ff8a80;
       font-size: 0.9em;
       margin-top: 6px;
       text-align: center;
       min-height: 18px;
       font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
     
     .login-footer {
       margin-top: 20px;
-      color: #6c757d;
+      color: rgba(255, 255, 255, 0.6);
       font-size: 0.85em;
+      font-weight: 400;
     }
     
     /* Responsive design */
@@ -172,8 +188,8 @@
       .login-right {
         position: relative;
         width: 100%;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(25px);
         min-height: 100vh;
       }
       
@@ -203,10 +219,12 @@
         <div class="login-subtitle">PT. SURYA HARSA NAGARA</div>
         <form class="login-form" id="loginForm" autocomplete="off">
           <div class="form-group">
-            <input type="text" id="username" placeholder="Username" required autofocus />
+            <label for="username" style="display: block; text-align: left; margin-bottom: 8px; color: #333333; font-weight: 600; font-size: 0.95em;">Username</label>
+            <input type="text" id="username" placeholder="Enter your username" required autofocus />
           </div>
           <div class="form-group">
-            <input type="password" id="password" placeholder="Password" required />
+            <label for="password" style="display: block; text-align: left; margin-bottom: 8px; color: #333333; font-weight: 600; font-size: 0.95em;">Password</label>
+            <input type="password" id="password" placeholder="Enter your password" required />
           </div>
           <button type="submit">Login</button>
           <div class="login-error" id="loginError"></div>
