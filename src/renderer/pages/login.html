@@ -53,55 +53,89 @@
     .login-right {
       position: absolute;
       top: 0;
+      left: 0;
       right: 0;
       bottom: 0;
-      width: 400px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(25px);
+      padding: 15px;
+      background: transparent;
       z-index: 2;
-      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
     }
     
     .login-container {
       width: 100%;
-      max-width: 320px;
+      max-width: 280px;
       text-align: center;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 25px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.02) 100%);
+      border-radius: 16px;
+      transition: all 0.4s ease;
+      z-index: -1;
+    }
+    
+    .login-container:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .login-container:hover::before {
+      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 100%);
     }
     
     .login-logo {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      margin: 0 auto 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      margin: 0 auto 10px;
       object-fit: contain;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
     
     .login-title {
-      font-size: 1.8em;
+      font-size: 1.4em;
       font-weight: 700;
-      color: #1a1a1a;
-      margin-bottom: 6px;
+      color: #ffffff;
+      margin-bottom: 2px;
       letter-spacing: 1px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.6);
+      position: relative;
+      z-index: 1;
     }
     
     .login-subtitle {
-      font-size: 1em;
-      color: #333333;
-      margin-bottom: 30px;
-      font-weight: 500;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      font-size: 0.8em;
+      color: #ffffff;
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8), 0 3px 8px rgba(0, 0, 0, 0.6);
+      position: relative;
+      z-index: 1;
     }
     
     .login-form {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 8px;
     }
     
     .form-group {
@@ -110,55 +144,58 @@
     
     .form-group input {
       width: 100%;
-      padding: 16px 18px;
-      font-size: 1em;
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.9em;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
       outline: none;
       transition: all 0.3s ease;
-      background: #ffffff;
+      background: rgba(255, 255, 255, 0.2);
       color: #000000;
       box-sizing: border-box;
       font-weight: 500;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
     }
     
     .form-group input:hover {
-      border-color: #3498db;
+      border-color: rgba(52, 152, 219, 0.6);
+      background: rgba(255, 255, 255, 0.25);
       box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
     }
     
     .form-group input:focus {
-      border-color: #3498db;
-      background: #ffffff;
+      border-color: rgba(52, 152, 219, 0.8);
+      background: rgba(255, 255, 255, 0.3);
       box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15), 0 4px 12px rgba(52, 152, 219, 0.2);
       transform: translateY(-1px);
     }
     
     .form-group input::placeholder {
-      color: #999999;
+      color: rgba(0, 0, 0, 0.6);
       font-weight: 400;
     }
     
     .login-form button {
-      background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+      background: linear-gradient(135deg, rgba(44, 44, 44, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%);
       color: #ffffff;
       border: none;
-      border-radius: 12px;
-      padding: 16px 0;
-      font-size: 1.1em;
+      border-radius: 8px;
+      padding: 10px 0;
+      font-size: 0.95em;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
-      margin-top: 8px;
+      margin-top: 2px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
     }
     
     .login-form button:hover {
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      background: linear-gradient(135deg, #3a3a3a 0%, #222222 100%);
+      background: linear-gradient(135deg, rgba(58, 58, 58, 0.9) 0%, rgba(34, 34, 34, 0.9) 100%);
       border-color: rgba(255, 255, 255, 0.2);
     }
     
@@ -168,18 +205,18 @@
     
     .login-error {
       color: #ff8a80;
-      font-size: 0.9em;
-      margin-top: 6px;
+      font-size: 0.8em;
+      margin-top: 2px;
       text-align: center;
-      min-height: 18px;
+      min-height: 14px;
       font-weight: 500;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
     
     .login-footer {
-      margin-top: 20px;
+      margin-top: 10px;
       color: rgba(255, 255, 255, 0.6);
-      font-size: 0.85em;
+      font-size: 0.75em;
       font-weight: 400;
     }
     
@@ -219,11 +256,11 @@
         <div class="login-subtitle">PT. SURYA HARSA NAGARA</div>
         <form class="login-form" id="loginForm" autocomplete="off">
           <div class="form-group">
-            <label for="username" style="display: block; text-align: left; margin-bottom: 8px; color: #333333; font-weight: 600; font-size: 0.95em;">Username</label>
+            <label for="username" style="display: block; text-align: left; margin-bottom: 4px; color: #ffffff; font-weight: 700; font-size: 0.9em; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);">Username</label>
             <input type="text" id="username" placeholder="Enter your username" required autofocus />
           </div>
           <div class="form-group">
-            <label for="password" style="display: block; text-align: left; margin-bottom: 8px; color: #333333; font-weight: 600; font-size: 0.95em;">Password</label>
+            <label for="password" style="display: block; text-align: left; margin-bottom: 4px; color: #ffffff; font-weight: 700; font-size: 0.9em; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);">Password</label>
             <input type="password" id="password" placeholder="Enter your password" required />
           </div>
           <button type="submit">Login</button>
