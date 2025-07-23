@@ -34,6 +34,132 @@
       letter-spacing: 1px;
       text-align: left;
     }
+    
+    /* Modern Table Styling */
+    #jenisTable {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: none;
+    }
+    
+    #jenisTable thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    #jenisTable th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #2d3a4b;
+      font-size: 0.95rem;
+      border: none;
+      position: relative;
+    }
+    
+    #jenisTable th.sortable {
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    #jenisTable th.sortable:hover {
+      background: rgba(45, 58, 75, 0.1);
+    }
+    
+    #jenisTable tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    #jenisTable tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #jenisTable tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    #jenisTable td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    #jenisTable td:first-child {
+      font-weight: 600;
+      color: #2d8cf0;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .edit-btn, .delete-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .edit-btn {
+      background: #3498db;
+      color: #ffffff;
+    }
+    
+    .edit-btn:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+    }
+    
+    .delete-btn {
+      background: #e74c3c;
+      color: #ffffff;
+    }
+    
+    .delete-btn:hover {
+      background: #c0392b;
+      transform: translateY(-1px);
+    }
+    
+    /* Sort Arrows */
+    .sort-arrow {
+      display: inline-block;
+      margin-left: 6px;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-bottom: 4px solid rgba(45, 58, 75, 0.6);
+    }
+    
+    .sort-arrow.asc {
+      border-bottom-color: #2d3a4b;
+      border-top: none;
+    }
+    
+    .sort-arrow.desc {
+      border-top: 4px solid #2d3a4b;
+      border-bottom: none;
+    }
+    
+    /* Table Container */
+    .table-scroll-x {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
   </style>
 </head>
 <body>
@@ -56,7 +182,7 @@
       <h1>Master Data - Jenis Barang</h1>
       <button id="addJenisBtn">Tambah Jenis Barang</button>
       <div class="table-scroll-x">
-        <table id="jenisTable" border="1">
+        <table id="jenisTable">
           <thead>
             <tr>
               <th data-col="id" class="sortable">ID <span class="sort-arrow"></span></th>
