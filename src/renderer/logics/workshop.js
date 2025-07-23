@@ -1327,3 +1327,59 @@ function updateMinimap() {
   viewportIndicator.style.height = (viewportHeight * scale) + 'px';
   }
 
+// Config sidebar toggle functionality
+let configCollapsed = false;
+
+function toggleConfig() {
+  const configBox = document.getElementById('configBox');
+  const toggleBtn = document.getElementById('configToggleBtn');
+  const canvasContainer = document.getElementById('canvas-container');
+  
+  configCollapsed = !configCollapsed;
+  
+  if (configCollapsed) {
+    configBox.classList.add('collapsed');
+    toggleBtn.classList.add('collapsed');
+    toggleBtn.classList.remove('expanded');
+    canvasContainer.classList.add('full-width');
+    toggleBtn.innerHTML = '⚙️';
+  } else {
+    configBox.classList.remove('collapsed');
+    toggleBtn.classList.remove('collapsed');
+    toggleBtn.classList.add('expanded');
+    canvasContainer.classList.remove('full-width');
+    toggleBtn.innerHTML = '✕';
+  }
+  
+  // Save state to localStorage
+  localStorage.setItem('workshopConfigCollapsed', configCollapsed);
+  
+  // Resize canvas after animation
+  setTimeout(() => {
+    resizeCanvas();
+    if (minimapVisible) updateMinimap();
+  }, 300);
+}
+
+// Initialize config state on page load
+document.addEventListener('DOMContentLoaded', function() {
+  const savedState = localStorage.getItem('workshopConfigCollapsed');
+  if (savedState === 'true') {
+    configCollapsed = true;
+    const configBox = document.getElementById('configBox');
+    const toggleBtn = document.getElementById('configToggleBtn');
+    const canvasContainer = document.getElementById('canvas-container');
+    
+    configBox.classList.add('collapsed');
+    toggleBtn.classList.add('collapsed');
+    canvasContainer.classList.add('full-width');
+    toggleBtn.innerHTML = '⚙️';
+  }
+  
+  // Add event listener to toggle button
+  const toggleBtn = document.getElementById('configToggleBtn');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleConfig);
+  }
+}); 
+

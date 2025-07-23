@@ -95,6 +95,11 @@ body.workshop-page .content {
   min-height: 0;
   min-width: 0;
   z-index: 1;
+  transition: width 0.3s ease;
+}
+
+#canvas-container.full-width {
+  width: 100%;
 }
 
 #c {
@@ -623,7 +628,7 @@ label {
   width: 350px;
   height: calc(100vh - 60px);
   background: #f8f9fa;
-  color: #2c3e50;
+  color: #495057;
   border-radius: 0;
   box-shadow: -4px 0 20px rgba(0,0,0,0.1);
   z-index: 10;
@@ -633,13 +638,56 @@ label {
   padding: 24px;
   border-left: 1px solid #e9ecef;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  transition: transform 0.3s ease, width 0.3s ease;
+  transform: translateX(0);
+}
+
+#configBox.collapsed {
+  transform: translateX(100%);
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.config-toggle-btn {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  background: #495057;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 11;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.config-toggle-btn:hover {
+  background: #343a40;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.config-toggle-btn.collapsed {
+  right: 20px;
+}
+
+.config-toggle-btn.expanded {
+  right: 370px;
 }
 
 #configBox h3 {
   margin: 0 0 20px 0;
   font-size: 1.3em;
   font-weight: 700;
-  color: #2c3e50;
+  color: #343a40;
   border-bottom: 2px solid #dee2e6;
   padding-bottom: 12px;
   letter-spacing: 0.5px;
@@ -660,22 +708,45 @@ label {
   border: 2px solid #dee2e6;
   border-radius: 10px;
   background: #ffffff;
-  color: #2c3e50;
+  color: #495057;
   font-size: 0.95em;
   box-sizing: border-box;
   transition: all 0.3s ease;
   font-weight: 500;
 }
 
-#configBox input[type="number"]:focus, #configBox input[type="color"]:focus {
-  border-color: #2c3e50;
+#configBox input[type="color"] {
+  height: 50px;
+  padding: 8px;
+  cursor: pointer;
+  border: 3px solid #dee2e6;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#configBox input[type="color"]:hover {
+  border-color: #adb5bd;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+#configBox input[type="color"]:focus {
+  border-color: #6c757d;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+  box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1), 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+#configBox input[type="number"]:focus {
+  border-color: #6c757d;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1);
   background: #ffffff;
   transform: translateY(-1px);
 }
 
-#configBox input[type="number"]:hover, #configBox input[type="color"]:hover {
+#configBox input[type="number"]:hover {
   border-color: #adb5bd;
   background: #f8f9fa;
 }
@@ -686,7 +757,7 @@ label {
 }
 
 #configBox button {
-  background: #2c3e50;
+  background: #6c757d;
   color: #ffffff;
   border: none;
   padding: 12px 20px;
@@ -697,31 +768,31 @@ label {
   transition: all 0.3s ease;
   margin-left: 8px;
   margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.2);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
   letter-spacing: 0.3px;
 }
 
 #configBox button:hover {
-  background: #34495e;
+  background: #5a6268;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(44, 62, 80, 0.3);
+  box-shadow: 0 6px 16px rgba(108, 117, 125, 0.3);
 }
 
 #configBox button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.2);
+  box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
 }
 
 /* Special styling for utility buttons */
 #configBox button[onclick*="download"], #configBox button[onclick*="save"], #configBox button[onclick*="load"] {
-  background: #6c757d;
+  background: #495057;
   width: 100%;
   margin-left: 0;
   margin-top: 8px;
 }
 
 #configBox button[onclick*="download"]:hover, #configBox button[onclick*="save"]:hover, #configBox button[onclick*="load"]:hover {
-  background: #5a6268;
+  background: #343a40;
 }
 
 /* Read-only fields */
@@ -745,7 +816,7 @@ label {
 }
 
 .config-drag-handle {
-  background: #2c3e50;
+  background: #495057;
   color: #ffffff;
   padding: 16px 20px;
   margin: -24px -24px 20px -24px;
@@ -757,7 +828,7 @@ label {
   align-items: center;
   gap: 10px;
   user-select: none;
-  box-shadow: 0 2px 12px rgba(44, 62, 80, 0.2);
+  box-shadow: 0 2px 12px rgba(73, 80, 87, 0.2);
   border-bottom: 2px solid #dee2e6;
   letter-spacing: 0.5px;
 }
