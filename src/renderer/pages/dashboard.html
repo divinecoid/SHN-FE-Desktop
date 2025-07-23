@@ -70,7 +70,8 @@
       border-radius: 12px;
       box-shadow: 0 2px 12px rgba(44,62,80,0.07);
       padding: 16px 20px;
-      max-width: none;
+      width: 100%;
+      box-sizing: border-box;
     }
     
     .activity-item {
@@ -208,49 +209,113 @@
       </div>
     </div>
     
+    <!-- Low Stock Alerts -->
+    <div class="dashboard-grid" style="grid-template-columns: 1fr; margin-bottom: 32px;">
+      <div class="dashboard-card">
+        <div style="font-size:1.15em; font-weight:600; color:#2c3e50; margin-bottom:16px; display:flex; align-items:center;">
+          <span style="color:#e74c3c; margin-right:8px;">⚠️</span>
+          Stok Menipis
+        </div>
+        <div id="lowStockItems">
+          <div class="stock-item" style="display:flex; align-items:center; padding:12px; background:#fff5f5; border-radius:8px; margin-bottom:8px; border-left:4px solid #e74c3c;">
+            <div style="flex:1;">
+              <div style="font-weight:600; color:#2c3e50;">Aluminium 6061</div>
+              <div style="font-size:0.9em; color:#6c757d;">Sisa: 25kg</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:600; color:#e74c3c;">Kritis</div>
+              <div style="font-size:0.9em; color:#6c757d;">Min: 50kg</div>
+            </div>
+          </div>
+          <div class="stock-item" style="display:flex; align-items:center; padding:12px; background:#fff8e1; border-radius:8px; margin-bottom:8px; border-left:4px solid #f39c12;">
+            <div style="flex:1;">
+              <div style="font-weight:600; color:#2c3e50;">Copper C110</div>
+              <div style="font-size:0.9em; color:#6c757d;">Sisa: 80kg</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:600; color:#f39c12;">Rendah</div>
+              <div style="font-size:0.9em; color:#6c757d;">Min: 100kg</div>
+            </div>
+          </div>
+          <div class="stock-item" style="display:flex; align-items:center; padding:12px; background:#fff5f5; border-radius:8px; margin-bottom:8px; border-left:4px solid #e74c3c;">
+            <div style="flex:1;">
+              <div style="font-weight:600; color:#2c3e50;">Bronze C93200</div>
+              <div style="font-size:0.9em; color:#6c757d;">Sisa: 15kg</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:600; color:#e74c3c;">Kritis</div>
+              <div style="font-size:0.9em; color:#6c757d;">Min: 30kg</div>
+            </div>
+          </div>
+          <div class="stock-item" style="display:flex; align-items:center; padding:12px; background:#fff8e1; border-radius:8px; margin-bottom:8px; border-left:4px solid #f39c12;">
+            <div style="flex:1;">
+              <div style="font-weight:600; color:#2c3e50;">Steel A36</div>
+              <div style="font-size:0.9em; color:#6c757d;">Sisa: 120kg</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:600; color:#f39c12;">Rendah</div>
+              <div style="font-size:0.9em; color:#6c757d;">Min: 150kg</div>
+            </div>
+          </div>
+          <div class="stock-item" style="display:flex; align-items:center; padding:12px; background:#fff5f5; border-radius:8px; margin-bottom:8px; border-left:4px solid #e74c3c;">
+            <div style="flex:1;">
+              <div style="font-weight:600; color:#2c3e50;">Titanium Grade 2</div>
+              <div style="font-size:0.9em; color:#6c757d;">Sisa: 8kg</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-weight:600; color:#e74c3c;">Kritis</div>
+              <div style="font-size:0.9em; color:#6c757d;">Min: 20kg</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Recent Activity -->
-    <div class="recent-activity">
-      <div style="font-size:1.15em; font-weight:600; color:#2c3e50; margin-bottom:16px;">Aktivitas Terbaru</div>
-      <div id="recentActivity">
-        <div class="activity-item">
-          <div class="activity-icon icon-purchase">📦</div>
-          <div class="activity-content">
-            <div class="activity-title">Pembelian Aluminium 500kg</div>
-            <div class="activity-time">2 jam yang lalu</div>
+    <div class="dashboard-grid" style="grid-template-columns: 1fr;">
+      <div class="recent-activity">
+        <div style="font-size:1.15em; font-weight:600; color:#2c3e50; margin-bottom:16px;">Aktivitas Terbaru</div>
+        <div id="recentActivity">
+          <div class="activity-item">
+            <div class="activity-icon icon-purchase">📦</div>
+            <div class="activity-content">
+              <div class="activity-title">Pembelian Aluminium 500kg</div>
+              <div class="activity-time">2 jam yang lalu</div>
+            </div>
+            <div class="activity-amount">Rp 12.500.000</div>
           </div>
-          <div class="activity-amount">Rp 12.500.000</div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-icon icon-sale">💰</div>
-          <div class="activity-content">
-            <div class="activity-title">Penjualan Plat Baja</div>
-            <div class="activity-time">4 jam yang lalu</div>
+          <div class="activity-item">
+            <div class="activity-icon icon-sale">💰</div>
+            <div class="activity-content">
+              <div class="activity-title">Penjualan Plat Baja</div>
+              <div class="activity-time">4 jam yang lalu</div>
+            </div>
+            <div class="activity-amount">Rp 8.750.000</div>
           </div>
-          <div class="activity-amount">Rp 8.750.000</div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-icon icon-production">⚙️</div>
-          <div class="activity-content">
-            <div class="activity-title">Produksi Shaft Selesai</div>
-            <div class="activity-time">6 jam yang lalu</div>
+          <div class="activity-item">
+            <div class="activity-icon icon-production">⚙️</div>
+            <div class="activity-content">
+              <div class="activity-title">Produksi Shaft Selesai</div>
+              <div class="activity-time">6 jam yang lalu</div>
+            </div>
+            <div class="activity-amount">50 unit</div>
           </div>
-          <div class="activity-amount">50 unit</div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-icon icon-inventory">📊</div>
-          <div class="activity-content">
-            <div class="activity-title">Update Inventory Copper</div>
-            <div class="activity-time">8 jam yang lalu</div>
+          <div class="activity-item">
+            <div class="activity-icon icon-inventory">📊</div>
+            <div class="activity-content">
+              <div class="activity-title">Update Inventory Copper</div>
+              <div class="activity-time">8 jam yang lalu</div>
+            </div>
+            <div class="activity-amount">+200kg</div>
           </div>
-          <div class="activity-amount">+200kg</div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-icon icon-purchase">📦</div>
-          <div class="activity-content">
-            <div class="activity-title">Pembelian Bronze 300kg</div>
-            <div class="activity-time">1 hari yang lalu</div>
+          <div class="activity-item">
+            <div class="activity-icon icon-purchase">📦</div>
+            <div class="activity-content">
+              <div class="activity-title">Pembelian Bronze 300kg</div>
+              <div class="activity-time">1 hari yang lalu</div>
+            </div>
+            <div class="activity-amount">Rp 9.800.000</div>
           </div>
-          <div class="activity-amount">Rp 9.800.000</div>
         </div>
       </div>
     </div>

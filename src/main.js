@@ -285,7 +285,19 @@ function createWindow () {
 
   // Build menu from template
   const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
+  
+  // Initially hide menu for login page
+  Menu.setApplicationMenu(null);
+  
+  // Show menu only when not on login page
+  win.webContents.on('did-finish-load', () => {
+    const currentUrl = win.webContents.getURL();
+    if (currentUrl.includes('login.html')) {
+      Menu.setApplicationMenu(null);
+    } else {
+      Menu.setApplicationMenu(menu);
+    }
+  });
 }
 
 app.whenReady().then(() => {
