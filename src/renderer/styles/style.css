@@ -13,13 +13,13 @@ body {
 /* Header bar to replace sidebar header */
 .header-bar {
   height: 60px;
-  background: linear-gradient(135deg, #2c3e50 70%, #1a252f 100%);
+  background: linear-gradient(135deg, #000000 70%, #1a1a1a 100%);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   z-index: 100;
   position: relative;
 }
@@ -39,11 +39,12 @@ body {
 
 .header-title {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   font-size: 0.9em;
-  line-height: 1.1;
+  line-height: 1.2;
   font-weight: 700;
   letter-spacing: 1px;
+  align-items: center;
 }
 
 .header-title span {
