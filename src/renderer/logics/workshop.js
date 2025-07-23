@@ -1179,8 +1179,8 @@ function initMinimap() {
   minimapContainer.id = 'minimap-container';
   minimapContainer.style.cssText = `
     position: fixed;
-    top: 20px;
-    right: 20px;
+    bottom: 20px;
+    left: 20px;
     width: 200px;
     height: 150px;
     background: rgba(255, 255, 255, 0.95);
