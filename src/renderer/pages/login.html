@@ -31,7 +31,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: url('../assets/loginwallpaper.jpg') center center/cover no-repeat;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -46,28 +46,8 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/><circle cx="200" cy="150" r="80" fill="rgba(255,255,255,0.1)"/><circle cx="600" cy="400" r="120" fill="rgba(255,255,255,0.08)"/><path d="M 100 300 Q 200 200 300 300 T 500 300" stroke="rgba(255,255,255,0.15)" stroke-width="3" fill="none"/><path d="M 150 450 Q 250 350 350 450 T 550 450" stroke="rgba(255,255,255,0.12)" stroke-width="2" fill="none"/></svg>');
-      opacity: 0.6;
-    }
-    
-    .welding-icon {
-      position: relative;
-      z-index: 2;
-      width: 400px;
-      height: 400px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .welding-icon svg {
-      width: 240px;
-      height: 240px;
-      fill: rgba(255, 255, 255, 0.9);
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 1;
     }
     
     .login-right {
@@ -80,10 +60,10 @@
       align-items: center;
       justify-content: center;
       padding: 40px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
       z-index: 2;
-      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
     }
     
     .login-container {
@@ -192,18 +172,9 @@
       .login-right {
         position: relative;
         width: 100%;
-        background: rgba(255, 255, 255, 0.98);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
         min-height: 100vh;
-      }
-      
-      .welding-icon {
-        width: 200px;
-        height: 200px;
-      }
-      
-      .welding-icon svg {
-        width: 120px;
-        height: 120px;
       }
       
       .login-container {
@@ -224,14 +195,6 @@
 <body>
   <div class="login-page-container">
     <div class="login-left">
-      <div class="welding-icon">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z"/>
-          <path d="M19 15L19.5 16.5L21 17L19.5 17.5L19 19L18.5 17.5L17 17L18.5 16.5L19 15Z"/>
-          <path d="M5 15L5.5 16.5L7 17L5.5 17.5L5 19L4.5 17.5L3 17L4.5 16.5L5 15Z"/>
-          <path d="M12 18L12.5 19.5L14 20L12.5 20.5L12 22L11.5 20.5L10 20L11.5 19.5L12 18Z"/>
-        </svg>
-      </div>
     </div>
     <div class="login-right">
       <div class="login-container">
