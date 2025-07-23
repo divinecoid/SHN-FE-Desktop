@@ -77,17 +77,84 @@ function createWindow () {
           accelerator: 'CmdOrCtrl+L',
           click: () => {
             win.webContents.executeJavaScript(`
-              if (typeof showCustomConfirm === 'function') {
-                showCustomConfirm('Yakin ingin logout?', () => {
-                  localStorage.removeItem('isLoggedIn');
-                  window.location.href = 'login.html';
-                });
-              } else {
-                if (confirm('Yakin ingin logout?')) {
-                  localStorage.removeItem('isLoggedIn');
-                  window.location.href = 'login.html';
-                }
+              var dialog = document.getElementById('customConfirm');
+              if (!dialog) {
+                var modal = document.createElement('div');
+                modal.id = 'customConfirm';
+                modal.style.display = 'none';
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100vw';
+                modal.style.height = '100vh';
+                modal.style.background = 'rgba(0,0,0,0.2)';
+                modal.style.zIndex = '9999';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                
+                var modalContent = document.createElement('div');
+                modalContent.style.background = '#fff';
+                modalContent.style.padding = '32px 28px';
+                modalContent.style.borderRadius = '10px';
+                modalContent.style.boxShadow = '0 2px 16px #0002';
+                modalContent.style.minWidth = '260px';
+                modalContent.style.textAlign = 'center';
+                
+                var msg = document.createElement('div');
+                msg.id = 'customConfirmMsg';
+                msg.style.marginBottom = '18px';
+                msg.style.fontSize = '1.1em';
+                msg.textContent = 'Yakin ingin logout?';
+                
+                var yesBtn = document.createElement('button');
+                yesBtn.id = 'customConfirmYes';
+                yesBtn.style.background = '#2c3e50';
+                yesBtn.style.color = '#fff';
+                yesBtn.style.border = 'none';
+                yesBtn.style.borderRadius = '6px';
+                yesBtn.style.padding = '8px 24px';
+                yesBtn.style.fontSize = '1em';
+                yesBtn.style.fontWeight = '600';
+                yesBtn.style.cursor = 'pointer';
+                yesBtn.textContent = 'Ya';
+                
+                var noBtn = document.createElement('button');
+                noBtn.id = 'customConfirmNo';
+                noBtn.style.background = '#eee';
+                noBtn.style.color = '#444';
+                noBtn.style.border = 'none';
+                noBtn.style.borderRadius = '6px';
+                noBtn.style.padding = '8px 24px';
+                noBtn.style.fontSize = '1em';
+                noBtn.style.fontWeight = '600';
+                noBtn.style.marginLeft = '18px';
+                noBtn.style.cursor = 'pointer';
+                noBtn.textContent = 'Tidak';
+                
+                modalContent.appendChild(msg);
+                modalContent.appendChild(yesBtn);
+                modalContent.appendChild(noBtn);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
               }
+              
+              dialog = document.getElementById('customConfirm');
+              var msg = document.getElementById('customConfirmMsg');
+              var yesBtn = document.getElementById('customConfirmYes');
+              var noBtn = document.getElementById('customConfirmNo');
+              
+              msg.textContent = 'Yakin ingin logout?';
+              dialog.style.display = 'flex';
+              
+              yesBtn.onclick = function() {
+                dialog.style.display = 'none';
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = 'login.html';
+              };
+              
+              noBtn.onclick = function() {
+                dialog.style.display = 'none';
+              };
             `);
           }
         },
