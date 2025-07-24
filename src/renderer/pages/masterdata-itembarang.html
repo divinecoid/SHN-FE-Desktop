@@ -216,6 +216,8 @@
               <th data-col="bentuk" class="sortable">Bentuk <span class="sort-arrow"></span></th>
               <th data-col="grade" class="sortable">Grade <span class="sort-arrow"></span></th>
               <th data-col="namaItem" class="sortable">Nama Item Barang <span class="sort-arrow"></span></th>
+              <th data-col="titikRendah" class="sortable">Titik Rendah <span class="sort-arrow"></span></th>
+              <th data-col="titikKritis" class="sortable">Titik Kritis <span class="sort-arrow"></span></th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -257,9 +259,17 @@
             <option value="">Pilih Grade</option>
           </select>
         </div>
-        <div style="margin-bottom:20px;">
+        <div style="margin-bottom:16px;">
           <label for="itemNamaItem" style="display:block;font-weight:500;margin-bottom:4px;">Nama Item Barang</label>
           <input type="text" id="itemNamaItem" name="namaItem" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="64">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="itemTitikRendah" style="display:block;font-weight:500;margin-bottom:4px;">Titik Rendah (kg)</label>
+          <input type="number" id="itemTitikRendah" name="titikRendah" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required min="0" placeholder="100">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label for="itemTitikKritis" style="display:block;font-weight:500;margin-bottom:4px;">Titik Kritis (kg)</label>
+          <input type="number" id="itemTitikKritis" name="titikKritis" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required min="0" placeholder="50">
         </div>
         <div style="text-align:right;">
           <button type="button" id="batalBtn" style="margin-right:12px;padding:8px 18px;background:#95a5a6;border:none;border-radius:5px;cursor:pointer;color:#fff;">Batal</button>
@@ -272,9 +282,9 @@
   <script>
     // --- Item Barang CRUD with localStorage + Sorting ---
     const defaultData = [
-      { id: '0001', kodeBarang: 'BRG001', jenis: 'Besi', bentuk: 'AS', grade: 'A', namaItem: 'Besi AS Grade A' },
-      { id: '0002', kodeBarang: 'BRG002', jenis: 'Baja', bentuk: 'CNU', grade: 'B', namaItem: 'Baja Canal U Grade B' },
-      { id: '0003', kodeBarang: 'BRG003', jenis: 'Aluminium', bentuk: 'PLAT', grade: 'C', namaItem: 'Aluminium Plat Grade C' }
+      { id: '0001', kodeBarang: 'BRG001', jenis: 'Besi', bentuk: 'AS', grade: 'A', namaItem: 'Besi AS Grade A', titikRendah: 100, titikKritis: 50 },
+      { id: '0002', kodeBarang: 'BRG002', jenis: 'Baja', bentuk: 'CNU', grade: 'B', namaItem: 'Baja Canal U Grade B', titikRendah: 80, titikKritis: 40 },
+      { id: '0003', kodeBarang: 'BRG003', jenis: 'Aluminium', bentuk: 'PLAT', grade: 'C', namaItem: 'Aluminium Plat Grade C', titikRendah: 120, titikKritis: 60 }
     ];
     let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
     
@@ -360,6 +370,8 @@
           <td>${row.bentuk}</td>
           <td>${row.grade}</td>
           <td>${row.namaItem}</td>
+          <td>${row.titikRendah || 100}</td>
+          <td>${row.titikKritis || 50}</td>
           <td>
             <button class="editBtn" data-idx="${idx}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
             <button class="deleteBtn" data-idx="${idx}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
@@ -407,17 +419,26 @@
         const bentuk = this.itemBentuk.value.trim();
         const grade = this.itemGrade.value.trim();
         const namaItem = this.itemNamaItem.value.trim();
+        const titikRendah = parseInt(this.itemTitikRendah.value) || 100;
+        const titikKritis = parseInt(this.itemTitikKritis.value) || 50;
+        
+        // Validation: Titik Kritis must be below Titik Rendah
+        if (titikKritis >= titikRendah) {
+          alert('Titik Kritis harus lebih rendah dari Titik Rendah!');
+          return;
+        }
+        
         let data = getItemData();
         if (this.dataset.editIdx !== undefined) {
           // Edit
-          data[this.dataset.editIdx] = { id, kodeBarang, jenis, bentuk, grade, namaItem };
+          data[this.dataset.editIdx] = { id, kodeBarang, jenis, bentuk, grade, namaItem, titikRendah, titikKritis };
         } else {
           // Add
           if (data.some(d => d.id === id)) {
             alert('ID sudah ada!');
             return;
           }
-          data.push({ id, kodeBarang, jenis, bentuk, grade, namaItem });
+          data.push({ id, kodeBarang, jenis, bentuk, grade, namaItem, titikRendah, titikKritis });
         }
         setItemData(data);
         renderTable();
@@ -458,6 +479,8 @@
         form.itemBentuk.value = data.bentuk;
         form.itemGrade.value = data.grade;
         form.itemNamaItem.value = data.namaItem;
+        form.itemTitikRendah.value = data.titikRendah || 100;
+        form.itemTitikKritis.value = data.titikKritis || 50;
         form.itemId.disabled = true;
         title.textContent = 'Edit Item Barang';
         form.dataset.editIdx = editIdx;
