@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>SURYA LOGAM JAYA | Master Data Bentuk Barang</title>
+  <title>SURYA LOGAM JAYA | Master Data Jenis Barang</title>
   <link rel="stylesheet" href="../styles/style.css">
   <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
   <style>
@@ -10,11 +10,11 @@
       padding: 20px;
       box-sizing: border-box;
     }
-    .bentuk-main-wrapper {
+    .jenis-main-wrapper {
       max-width: 900px;
       margin-left: 0;
     }
-    #addBentukBtn {
+    #addJenisBtn {
       display: inline-block;
       margin-bottom: 18px;
       margin-top: 8px;
@@ -35,8 +35,29 @@
       text-align: left;
     }
     
+    .page-title {
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+    
+    .page-title .main-title {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .page-title .sub-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 1px;
+    }
+    
     /* Modern Table Styling */
-    #bentukTable {
+    #jenisTable {
       width: 100%;
       border-collapse: collapse;
       background: #ffffff;
@@ -46,52 +67,52 @@
       border: none;
     }
     
-    #bentukTable thead {
-      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    #jenisTable thead {
+      background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
     }
     
-    #bentukTable th {
+    #jenisTable th {
       padding: 16px 12px;
       text-align: left;
       font-weight: 600;
-      color: #ffffff;
+      color: #000000;
       font-size: 0.95rem;
       border: none;
       position: relative;
     }
     
-    #bentukTable th.sortable {
+    #jenisTable th.sortable {
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
     
-    #bentukTable th.sortable:hover {
+    #jenisTable th.sortable:hover {
       background: rgba(255, 255, 255, 0.1);
     }
     
-    #bentukTable tbody tr {
+    #jenisTable tbody tr {
       border-bottom: 1px solid #f0f0f0;
       transition: all 0.3s ease;
     }
     
-    #bentukTable tbody tr:hover {
+    #jenisTable tbody tr:hover {
       background: #f8f9ff;
       transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
-    #bentukTable tbody tr:last-child {
+    #jenisTable tbody tr:last-child {
       border-bottom: none;
     }
     
-    #bentukTable td {
+    #jenisTable td {
       padding: 14px 12px;
       color: #333333;
       font-size: 0.9rem;
       border: none;
     }
     
-    #bentukTable td:first-child {
+    #jenisTable td:first-child {
       font-weight: 600;
       color: #2c3e50;
     }
@@ -114,12 +135,12 @@
     }
     
     .edit-btn {
-      background: #3498db;
+      background: #2c3e50;
       color: #ffffff;
     }
     
     .edit-btn:hover {
-      background: #2980b9;
+      background: #34495e;
       transform: translateY(-1px);
     }
     
@@ -179,16 +200,19 @@
     </div>
   </div>
   <div class="content">
-    <div class="bentuk-main-wrapper">
-      <h1>Master Data - Bentuk Barang</h1>
-      <button id="addBentukBtn">Tambah Bentuk Barang</button>
+    <div class="jenis-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">Master Data</div>
+        <div class="sub-title">Jenis Barang</div>
+      </div>
+      <button id="addJenisBtn">+ Jenis Barang</button>
       <div class="table-scroll-x">
-        <table id="bentukTable">
+        <table id="jenisTable">
           <thead>
             <tr>
               <th data-col="id" class="sortable">ID <span class="sort-arrow"></span></th>
               <th data-col="kode" class="sortable">Kode <span class="sort-arrow"></span></th>
-              <th data-col="nama" class="sortable">Nama <span class="sort-arrow"></span></th>
+              <th data-col="nama" class="sortable">Nama Jenis <span class="sort-arrow"></span></th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -200,21 +224,21 @@
     </div>
   </div>
   <!-- Modal for Add/Edit -->
-  <div id="bentukModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
+  <div id="jenisModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;min-width:320px;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.13);position:relative;">
-      <h2 id="modalTitle" style="margin-top:0;font-size:1.3rem;">Tambah Bentuk Barang</h2>
-      <form id="bentukForm">
+      <h2 id="modalTitle" style="margin-top:0;font-size:1.3rem;">Tambah Jenis Barang</h2>
+      <form id="jenisForm">
         <div style="margin-bottom:16px;">
-          <label for="bentukId" style="display:block;font-weight:500;margin-bottom:4px;">ID</label>
-          <input type="text" id="bentukId" name="id" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;" required maxlength="8">
+          <label for="jenisId" style="display:block;font-weight:500;margin-bottom:4px;">ID</label>
+          <input type="text" id="jenisId" name="id" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="8">
         </div>
         <div style="margin-bottom:16px;">
-          <label for="bentukKode" style="display:block;font-weight:500;margin-bottom:4px;">Kode</label>
-          <input type="text" id="bentukKode" name="kode" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;" required maxlength="8">
+          <label for="jenisKode" style="display:block;font-weight:500;margin-bottom:4px;">Kode</label>
+          <input type="text" id="jenisKode" name="kode" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="8">
         </div>
         <div style="margin-bottom:20px;">
-          <label for="bentukNama" style="display:block;font-weight:500;margin-bottom:4px;">Nama</label>
-          <input type="text" id="bentukNama" name="nama" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;" required maxlength="32">
+          <label for="jenisNama" style="display:block;font-weight:500;margin-bottom:4px;">Nama Jenis</label>
+          <input type="text" id="jenisNama" name="nama" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="32">
         </div>
         <div style="text-align:right;">
           <button type="button" id="batalBtn" style="margin-right:12px;padding:8px 18px;background:#95a5a6;border:none;border-radius:5px;cursor:pointer;color:#fff;">Batal</button>
@@ -225,22 +249,22 @@
     </div>
   </div>
   <script>
-    // --- Bentuk Barang CRUD with localStorage + Sorting ---
+    // --- Jenis Barang CRUD with localStorage + Sorting ---
     const defaultData = [
-      { id: '0001', kode: 'AS', nama: 'AS' },
-      { id: '0002', kode: 'CNU', nama: 'CANAL U' }
+      { id: '0001', kode: 'ALU', nama: 'Aluminium' },
+      { id: '0002', kode: 'BRZ', nama: 'Bronze' }
     ];
     let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
-    function getBentukData() {
-      const data = localStorage.getItem('bentukBarang');
+    function getJenisData() {
+      const data = localStorage.getItem('jenisBarang');
       return data ? JSON.parse(data) : defaultData.slice();
     }
-    function setBentukData(data) {
-      localStorage.setItem('bentukBarang', JSON.stringify(data));
+    function setJenisData(data) {
+      localStorage.setItem('jenisBarang', JSON.stringify(data));
     }
     function renderTable() {
-      const tbody = document.querySelector('#bentukTable tbody');
-      let data = getBentukData();
+      const tbody = document.querySelector('#jenisTable tbody');
+      let data = getJenisData();
       // Sorting
       if (sortState.col && sortState.dir) {
         data = data.slice().sort((a, b) => {
@@ -295,15 +319,15 @@
         });
       });
       // Modal logic
-      document.getElementById('addBentukBtn').onclick = () => showModal();
+      document.getElementById('addJenisBtn').onclick = () => showModal();
       document.getElementById('closeModalBtn').onclick = hideModal;
       document.getElementById('batalBtn').onclick = hideModal;
-      document.getElementById('bentukForm').onsubmit = function(e) {
+      document.getElementById('jenisForm').onsubmit = function(e) {
         e.preventDefault();
-        const id = this.bentukId.value.trim();
-        const kode = this.bentukKode.value.trim();
-        const nama = this.bentukNama.value.trim();
-        let data = getBentukData();
+        const id = this.jenisId.value.trim();
+        const kode = this.jenisKode.value.trim();
+        const nama = this.jenisNama.value.trim();
+        let data = getJenisData();
         if (this.dataset.editIdx !== undefined) {
           // Edit
           data[this.dataset.editIdx] = { id, kode, nama };
@@ -315,48 +339,48 @@
           }
           data.push({ id, kode, nama });
         }
-        setBentukData(data);
+        setJenisData(data);
         renderTable();
         hideModal();
       };
-      document.querySelector('#bentukTable tbody').onclick = function(e) {
+      document.querySelector('#jenisTable tbody').onclick = function(e) {
         if (e.target.classList.contains('editBtn')) {
           showModal(e.target.dataset.idx);
         } else if (e.target.classList.contains('deleteBtn')) {
           if (confirm('Hapus data ini?')) {
-            let data = getBentukData();
+            let data = getJenisData();
             data.splice(e.target.dataset.idx, 1);
-            setBentukData(data);
+            setJenisData(data);
             renderTable();
           }
         }
       };
       // Initial render
-      if (!localStorage.getItem('bentukBarang')) setBentukData(defaultData);
+      if (!localStorage.getItem('jenisBarang')) setJenisData(defaultData);
       renderTable();
     });
     function showModal(editIdx = null) {
-      const modal = document.getElementById('bentukModal');
-      const form = document.getElementById('bentukForm');
+      const modal = document.getElementById('jenisModal');
+      const form = document.getElementById('jenisForm');
       const title = document.getElementById('modalTitle');
       if (editIdx !== null) {
-        const data = getBentukData()[editIdx];
-        form.bentukId.value = data.id;
-        form.bentukKode.value = data.kode;
-        form.bentukNama.value = data.nama;
-        form.bentukId.disabled = true;
-        title.textContent = 'Edit Bentuk Barang';
+        const data = getJenisData()[editIdx];
+        form.jenisId.value = data.id;
+        form.jenisKode.value = data.kode;
+        form.jenisNama.value = data.nama;
+        form.jenisId.disabled = true;
+        title.textContent = 'Edit Jenis Barang';
         form.dataset.editIdx = editIdx;
       } else {
         form.reset();
-        form.bentukId.disabled = false;
-        title.textContent = 'Tambah Bentuk Barang';
+        form.jenisId.disabled = false;
+        title.textContent = 'Tambah Jenis Barang';
         delete form.dataset.editIdx;
       }
       modal.style.display = 'flex';
     }
     function hideModal() {
-      document.getElementById('bentukModal').style.display = 'none';
+      document.getElementById('jenisModal').style.display = 'none';
     }
   </script>
   <script src="../logics/ui.js"></script>

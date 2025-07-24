@@ -175,14 +175,14 @@ function createWindow () {
           label: 'Jenis Barang',
           accelerator: 'CmdOrCtrl+1',
           click: () => {
-            win.loadFile('src/renderer/pages/jenis-barang.html');
+            win.loadFile('src/renderer/pages/masterdata-jenisbarang.html');
           }
         },
         {
           label: 'Bentuk Barang',
           accelerator: 'CmdOrCtrl+2',
           click: () => {
-            win.loadFile('src/renderer/pages/bentuk-barang.html');
+            win.loadFile('src/renderer/pages/masterdata-bentukbarang.html');
           }
         },
         {
@@ -190,7 +190,7 @@ function createWindow () {
           accelerator: 'CmdOrCtrl+3',
           click: () => {
             // Placeholder for future implementation
-            win.webContents.executeJavaScript('alert("Grade Barang - Coming Soon");');
+            win.loadFile('src/renderer/pages/masterdata-gradebarang.html');
           }
         },
         {
@@ -198,7 +198,7 @@ function createWindow () {
           accelerator: 'CmdOrCtrl+4',
           click: () => {
             // Placeholder for future implementation
-            win.webContents.executeJavaScript('alert("Item Barang - Coming Soon");');
+            win.loadFile('src/renderer/pages/masterdata-itembarang.html');
           }
         },
         {
@@ -206,7 +206,7 @@ function createWindow () {
           accelerator: 'CmdOrCtrl+5',
           click: () => {
             // Placeholder for future implementation
-            win.webContents.executeJavaScript('alert("Jenis Mutasi Stock - Coming Soon");');
+            win.loadFile('src/renderer/pages/masterdata-jenismutasistock.html');
           }
         },
         { type: 'separator' },

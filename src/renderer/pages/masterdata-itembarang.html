@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>SURYA LOGAM JAYA | Master Data Jenis Barang</title>
+  <title>SURYA LOGAM JAYA | Master Data Item Barang</title>
   <link rel="stylesheet" href="../styles/style.css">
   <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
   <style>
@@ -10,11 +10,11 @@
       padding: 20px;
       box-sizing: border-box;
     }
-    .jenis-main-wrapper {
-      max-width: 900px;
+    .item-main-wrapper {
+      max-width: 1200px;
       margin-left: 0;
     }
-    #addJenisBtn {
+    #addItemBtn {
       display: inline-block;
       margin-bottom: 18px;
       margin-top: 8px;
@@ -35,8 +35,29 @@
       text-align: left;
     }
     
+    .page-title {
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+    
+    .page-title .main-title {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .page-title .sub-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 1px;
+    }
+    
     /* Modern Table Styling */
-    #jenisTable {
+    #itemTable {
       width: 100%;
       border-collapse: collapse;
       background: #ffffff;
@@ -46,52 +67,52 @@
       border: none;
     }
     
-    #jenisTable thead {
-      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    #itemTable thead {
+      background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
     }
     
-    #jenisTable th {
+    #itemTable th {
       padding: 16px 12px;
       text-align: left;
       font-weight: 600;
-      color: #ffffff;
+      color: #000000;
       font-size: 0.95rem;
       border: none;
       position: relative;
     }
     
-    #jenisTable th.sortable {
+    #itemTable th.sortable {
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
     
-    #jenisTable th.sortable:hover {
+    #itemTable th.sortable:hover {
       background: rgba(255, 255, 255, 0.1);
     }
     
-    #jenisTable tbody tr {
+    #itemTable tbody tr {
       border-bottom: 1px solid #f0f0f0;
       transition: all 0.3s ease;
     }
     
-    #jenisTable tbody tr:hover {
+    #itemTable tbody tr:hover {
       background: #f8f9ff;
       transform: translateY(-1px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
-    #jenisTable tbody tr:last-child {
+    #itemTable tbody tr:last-child {
       border-bottom: none;
     }
     
-    #jenisTable td {
+    #itemTable td {
       padding: 14px 12px;
       color: #333333;
       font-size: 0.9rem;
       border: none;
     }
     
-    #jenisTable td:first-child {
+    #itemTable td:first-child {
       font-weight: 600;
       color: #2c3e50;
     }
@@ -114,12 +135,12 @@
     }
     
     .edit-btn {
-      background: #2c3e50;
+      background: #3498db;
       color: #ffffff;
     }
     
     .edit-btn:hover {
-      background: #34495e;
+      background: #2980b9;
       transform: translateY(-1px);
     }
     
@@ -179,16 +200,22 @@
     </div>
   </div>
   <div class="content">
-    <div class="jenis-main-wrapper">
-      <h1>Master Data - Jenis Barang</h1>
-      <button id="addJenisBtn">Tambah Jenis Barang</button>
+    <div class="item-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">Master Data</div>
+        <div class="sub-title">Item Barang</div>
+      </div>
+      <button id="addItemBtn">+ Item Barang</button>
       <div class="table-scroll-x">
-        <table id="jenisTable">
+        <table id="itemTable">
           <thead>
             <tr>
               <th data-col="id" class="sortable">ID <span class="sort-arrow"></span></th>
-              <th data-col="kode" class="sortable">Kode <span class="sort-arrow"></span></th>
-              <th data-col="nama" class="sortable">Nama Jenis <span class="sort-arrow"></span></th>
+              <th data-col="kodeBarang" class="sortable">Kode Barang <span class="sort-arrow"></span></th>
+              <th data-col="jenis" class="sortable">Jenis <span class="sort-arrow"></span></th>
+              <th data-col="bentuk" class="sortable">Bentuk <span class="sort-arrow"></span></th>
+              <th data-col="grade" class="sortable">Grade <span class="sort-arrow"></span></th>
+              <th data-col="namaItem" class="sortable">Nama Item Barang <span class="sort-arrow"></span></th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -200,21 +227,39 @@
     </div>
   </div>
   <!-- Modal for Add/Edit -->
-  <div id="jenisModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;min-width:320px;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.13);position:relative;">
-      <h2 id="modalTitle" style="margin-top:0;font-size:1.3rem;">Tambah Jenis Barang</h2>
-      <form id="jenisForm">
+  <div id="itemModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;min-width:400px;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.13);position:relative;">
+      <h2 id="modalTitle" style="margin-top:0;font-size:1.3rem;">Tambah Item Barang</h2>
+      <form id="itemForm">
         <div style="margin-bottom:16px;">
-          <label for="jenisId" style="display:block;font-weight:500;margin-bottom:4px;">ID</label>
-          <input type="text" id="jenisId" name="id" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;" required maxlength="8">
+          <label for="itemId" style="display:block;font-weight:500;margin-bottom:4px;">ID</label>
+          <input type="text" id="itemId" name="id" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="8">
         </div>
         <div style="margin-bottom:16px;">
-          <label for="jenisKode" style="display:block;font-weight:500;margin-bottom:4px;">Kode</label>
-          <input type="text" id="jenisKode" name="kode" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;" required maxlength="8">
+          <label for="itemKodeBarang" style="display:block;font-weight:500;margin-bottom:4px;">Kode Barang</label>
+          <input type="text" id="itemKodeBarang" name="kodeBarang" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="12">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="itemJenis" style="display:block;font-weight:500;margin-bottom:4px;">Jenis</label>
+          <select id="itemJenis" name="jenis" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required>
+            <option value="">Pilih Jenis</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="itemBentuk" style="display:block;font-weight:500;margin-bottom:4px;">Bentuk</label>
+          <select id="itemBentuk" name="bentuk" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required>
+            <option value="">Pilih Bentuk</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="itemGrade" style="display:block;font-weight:500;margin-bottom:4px;">Grade</label>
+          <select id="itemGrade" name="grade" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required>
+            <option value="">Pilih Grade</option>
+          </select>
         </div>
         <div style="margin-bottom:20px;">
-          <label for="jenisNama" style="display:block;font-weight:500;margin-bottom:4px;">Nama Jenis</label>
-          <input type="text" id="jenisNama" name="nama" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;" required maxlength="32">
+          <label for="itemNamaItem" style="display:block;font-weight:500;margin-bottom:4px;">Nama Item Barang</label>
+          <input type="text" id="itemNamaItem" name="namaItem" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="64">
         </div>
         <div style="text-align:right;">
           <button type="button" id="batalBtn" style="margin-right:12px;padding:8px 18px;background:#95a5a6;border:none;border-radius:5px;cursor:pointer;color:#fff;">Batal</button>
@@ -225,22 +270,75 @@
     </div>
   </div>
   <script>
-    // --- Jenis Barang CRUD with localStorage + Sorting ---
+    // --- Item Barang CRUD with localStorage + Sorting ---
     const defaultData = [
-      { id: '0001', kode: 'ALU', nama: 'Aluminium' },
-      { id: '0002', kode: 'BRZ', nama: 'Bronze' }
+      { id: '0001', kodeBarang: 'BRG001', jenis: 'Besi', bentuk: 'AS', grade: 'A', namaItem: 'Besi AS Grade A' },
+      { id: '0002', kodeBarang: 'BRG002', jenis: 'Baja', bentuk: 'CNU', grade: 'B', namaItem: 'Baja Canal U Grade B' },
+      { id: '0003', kodeBarang: 'BRG003', jenis: 'Aluminium', bentuk: 'PLAT', grade: 'C', namaItem: 'Aluminium Plat Grade C' }
     ];
     let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
+    
+    // Functions to get data from other masterdata
     function getJenisData() {
       const data = localStorage.getItem('jenisBarang');
+      return data ? JSON.parse(data) : [];
+    }
+    
+    function getBentukData() {
+      const data = localStorage.getItem('bentukBarang');
+      return data ? JSON.parse(data) : [];
+    }
+    
+    function getGradeData() {
+      const data = localStorage.getItem('gradeBarang');
+      return data ? JSON.parse(data) : [];
+    }
+    
+    // Function to populate dropdowns
+    function populateDropdowns() {
+      // Populate Jenis dropdown
+      const jenisSelect = document.getElementById('itemJenis');
+      const jenisData = getJenisData();
+      jenisSelect.innerHTML = '<option value="">Pilih Jenis</option>';
+      jenisData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.nama;
+        option.textContent = item.nama;
+        jenisSelect.appendChild(option);
+      });
+      
+      // Populate Bentuk dropdown
+      const bentukSelect = document.getElementById('itemBentuk');
+      const bentukData = getBentukData();
+      bentukSelect.innerHTML = '<option value="">Pilih Bentuk</option>';
+      bentukData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.nama;
+        option.textContent = item.nama;
+        bentukSelect.appendChild(option);
+      });
+      
+      // Populate Grade dropdown
+      const gradeSelect = document.getElementById('itemGrade');
+      const gradeData = getGradeData();
+      gradeSelect.innerHTML = '<option value="">Pilih Grade</option>';
+      gradeData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.nama;
+        option.textContent = item.nama;
+        gradeSelect.appendChild(option);
+      });
+    }
+    function getItemData() {
+      const data = localStorage.getItem('itemBarang');
       return data ? JSON.parse(data) : defaultData.slice();
     }
-    function setJenisData(data) {
-      localStorage.setItem('jenisBarang', JSON.stringify(data));
+    function setItemData(data) {
+      localStorage.setItem('itemBarang', JSON.stringify(data));
     }
     function renderTable() {
-      const tbody = document.querySelector('#jenisTable tbody');
-      let data = getJenisData();
+      const tbody = document.querySelector('#itemTable tbody');
+      let data = getItemData();
       // Sorting
       if (sortState.col && sortState.dir) {
         data = data.slice().sort((a, b) => {
@@ -257,8 +355,11 @@
           <td>
             <span style="font-family:monospace;">${row.id}</span>
           </td>
-          <td>${row.kode}</td>
-          <td>${row.nama}</td>
+          <td>${row.kodeBarang}</td>
+          <td>${row.jenis}</td>
+          <td>${row.bentuk}</td>
+          <td>${row.grade}</td>
+          <td>${row.namaItem}</td>
           <td>
             <button class="editBtn" data-idx="${idx}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
             <button class="deleteBtn" data-idx="${idx}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
@@ -295,68 +396,81 @@
         });
       });
       // Modal logic
-      document.getElementById('addJenisBtn').onclick = () => showModal();
+      document.getElementById('addItemBtn').onclick = () => showModal();
       document.getElementById('closeModalBtn').onclick = hideModal;
       document.getElementById('batalBtn').onclick = hideModal;
-      document.getElementById('jenisForm').onsubmit = function(e) {
+      document.getElementById('itemForm').onsubmit = function(e) {
         e.preventDefault();
-        const id = this.jenisId.value.trim();
-        const kode = this.jenisKode.value.trim();
-        const nama = this.jenisNama.value.trim();
-        let data = getJenisData();
+        const id = this.itemId.value.trim();
+        const kodeBarang = this.itemKodeBarang.value.trim();
+        const jenis = this.itemJenis.value.trim();
+        const bentuk = this.itemBentuk.value.trim();
+        const grade = this.itemGrade.value.trim();
+        const namaItem = this.itemNamaItem.value.trim();
+        let data = getItemData();
         if (this.dataset.editIdx !== undefined) {
           // Edit
-          data[this.dataset.editIdx] = { id, kode, nama };
+          data[this.dataset.editIdx] = { id, kodeBarang, jenis, bentuk, grade, namaItem };
         } else {
           // Add
           if (data.some(d => d.id === id)) {
             alert('ID sudah ada!');
             return;
           }
-          data.push({ id, kode, nama });
+          data.push({ id, kodeBarang, jenis, bentuk, grade, namaItem });
         }
-        setJenisData(data);
+        setItemData(data);
         renderTable();
         hideModal();
       };
-      document.querySelector('#jenisTable tbody').onclick = function(e) {
+      document.querySelector('#itemTable tbody').onclick = function(e) {
         if (e.target.classList.contains('editBtn')) {
           showModal(e.target.dataset.idx);
         } else if (e.target.classList.contains('deleteBtn')) {
           if (confirm('Hapus data ini?')) {
-            let data = getJenisData();
+            let data = getItemData();
             data.splice(e.target.dataset.idx, 1);
-            setJenisData(data);
+            setItemData(data);
             renderTable();
           }
         }
       };
       // Initial render
-      if (!localStorage.getItem('jenisBarang')) setJenisData(defaultData);
+      if (!localStorage.getItem('itemBarang')) setItemData(defaultData);
       renderTable();
+      
+      // Populate dropdowns on page load
+      populateDropdowns();
     });
     function showModal(editIdx = null) {
-      const modal = document.getElementById('jenisModal');
-      const form = document.getElementById('jenisForm');
+      const modal = document.getElementById('itemModal');
+      const form = document.getElementById('itemForm');
       const title = document.getElementById('modalTitle');
+      
+      // Populate dropdowns first
+      populateDropdowns();
+      
       if (editIdx !== null) {
-        const data = getJenisData()[editIdx];
-        form.jenisId.value = data.id;
-        form.jenisKode.value = data.kode;
-        form.jenisNama.value = data.nama;
-        form.jenisId.disabled = true;
-        title.textContent = 'Edit Jenis Barang';
+        const data = getItemData()[editIdx];
+        form.itemId.value = data.id;
+        form.itemKodeBarang.value = data.kodeBarang;
+        form.itemJenis.value = data.jenis;
+        form.itemBentuk.value = data.bentuk;
+        form.itemGrade.value = data.grade;
+        form.itemNamaItem.value = data.namaItem;
+        form.itemId.disabled = true;
+        title.textContent = 'Edit Item Barang';
         form.dataset.editIdx = editIdx;
       } else {
         form.reset();
-        form.jenisId.disabled = false;
-        title.textContent = 'Tambah Jenis Barang';
+        form.itemId.disabled = false;
+        title.textContent = 'Tambah Item Barang';
         delete form.dataset.editIdx;
       }
       modal.style.display = 'flex';
     }
     function hideModal() {
-      document.getElementById('jenisModal').style.display = 'none';
+      document.getElementById('itemModal').style.display = 'none';
     }
   </script>
   <script src="../logics/ui.js"></script>

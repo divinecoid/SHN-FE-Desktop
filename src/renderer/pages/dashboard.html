@@ -161,11 +161,11 @@
     
     <!-- Charts Grid -->
     <div class="dashboard-grid" style="margin-bottom: 24px;">
-      <!-- Monthly Purchase Chart -->
+      <!-- Monthly Sales Chart -->
       <div class="dashboard-card">
-        <h3>Pembelian Bulanan (2024)</h3>
+        <h3>Penjualan Bulanan (2025)</h3>
         <div class="chart-container">
-          <canvas id="monthlyPurchaseChart"></canvas>
+          <canvas id="monthlySalesChart"></canvas>
         </div>
       </div>
       
@@ -325,14 +325,14 @@
   <script>
     // Initialize charts with dummy data
     document.addEventListener('DOMContentLoaded', function() {
-      // Monthly Purchase Chart (Bar Chart)
-      const monthlyPurchaseCtx = document.getElementById('monthlyPurchaseChart').getContext('2d');
-      new Chart(monthlyPurchaseCtx, {
+      // Monthly Sales Chart (Bar Chart)
+      const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+      new Chart(monthlySalesCtx, {
         type: 'bar',
         data: {
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
           datasets: [{
-            label: 'Pembelian (Juta Rupiah)',
+            label: 'Penjualan (Juta Rupiah)',
             data: [12.5, 15.2, 18.7, 14.3, 22.1, 19.8, 25.4, 21.6, 28.9, 24.3, 31.2, 27.8],
             backgroundColor: 'rgba(44, 62, 80, 0.8)',
             borderColor: 'rgba(44, 62, 80, 1)',
