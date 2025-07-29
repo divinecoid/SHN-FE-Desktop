@@ -5,10 +5,13 @@
   <title>SURYA LOGAM JAYA | Master Data Item Barang</title>
   <link rel="stylesheet" href="../styles/style.css">
   <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+  <script src="../logics/qrcode.min.js"></script>
   <style>
     .content {
       padding: 20px;
       box-sizing: border-box;
+      overflow-y: auto;
+      height: calc(100vh - 60px);
     }
     .item-main-wrapper {
       max-width: 1200px;
@@ -226,6 +229,30 @@
           </tbody>
         </table>
       </div>
+      <!-- Pagination Controls -->
+      <div id="pagination" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span>Show</span>
+          <select id="pageSize" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <span>entries per page</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span id="paginationInfo">Showing 1 to 10 of 18 entries</span>
+          <div style="display: flex; gap: 5px;">
+            <button id="prevPage" style="padding: 8px 16px; border: 1px solid #2c3e50; background: #2c3e50; color: #fff; cursor: pointer; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 5px; transition: all 0.3s ease;">
+              <span style="font-size: 14px;">‹</span> Previous
+            </button>
+            <button id="nextPage" style="padding: 8px 16px; border: 1px solid #2c3e50; background: #2c3e50; color: #fff; cursor: pointer; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 5px; transition: all 0.3s ease;">
+              Next <span style="font-size: 14px;">›</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
   <!-- Modal for Add/Edit -->
@@ -279,14 +306,143 @@
       <button id="closeModalBtn" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>
     </div>
   </div>
+  
+  <!-- QR Print Modal -->
+  <div id="qrPrintModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;min-width:600px;max-width:70vw;max-height:90vh;overflow-y:auto;box-shadow:0 4px 24px rgba(0,0,0,0.13);position:relative;">
+      <h2 style="margin-top:0;font-size:1.3rem;">Print QR Code - <span id="qrItemNameDisplay"></span></h2>
+      <div id="qrPrintContainer" style="background: white; border: 2px solid #000; padding: 20px; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <canvas id="qrCodeCanvas" width="400" height="400" style="width: 80%; max-width: 400px; height: auto; border: 1px solid #ccc;"></canvas>
+        </div>
+        <div style="border-top: 1px solid #000; padding-top: 15px;">
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">🏷️  Kode Barang     : <span id="qrKodeBarang"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">📦  Nama Item       : <span id="qrNamaItem"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">🔧  Jenis           : <span id="qrJenis"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">📐  Bentuk          : <span id="qrBentuk"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">⭐  Grade           : <span id="qrGrade"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">🕒  Date Printed    : <span id="qrDatePrinted"></span></div>
+        </div>
+        <div style="border-top: 1px solid #000; padding-top: 15px; text-align: center; color: #666;">
+          SURYA LOGAM JAYA - Warehouse Management System
+        </div>
+      </div>
+      <div style="margin-top: 20px; text-align: right; position: sticky; bottom: 0; background: white; padding: 10px 0; border-top: 1px solid #eee;">
+        <button id="qrPrintBtn" style="background:#2c3e50;color:#fff;border:none;padding:8px 18px;border-radius:5px;cursor:pointer;font-size:14px;">Print QR Code</button>
+        <button id="qrCloseBtn" style="background:#95a5a6;color:#fff;border:none;padding:8px 18px;border-radius:5px;cursor:pointer;font-size:14px;margin-left:10px;">Tutup</button>
+      </div>
+      <button id="qrModalCloseBtn" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>
+    </div>
+  </div>
+  
   <script>
+    // QR code generation using qrcode.js library
+    function generateQRCode(text) {
+      const canvas = document.getElementById('qrCodeCanvas');
+      
+      // Clear canvas
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Set canvas size
+      canvas.width = 400;
+      canvas.height = 400;
+      
+      // Fill white background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 400, 400);
+      
+      // Generate QR code using the library
+      QRCode.toCanvas(canvas, text, {
+        width: 400,
+        height: 400,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M' // Medium error correction
+      }, function (error) {
+        if (error) {
+          console.error('QR Code generation error:', error);
+          // Fallback to simple text display
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, 400, 400);
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 20px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('QR Code Error', 200, 200);
+          ctx.font = 'bold 16px Arial';
+          ctx.fillText(text, 200, 230);
+        } else {
+          // Add text label below the QR code with better positioning and word wrap
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          
+          // Word wrap function
+          function wrapText(context, text, maxWidth) {
+            const words = text.split('|');
+            const lines = [];
+            let currentLine = '';
+            
+            for (let i = 0; i < words.length; i++) {
+              const testLine = currentLine + (currentLine ? ' | ' : '') + words[i];
+              const metrics = context.measureText(testLine);
+              
+              if (metrics.width > maxWidth && currentLine !== '') {
+                lines.push(currentLine);
+                currentLine = words[i];
+              } else {
+                currentLine = testLine;
+              }
+            }
+            
+            if (currentLine) {
+              lines.push(currentLine);
+            }
+            
+            return lines;
+          }
+          
+          // Wrap text and draw each line
+          const wrappedLines = wrapText(ctx, text, 350);
+          const lineHeight = 18;
+          const startY = 420; // Position below QR code with more space
+          
+          wrappedLines.forEach((line, index) => {
+            ctx.fillText(line, 200, startY + (index * lineHeight));
+          });
+        }
+      });
+    }
+    
     // --- Item Barang CRUD with localStorage + Sorting ---
     const defaultData = [
-      { id: '0001', kodeBarang: 'BRG001', jenis: 'Besi', bentuk: 'AS', grade: 'A', namaItem: 'Besi AS Grade A', titikRendah: 100, titikKritis: 50 },
-      { id: '0002', kodeBarang: 'BRG002', jenis: 'Baja', bentuk: 'CNU', grade: 'B', namaItem: 'Baja Canal U Grade B', titikRendah: 80, titikKritis: 40 },
-      { id: '0003', kodeBarang: 'BRG003', jenis: 'Aluminium', bentuk: 'PLAT', grade: 'C', namaItem: 'Aluminium Plat Grade C', titikRendah: 120, titikKritis: 60 }
+      { id: '0001', kodeBarang: 'ALU-AS-61-DIA 127X100MM', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA 127X100MM', titikRendah: 100, titikKritis: 50 },
+      { id: '0002', kodeBarang: 'ALU-AS-61-DIA 210X520MM', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA 210X520MM', titikRendah: 100, titikKritis: 50 },
+      { id: '0003', kodeBarang: 'ALU-AS-61-DIA. 102MMX2000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 102MMX2000', titikRendah: 100, titikKritis: 50 },
+      { id: '0004', kodeBarang: 'ALU-AS-61-DIA.102X1000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 102MMX1000', titikRendah: 100, titikKritis: 50 },
+      { id: '0005', kodeBarang: 'ALU-AS-61-DIA.102X2500', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 102MMX2500', titikRendah: 100, titikKritis: 50 },
+      { id: '0006', kodeBarang: 'ALU-AS-61-DIA.108X3000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 108MMX3000', titikRendah: 100, titikKritis: 50 },
+      { id: '0007', kodeBarang: 'ALU-AS-61-DIA.10X3000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 10MMX3000', titikRendah: 100, titikKritis: 50 },
+      { id: '0008', kodeBarang: 'ALU-AS-61-DIA.110MMX4000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 110MMX4000(T651)IMPORT', titikRendah: 100, titikKritis: 50 },
+      { id: '0009', kodeBarang: 'ALU-AS-61-DIA.115X1000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 115MMX1000', titikRendah: 100, titikKritis: 50 },
+      { id: '0010', kodeBarang: 'ALU-AS-61-DIA.12.7X3000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 12.7MMX3000', titikRendah: 100, titikKritis: 50 },
+      { id: '0011', kodeBarang: 'ALU-AS-61-DIA. 120MMX3000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 120MMX3000', titikRendah: 100, titikKritis: 50 },
+      { id: '0012', kodeBarang: 'ALU-AS-61-DIA. 120X2000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 120MMX2000', titikRendah: 100, titikKritis: 50 },
+      { id: '0013', kodeBarang: 'ALU-AS-61-DIA. 127MMX3000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 127MMX3000', titikRendah: 100, titikKritis: 50 },
+      { id: '0014', kodeBarang: 'ALU-AS-61-DIA. 127X2500', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 127MMX2500', titikRendah: 100, titikKritis: 50 },
+      { id: '0015', kodeBarang: 'ALU-AS-61-DIA 140X2000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 140MMX2000', titikRendah: 100, titikKritis: 50 },
+      { id: '0016', kodeBarang: 'ALU-AS-61-DIA. 150X2500', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 150X2500', titikRendah: 100, titikKritis: 50 },
+      { id: '0017', kodeBarang: 'ALU-AS-61-DIA. 150X3000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 150MMX3000', titikRendah: 100, titikKritis: 50 },
+      { id: '0018', kodeBarang: 'ALU-AS-61-DIA.155X3000', jenis: 'ALUMINIUM', bentuk: 'AS', grade: '6061', namaItem: 'DIA. 155MMX3000', titikRendah: 100, titikKritis: 50 }
     ];
     let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
+    let currentPage = 1;
+    let pageSize = 10;
     
     // Functions to get data from other masterdata
     function getJenisData() {
@@ -349,6 +505,7 @@
     function renderTable() {
       const tbody = document.querySelector('#itemTable tbody');
       let data = getItemData();
+      
       // Sorting
       if (sortState.col && sortState.dir) {
         data = data.slice().sort((a, b) => {
@@ -360,24 +517,40 @@
           return 0;
         });
       }
-      tbody.innerHTML = data.map((row, idx) => `
-        <tr>
-          <td>
-            <span style="font-family:monospace;">${row.id}</span>
-          </td>
-          <td>${row.kodeBarang}</td>
-          <td>${row.jenis}</td>
-          <td>${row.bentuk}</td>
-          <td>${row.grade}</td>
-          <td>${row.namaItem}</td>
-          <td>${row.titikRendah || 100}</td>
-          <td>${row.titikKritis || 50}</td>
-          <td>
-            <button class="editBtn" data-idx="${idx}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
-            <button class="deleteBtn" data-idx="${idx}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
-          </td>
-        </tr>
-      `).join('');
+      
+      // Pagination
+      const totalItems = data.length;
+      const totalPages = Math.ceil(totalItems / pageSize);
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, totalItems);
+      const pageData = data.slice(startIndex, endIndex);
+      
+      tbody.innerHTML = pageData.map((row, idx) => {
+        const actualIndex = startIndex + idx;
+        return `
+          <tr>
+            <td>
+              <span style="font-family:monospace;">${row.id}</span>
+            </td>
+            <td>${row.kodeBarang}</td>
+            <td>${row.jenis}</td>
+            <td>${row.bentuk}</td>
+            <td>${row.grade}</td>
+            <td>${row.namaItem}</td>
+            <td>${row.titikRendah || 100}</td>
+            <td>${row.titikKritis || 50}</td>
+            <td style="white-space: nowrap;">
+              <button class="printQrBtn" data-idx="${actualIndex}" style="background:#6c757d;color:#fff;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Print QR</button>
+              <button class="editBtn" data-idx="${actualIndex}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
+              <button class="deleteBtn" data-idx="${actualIndex}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      // Update pagination info
+      updatePaginationInfo(totalItems, startIndex, endIndex, totalPages);
+      
       // Update sort arrows
       document.querySelectorAll('th.sortable').forEach(th => {
         const arrow = th.querySelector('.sort-arrow');
@@ -388,6 +561,42 @@
           arrow.textContent = '';
         }
       });
+    }
+    
+    function updatePaginationInfo(totalItems, startIndex, endIndex, totalPages) {
+      const paginationInfo = document.getElementById('paginationInfo');
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      
+      paginationInfo.textContent = `Showing ${startIndex + 1} to ${endIndex} of ${totalItems} entries`;
+      
+      // Update button states
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+      
+      if (currentPage === 1) {
+        prevBtn.style.opacity = '0.5';
+        prevBtn.style.cursor = 'not-allowed';
+        prevBtn.style.background = '#bdc3c7';
+        prevBtn.style.borderColor = '#bdc3c7';
+      } else {
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
+        prevBtn.style.background = '#2c3e50';
+        prevBtn.style.borderColor = '#2c3e50';
+      }
+      
+      if (currentPage === totalPages) {
+        nextBtn.style.opacity = '0.5';
+        nextBtn.style.cursor = 'not-allowed';
+        nextBtn.style.background = '#bdc3c7';
+        nextBtn.style.borderColor = '#bdc3c7';
+      } else {
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+        nextBtn.style.background = '#2c3e50';
+        nextBtn.style.borderColor = '#2c3e50';
+      }
     }
     // Sorting click handler
     document.addEventListener('DOMContentLoaded', function() {
@@ -445,7 +654,9 @@
         hideModal();
       };
       document.querySelector('#itemTable tbody').onclick = function(e) {
-        if (e.target.classList.contains('editBtn')) {
+        if (e.target.classList.contains('printQrBtn')) {
+          printItemQR(e.target.dataset.idx);
+        } else if (e.target.classList.contains('editBtn')) {
           showModal(e.target.dataset.idx);
         } else if (e.target.classList.contains('deleteBtn')) {
           if (confirm('Hapus data ini?')) {
@@ -456,12 +667,40 @@
           }
         }
       };
+      // Pagination event listeners
+      document.getElementById('prevPage').addEventListener('click', function() {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTable();
+        }
+      });
+      
+      document.getElementById('nextPage').addEventListener('click', function() {
+        const totalItems = getItemData().length;
+        const totalPages = Math.ceil(totalItems / pageSize);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderTable();
+        }
+      });
+      
+      document.getElementById('pageSize').addEventListener('change', function() {
+        pageSize = parseInt(this.value);
+        currentPage = 1; // Reset to first page when changing page size
+        renderTable();
+      });
+      
       // Initial render
       if (!localStorage.getItem('itemBarang')) setItemData(defaultData);
       renderTable();
       
       // Populate dropdowns on page load
       populateDropdowns();
+      
+      // QR Modal event listeners
+      document.getElementById('qrCloseBtn').onclick = hideQRModal;
+      document.getElementById('qrModalCloseBtn').onclick = hideQRModal;
+      document.getElementById('qrPrintBtn').onclick = printQRCode;
     });
     function showModal(editIdx = null) {
       const modal = document.getElementById('itemModal');
@@ -494,6 +733,121 @@
     }
     function hideModal() {
       document.getElementById('itemModal').style.display = 'none';
+    }
+    
+    function printItemQR(itemIndex) {
+      const data = getItemData();
+      const item = data[itemIndex];
+      
+      // Create QR code content with item information
+      const qrContent = `${item.kodeBarang}|${item.namaItem}|${item.jenis}|${item.bentuk}|${item.grade}`;
+      
+      // Populate QR modal with data
+      document.getElementById('qrItemNameDisplay').textContent = item.namaItem;
+      document.getElementById('qrKodeBarang').textContent = item.kodeBarang;
+      document.getElementById('qrNamaItem').textContent = item.namaItem;
+      document.getElementById('qrJenis').textContent = item.jenis;
+      document.getElementById('qrBentuk').textContent = item.bentuk;
+      document.getElementById('qrGrade').textContent = item.grade;
+      
+      // Format date and time as dd-mm-yyyy H:i:s
+      const now = new Date();
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+      document.getElementById('qrDatePrinted').textContent = formattedDateTime;
+      
+      // Generate QR code
+      generateQRCode(qrContent);
+      
+      // Show QR modal
+      const modal = document.getElementById('qrPrintModal');
+      modal.style.display = 'flex';
+    }
+    
+    function hideQRModal() {
+      const modal = document.getElementById('qrPrintModal');
+      modal.style.display = 'none';
+    }
+    
+    function printQRCode() {
+      const qrCanvas = document.getElementById('qrCodeCanvas');
+      const qrDataURL = qrCanvas.toDataURL('image/png');
+      
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>QR Code - ${document.getElementById('qrKodeBarang').textContent}</title>
+          <style>
+            @page { size: A4; margin: 10mm; }
+            body { 
+              margin: 0; padding: 0; 
+              font-family: 'Courier New', monospace; 
+              font-size: 12px; line-height: 1.4;
+              background: white;
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+            }
+            .qr-label {
+              width: 210mm; height: 297mm;
+              border: 2px solid #000; padding: 20px;
+              box-sizing: border-box; page-break-after: always;
+              background: white;
+            }
+            .qr-code {
+              width: 80%; max-width: 500px; height: auto;
+              margin: 0 auto 20px auto; display: block;
+            }
+            .info-section {
+              border-top: 1px solid #000; padding-top: 15px;
+              margin-bottom: 15px;
+            }
+            .info-row {
+              margin-bottom: 8px; font-size: 14px; font-weight: bold;
+            }
+            .footer {
+              border-top: 1px solid #000; padding-top: 15px;
+              text-align: center; color: #666;
+            }
+            @media print {
+              body { margin: 0; }
+              .qr-label { border: 2px solid #000; background: white; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="qr-label">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${qrDataURL}" class="qr-code" alt="QR Code">
+            </div>
+            <div class="info-section">
+              <div class="info-row">🏷️  Kode Barang     : ${document.getElementById('qrKodeBarang').textContent}</div>
+              <div class="info-row">📦  Nama Item       : ${document.getElementById('qrNamaItem').textContent}</div>
+              <div class="info-row">🔧  Jenis           : ${document.getElementById('qrJenis').textContent}</div>
+              <div class="info-row">📐  Bentuk          : ${document.getElementById('qrBentuk').textContent}</div>
+              <div class="info-row">⭐  Grade           : ${document.getElementById('qrGrade').textContent}</div>
+              <div class="info-row">🕒  Date Printed    : ${document.getElementById('qrDatePrinted').textContent}</div>
+            </div>
+            <div class="footer">
+              SURYA LOGAM JAYA - Warehouse Management System
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      // Wait for content to load before printing
+      printWindow.onload = function() {
+        printWindow.focus();
+        printWindow.print();
+      };
     }
   </script>
   <script src="../logics/ui.js"></script>

@@ -660,10 +660,10 @@
           <canvas id="qrCodeCanvas" width="400" height="400" style="width: 80%; max-width: 400px; height: auto; border: 1px solid #ccc;"></canvas>
         </div>
         <div style="border-top: 1px solid #000; padding-top: 15px;">
-          <div style="margin-bottom: 8px;">🏷️  Rack Name       : <span id="qrRackName"></span></div>
-          <div style="margin-bottom: 8px;">📦  Bin Code        : <span id="qrBinCode"></span></div>
-          <div style="margin-bottom: 8px;">👤  PIC             : <span id="qrPic"></span></div>
-          <div style="margin-bottom: 8px;">🕒  Date Printed    : <span id="qrDatePrinted"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">🏷️  Rack Name       : <span id="qrRackName"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">📦  Bin Code        : <span id="qrBinCode"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">👤  PIC             : <span id="qrPic"></span></div>
+          <div style="margin-bottom: 12px; font-size: 18px; font-weight: bold;">🕒  Date Printed    : <span id="qrDatePrinted"></span></div>
         </div>
         <div style="border-top: 1px solid #000; padding-top: 15px; text-align: center; color: #666;">
           SURYA LOGAM JAYA - Warehouse Management System
@@ -1493,7 +1493,16 @@
         document.getElementById('qrRackName').textContent = rack.name;
         document.getElementById('qrBinCode').textContent = bin.id;
         document.getElementById('qrPic').textContent = warehouse.manager + ' (Logistics)';
-        document.getElementById('qrDatePrinted').textContent = new Date().toISOString().split('T')[0];
+        // Format date and time as dd-mm-yyyy H:i:s
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const formattedDateTime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+        document.getElementById('qrDatePrinted').textContent = formattedDateTime;
         
         // Generate QR code from BIN ID
         const qrCanvas = document.getElementById('qrCodeCanvas');
@@ -1599,20 +1608,10 @@
               <img src="${qrDataURL}" class="qr-code" alt="QR Code">
             </div>
             <div class="info-section">
-              <div class="info-row">🏷️  Rack Name       : ${document.getElementById('qrRackName').textContent}</div>
-              <div class="info-row">📦  Bin Code        : ${document.getElementById('qrBinCode').textContent}</div>
-              <div class="info-row">🌍  Location Code   : ${document.getElementById('qrLocationCode').textContent}</div>
-            </div>
-            <div class="info-section">
-              <div class="info-row">🔧  Item Name       : ${document.getElementById('qrItemName').textContent}</div>
-              <div class="info-row">🆔  SKU Code        : ${document.getElementById('qrSkuCode').textContent}</div>
-              <div class="info-row">📂  Category        : ${document.getElementById('qrCategory').textContent}</div>
-            </div>
-            <div class="info-section">
-              <div class="info-row">📊  Quantity Limit  : ${document.getElementById('qrQuantityLimit').textContent}</div>
-              <div class="info-row">📉  Current Stock   : ${document.getElementById('qrCurrentStock').textContent}</div>
-              <div class="info-row">👤  PIC             : ${document.getElementById('qrPic').textContent}</div>
-              <div class="info-row">🕒  Date Printed    : ${document.getElementById('qrDatePrinted').textContent}</div>
+              <div class="info-row" style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">🏷️  Rack Name       : ${document.getElementById('qrRackName').textContent}</div>
+              <div class="info-row" style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">📦  Bin Code        : ${document.getElementById('qrBinCode').textContent}</div>
+              <div class="info-row" style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">👤  PIC             : ${document.getElementById('qrPic').textContent}</div>
+              <div class="info-row" style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">🕒  Date Printed    : ${document.getElementById('qrDatePrinted').textContent}</div>
             </div>
             <div class="footer">
               SURYA LOGAM JAYA - Warehouse Management System
