@@ -215,7 +215,7 @@ function createWindow () {
           accelerator: 'CmdOrCtrl+6',
           click: () => {
             // Placeholder for future implementation
-            win.webContents.executeJavaScript('alert("Supplier - Coming Soon");');
+            win.loadFile('src/renderer/pages/masterdata-supplier.html');
           }
         },
         {
