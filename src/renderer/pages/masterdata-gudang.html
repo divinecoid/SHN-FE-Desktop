@@ -5,9 +5,59 @@
   <title>SURYA LOGAM JAYA | Master Data Gudang</title>
   <link rel="stylesheet" href="../styles/style.css">
   <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+  <script src="../logics/qrcode.min.js"></script>
+  <script>
+    // QR code generation using qrcode.js library
+    function generateQRCode(text) {
+      const canvas = document.getElementById('qrCodeCanvas');
+      
+      // Clear canvas
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Set canvas size
+      canvas.width = 400;
+      canvas.height = 400;
+      
+      // Fill white background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 400, 400);
+      
+      // Generate QR code using the library
+      QRCode.toCanvas(canvas, text, {
+        width: 400,
+        height: 400,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        },
+        errorCorrectionLevel: 'M' // Medium error correction
+      }, function (error) {
+        if (error) {
+          console.error('QR Code generation error:', error);
+          // Fallback to simple text display
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, 400, 400);
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 20px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('QR Code Error', 200, 200);
+          ctx.font = 'bold 16px Arial';
+          ctx.fillText(text, 200, 230);
+        } else {
+          // Add text label below the QR code
+          ctx.fillStyle = '#000000';
+          ctx.font = 'bold 16px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(text, 200, 390);
+        }
+      });
+    }
+  </script>
   <style>
     .content {
       padding: 20px;
@@ -326,7 +376,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.4);
       z-index: 2000;
       align-items: center;
       justify-content: center;
@@ -338,8 +388,17 @@
       border-radius: 10px;
       min-width: 400px;
       max-width: 90vw;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.13);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1);
       position: relative;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transform: scale(0.95);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .modal.show .modal-content {
+      transform: scale(1);
+      opacity: 1;
     }
     
     .modal-title {
@@ -603,14 +662,6 @@
         <div style="border-top: 1px solid #000; padding-top: 15px;">
           <div style="margin-bottom: 8px;">🏷️  Rack Name       : <span id="qrRackName"></span></div>
           <div style="margin-bottom: 8px;">📦  Bin Code        : <span id="qrBinCode"></span></div>
-          <div style="margin-bottom: 8px;">🌍  Location Code   : <span id="qrLocationCode"></span></div>
-          <div style="margin-bottom: 15px;"></div>
-          <div style="margin-bottom: 8px;">🔧  Item Name       : <span id="qrItemName"></span></div>
-          <div style="margin-bottom: 8px;">🆔  SKU Code        : <span id="qrSkuCode"></span></div>
-          <div style="margin-bottom: 8px;">📂  Category        : <span id="qrCategory"></span></div>
-          <div style="margin-bottom: 15px;"></div>
-          <div style="margin-bottom: 8px;">📊  Quantity Limit  : <span id="qrQuantityLimit"></span></div>
-          <div style="margin-bottom: 8px;">📉  Current Stock   : <span id="qrCurrentStock"></span></div>
           <div style="margin-bottom: 8px;">👤  PIC             : <span id="qrPic"></span></div>
           <div style="margin-bottom: 8px;">🕒  Date Printed    : <span id="qrDatePrinted"></span></div>
         </div>
@@ -1105,10 +1156,18 @@
         currentWarehouseIndex = null;
       }
       modal.style.display = 'flex';
+      // Add show class for animation
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
     }
 
     function hideWarehouseModal() {
-      document.getElementById('warehouseModal').style.display = 'none';
+      const modal = document.getElementById('warehouseModal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
     }
 
     // Rack Modal Functions
@@ -1135,10 +1194,18 @@
         title.textContent = 'Tambah Rak';
       }
       modal.style.display = 'flex';
+      // Add show class for animation
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
     }
 
     function hideRackModal() {
-      document.getElementById('rackModal').style.display = 'none';
+      const modal = document.getElementById('rackModal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
     }
 
     // Bin Modal Functions
@@ -1154,10 +1221,18 @@
       document.getElementById('rackNameDisplay').textContent = rack.name;
       renderBinTable(rack.bins);
       modal.style.display = 'flex';
+      // Add show class for animation
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
     }
 
     function hideBinModal() {
-      document.getElementById('binModal').style.display = 'none';
+      const modal = document.getElementById('binModal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
     }
 
     function renderBinTable(bins) {
@@ -1204,10 +1279,18 @@
         delete form.dataset.binIndex;
       }
       modal.style.display = 'flex';
+      // Add show class for animation
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
     }
 
     function hideBinEditModal() {
-      document.getElementById('binEditModal').style.display = 'none';
+      const modal = document.getElementById('binEditModal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
     }
 
     // Event Listeners
@@ -1409,12 +1492,6 @@
         document.getElementById('qrBinNameDisplay').textContent = bin.name;
         document.getElementById('qrRackName').textContent = rack.name;
         document.getElementById('qrBinCode').textContent = bin.id;
-        document.getElementById('qrLocationCode').textContent = `${warehouse.id}-ZONE-${rack.id}`;
-        document.getElementById('qrItemName').textContent = 'Sample Item'; // Placeholder
-        document.getElementById('qrSkuCode').textContent = 'SKU-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-        document.getElementById('qrCategory').textContent = 'Warehouse Components';
-        document.getElementById('qrQuantityLimit').textContent = `Max ${bin.capacity} kg`;
-        document.getElementById('qrCurrentStock').textContent = `${Math.floor(Math.random() * bin.capacity)} kg`;
         document.getElementById('qrPic').textContent = warehouse.manager + ' (Logistics)';
         document.getElementById('qrDatePrinted').textContent = new Date().toISOString().split('T')[0];
         
@@ -1422,7 +1499,7 @@
         const qrCanvas = document.getElementById('qrCodeCanvas');
         console.log('QR Canvas element:', qrCanvas);
         
-        // Use our reliable QR code generation
+        // Generate QR code (will use library if available, otherwise built-in generator)
         generateQRCode(bin.id);
         console.log('QR Code generated for:', bin.id);
         
@@ -1430,6 +1507,10 @@
         const modal = document.getElementById('qrPrintModal');
         console.log('QR Modal element:', modal);
         modal.style.display = 'flex';
+        // Add show class for animation
+        setTimeout(() => {
+          modal.classList.add('show');
+        }, 10);
         console.log('Modal should be visible now');
         
       } catch (error) {
@@ -1438,8 +1519,14 @@
       }
     }
 
+
+
     function hideQRModal() {
-      document.getElementById('qrPrintModal').style.display = 'none';
+      const modal = document.getElementById('qrPrintModal');
+      modal.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
     }
 
     function printQRCode() {
@@ -1543,195 +1630,9 @@
       };
     }
 
-    // Simple and reliable QR code generation
-    function generateQRCode(text) {
-      const canvas = document.getElementById('qrCodeCanvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Set canvas size explicitly - medium size for preview
-      canvas.width = 400;
-      canvas.height = 400;
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, 400, 400);
-      
-      // Fill white background
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, 400, 400);
-      
-      // Draw border
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 3;
-      ctx.strokeRect(0, 0, 400, 400);
-      
-      // Create a simple QR-like pattern
-      const size = 400;
-      const cellSize = 16; // Medium cells for good visibility
-      const cells = Math.floor(size / cellSize);
-      
-      // Generate a simple pattern based on text
-      const textHash = text.split('').reduce((a, b) => {
-        a = ((a << 5) - a) + b.charCodeAt(0);
-        return a & a;
-      }, 0);
-      
-      // Create QR-like pattern
-      ctx.fillStyle = '#000000';
-      
-      // Position detection patterns (corners) - medium size
-      // Top-left corner
-      for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-          if (i === 0 || i === 6 || j === 0 || j === 6 || 
-              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-      
-      // Top-right corner
-      for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-          if (i === 0 || i === 6 || j === 0 || j === 6 || 
-              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-            ctx.fillRect((cells - 7 + i) * cellSize, j * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-      
-      // Bottom-left corner
-      for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-          if (i === 0 || i === 6 || j === 0 || j === 6 || 
-              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-            ctx.fillRect(i * cellSize, (cells - 7 + j) * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-      
-      // Add data pattern based on text hash
-      for (let i = 7; i < cells - 7; i++) {
-        for (let j = 7; j < cells - 7; j++) {
-          const index = (i * cells + j) % 32;
-          const bit = (textHash >> index) & 1;
-          if (bit) {
-            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-      
-      // Add text label - medium font size
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 32px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(text, size / 2, size - 20);
-    }
 
-    // Fallback QR code generation if library fails to load
-    function generateSimpleQR(text) {
-      const canvas = document.getElementById('qrCodeCanvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, 150, 150);
-      
-      // Draw background
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, 150, 150);
-      
-      // Draw border
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(0, 0, 150, 150);
-      
-      // Draw text
-      ctx.fillStyle = '#000000';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('QR CODE', 75, 60);
-      ctx.fillText(text, 75, 80);
-      ctx.fillText('10cm x 10cm', 75, 100);
-    }
 
-    // Better QR code generation with multiple fallback methods
-    function generateQRWithFallback(text) {
-      const canvas = document.getElementById('qrCodeCanvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Clear canvas
-      ctx.clearRect(0, 0, 150, 150);
-      
-      // Try to create a simple QR-like pattern
-      const size = 150;
-      const cellSize = 5;
-      const cells = size / cellSize;
-      
-      // Fill background
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, size, size);
-      
-      // Create a simple QR-like pattern based on text
-      ctx.fillStyle = '#000000';
-      
-      // Create position detection patterns (corners)
-      // Top-left
-      for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-          if ((i === 0 || i === 6 || j === 0 || j === 6) || 
-              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-      
-      // Top-right
-      for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-          if ((i === 0 || i === 6 || j === 0 || j === 6) || 
-              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-            ctx.fillRect((cells - 7 + i) * cellSize, j * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-      
-      // Bottom-left
-      for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 7; j++) {
-          if ((i === 0 || i === 6 || j === 0 || j === 6) || 
-              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
-            ctx.fillRect(i * cellSize, (cells - 7 + j) * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-      
-      // Add some data pattern based on text
-      const textBytes = new TextEncoder().encode(text);
-      let bitIndex = 0;
-      
-      for (let i = 7; i < cells - 7; i++) {
-        for (let j = 7; j < cells - 7; j++) {
-          if (bitIndex < textBytes.length * 8) {
-            const byteIndex = Math.floor(bitIndex / 8);
-            const bitInByte = bitIndex % 8;
-            const bit = (textBytes[byteIndex] >> bitInByte) & 1;
-            
-            if (bit && Math.random() > 0.5) { // Add some randomness for visual effect
-              ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
-            }
-          }
-          bitIndex++;
-        }
-      }
-      
-      // Add text label below
-      ctx.fillStyle = '#000000';
-      ctx.font = '10px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-      ctx.fillText(text, size / 2, size - 5);
-    }
+
   </script>
   <script src="../logics/ui.js"></script>
 </body>
