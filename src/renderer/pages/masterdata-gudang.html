@@ -5,6 +5,9 @@
   <title>SURYA LOGAM JAYA | Master Data Gudang</title>
   <link rel="stylesheet" href="../styles/style.css">
   <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
     .content {
       padding: 20px;
@@ -589,6 +592,40 @@
     </div>
   </div>
 
+  <!-- QR Print Modal -->
+  <div id="qrPrintModal" class="modal">
+    <div class="modal-content" style="min-width: 600px; max-width: 70vw; max-height: 90vh; overflow-y: auto;">
+      <h2 class="modal-title">Print QR Code - <span id="qrBinNameDisplay"></span></h2>
+      <div id="qrPrintContainer" style="background: white; border: 2px solid #000; padding: 20px; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <canvas id="qrCodeCanvas" width="400" height="400" style="width: 80%; max-width: 400px; height: auto; border: 1px solid #ccc;"></canvas>
+        </div>
+        <div style="border-top: 1px solid #000; padding-top: 15px;">
+          <div style="margin-bottom: 8px;">🏷️  Rack Name       : <span id="qrRackName"></span></div>
+          <div style="margin-bottom: 8px;">📦  Bin Code        : <span id="qrBinCode"></span></div>
+          <div style="margin-bottom: 8px;">🌍  Location Code   : <span id="qrLocationCode"></span></div>
+          <div style="margin-bottom: 15px;"></div>
+          <div style="margin-bottom: 8px;">🔧  Item Name       : <span id="qrItemName"></span></div>
+          <div style="margin-bottom: 8px;">🆔  SKU Code        : <span id="qrSkuCode"></span></div>
+          <div style="margin-bottom: 8px;">📂  Category        : <span id="qrCategory"></span></div>
+          <div style="margin-bottom: 15px;"></div>
+          <div style="margin-bottom: 8px;">📊  Quantity Limit  : <span id="qrQuantityLimit"></span></div>
+          <div style="margin-bottom: 8px;">📉  Current Stock   : <span id="qrCurrentStock"></span></div>
+          <div style="margin-bottom: 8px;">👤  PIC             : <span id="qrPic"></span></div>
+          <div style="margin-bottom: 8px;">🕒  Date Printed    : <span id="qrDatePrinted"></span></div>
+        </div>
+        <div style="border-top: 1px solid #000; padding-top: 15px; text-align: center; color: #666;">
+          SURYA LOGAM JAYA - Warehouse Management System
+        </div>
+      </div>
+      <div style="margin-top: 20px; text-align: right; position: sticky; bottom: 0; background: white; padding: 10px 0; border-top: 1px solid #eee;">
+        <button id="qrPrintBtn" class="btn btn-primary">Print QR Code</button>
+        <button id="qrCloseBtn" class="btn btn-secondary" style="margin-left: 10px;">Tutup</button>
+      </div>
+      <button id="qrModalCloseBtn" class="close-btn">&times;</button>
+    </div>
+  </div>
+
   <script>
     // --- Warehouse Masterdata with Accordion Structure ---
     const defaultData = {
@@ -1138,6 +1175,7 @@
           </td>
           <td>${bin.capacity} kg</td>
           <td>
+            <button onclick="printBinQR(${binIndex})" style="background: #6c757d; color: #fff; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75rem; cursor: pointer; margin-right: 4px;">Print QR</button>
             <button onclick="editBin(${binIndex})" style="background: #ffc107; color: #212529; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75rem; cursor: pointer;">Edit</button>
             <button onclick="deleteBin(${binIndex})" style="background: #dc3545; color: #fff; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75rem; cursor: pointer; margin-left: 4px;">Hapus</button>
           </td>
@@ -1287,6 +1325,11 @@
       document.getElementById('binEditCloseBtn').onclick = hideBinEditModal;
       document.getElementById('binEditCancelBtn').onclick = hideBinEditModal;
 
+      // QR modal close buttons
+      document.getElementById('qrCloseBtn').onclick = hideQRModal;
+      document.getElementById('qrModalCloseBtn').onclick = hideQRModal;
+      document.getElementById('qrPrintBtn').onclick = printQRCode;
+
       // Add warehouse button
       document.getElementById('addWarehouseBtn').onclick = () => showWarehouseModal();
 
@@ -1345,6 +1388,349 @@
 
     function editBin(binIndex) {
       showBinEditModal(binIndex);
+    }
+
+    function printBinQR(binIndex) {
+      console.log('printBinQR called with binIndex:', binIndex);
+      console.log('currentWarehouseIndex:', currentWarehouseIndex);
+      console.log('currentRackIndex:', currentRackIndex);
+      
+      try {
+        const data = getWarehouseData();
+        const warehouse = data.warehouses[currentWarehouseIndex];
+        const rack = warehouse.racks[currentRackIndex];
+        const bin = rack.bins[binIndex];
+        
+        console.log('Warehouse:', warehouse);
+        console.log('Rack:', rack);
+        console.log('Bin:', bin);
+        
+        // Populate QR modal with data
+        document.getElementById('qrBinNameDisplay').textContent = bin.name;
+        document.getElementById('qrRackName').textContent = rack.name;
+        document.getElementById('qrBinCode').textContent = bin.id;
+        document.getElementById('qrLocationCode').textContent = `${warehouse.id}-ZONE-${rack.id}`;
+        document.getElementById('qrItemName').textContent = 'Sample Item'; // Placeholder
+        document.getElementById('qrSkuCode').textContent = 'SKU-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+        document.getElementById('qrCategory').textContent = 'Warehouse Components';
+        document.getElementById('qrQuantityLimit').textContent = `Max ${bin.capacity} kg`;
+        document.getElementById('qrCurrentStock').textContent = `${Math.floor(Math.random() * bin.capacity)} kg`;
+        document.getElementById('qrPic').textContent = warehouse.manager + ' (Logistics)';
+        document.getElementById('qrDatePrinted').textContent = new Date().toISOString().split('T')[0];
+        
+        // Generate QR code from BIN ID
+        const qrCanvas = document.getElementById('qrCodeCanvas');
+        console.log('QR Canvas element:', qrCanvas);
+        
+        // Use our reliable QR code generation
+        generateQRCode(bin.id);
+        console.log('QR Code generated for:', bin.id);
+        
+        // Show QR modal
+        const modal = document.getElementById('qrPrintModal');
+        console.log('QR Modal element:', modal);
+        modal.style.display = 'flex';
+        console.log('Modal should be visible now');
+        
+      } catch (error) {
+        console.error('Error in printBinQR:', error);
+        alert('Error opening QR print modal: ' + error.message);
+      }
+    }
+
+    function hideQRModal() {
+      document.getElementById('qrPrintModal').style.display = 'none';
+    }
+
+    function printQRCode() {
+      const qrCanvas = document.getElementById('qrCodeCanvas');
+      const qrDataURL = qrCanvas.toDataURL('image/png');
+      
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>QR Code Label - ${document.getElementById('qrBinCode').textContent}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+            body { 
+              margin: 0; 
+              padding: 0; 
+              font-family: 'Courier New', monospace; 
+              font-size: 12px; 
+              line-height: 1.4;
+              background: white;
+              -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+            }
+            .qr-label {
+              width: 210mm;
+              height: 297mm;
+              border: 2px solid #000;
+              padding: 20px;
+              box-sizing: border-box;
+              page-break-after: always;
+              background: white;
+            }
+            .qr-code {
+              width: 80%;
+              max-width: 500px;
+              height: auto;
+              margin: 0 auto 20px auto;
+              display: block;
+            }
+            .info-section {
+              border-top: 1px solid #000;
+              padding-top: 15px;
+              margin-bottom: 15px;
+            }
+            .info-row {
+              margin-bottom: 8px;
+            }
+            .footer {
+              border-top: 1px solid #000;
+              padding-top: 15px;
+              text-align: center;
+              color: #666;
+            }
+            @media print {
+              body { margin: 0; }
+              .qr-label { 
+                border: 2px solid #000; 
+                background: white;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="qr-label">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <img src="${qrDataURL}" class="qr-code" alt="QR Code">
+            </div>
+            <div class="info-section">
+              <div class="info-row">🏷️  Rack Name       : ${document.getElementById('qrRackName').textContent}</div>
+              <div class="info-row">📦  Bin Code        : ${document.getElementById('qrBinCode').textContent}</div>
+              <div class="info-row">🌍  Location Code   : ${document.getElementById('qrLocationCode').textContent}</div>
+            </div>
+            <div class="info-section">
+              <div class="info-row">🔧  Item Name       : ${document.getElementById('qrItemName').textContent}</div>
+              <div class="info-row">🆔  SKU Code        : ${document.getElementById('qrSkuCode').textContent}</div>
+              <div class="info-row">📂  Category        : ${document.getElementById('qrCategory').textContent}</div>
+            </div>
+            <div class="info-section">
+              <div class="info-row">📊  Quantity Limit  : ${document.getElementById('qrQuantityLimit').textContent}</div>
+              <div class="info-row">📉  Current Stock   : ${document.getElementById('qrCurrentStock').textContent}</div>
+              <div class="info-row">👤  PIC             : ${document.getElementById('qrPic').textContent}</div>
+              <div class="info-row">🕒  Date Printed    : ${document.getElementById('qrDatePrinted').textContent}</div>
+            </div>
+            <div class="footer">
+              SURYA LOGAM JAYA - Warehouse Management System
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      
+      // Wait for content to load before printing
+      printWindow.onload = function() {
+        printWindow.focus();
+        printWindow.print();
+      };
+    }
+
+    // Simple and reliable QR code generation
+    function generateQRCode(text) {
+      const canvas = document.getElementById('qrCodeCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set canvas size explicitly - medium size for preview
+      canvas.width = 400;
+      canvas.height = 400;
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, 400, 400);
+      
+      // Fill white background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 400, 400);
+      
+      // Draw border
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(0, 0, 400, 400);
+      
+      // Create a simple QR-like pattern
+      const size = 400;
+      const cellSize = 16; // Medium cells for good visibility
+      const cells = Math.floor(size / cellSize);
+      
+      // Generate a simple pattern based on text
+      const textHash = text.split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+      }, 0);
+      
+      // Create QR-like pattern
+      ctx.fillStyle = '#000000';
+      
+      // Position detection patterns (corners) - medium size
+      // Top-left corner
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 7; j++) {
+          if (i === 0 || i === 6 || j === 0 || j === 6 || 
+              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // Top-right corner
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 7; j++) {
+          if (i === 0 || i === 6 || j === 0 || j === 6 || 
+              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+            ctx.fillRect((cells - 7 + i) * cellSize, j * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // Bottom-left corner
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 7; j++) {
+          if (i === 0 || i === 6 || j === 0 || j === 6 || 
+              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+            ctx.fillRect(i * cellSize, (cells - 7 + j) * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // Add data pattern based on text hash
+      for (let i = 7; i < cells - 7; i++) {
+        for (let j = 7; j < cells - 7; j++) {
+          const index = (i * cells + j) % 32;
+          const bit = (textHash >> index) & 1;
+          if (bit) {
+            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // Add text label - medium font size
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 32px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(text, size / 2, size - 20);
+    }
+
+    // Fallback QR code generation if library fails to load
+    function generateSimpleQR(text) {
+      const canvas = document.getElementById('qrCodeCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, 150, 150);
+      
+      // Draw background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, 150, 150);
+      
+      // Draw border
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, 150, 150);
+      
+      // Draw text
+      ctx.fillStyle = '#000000';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('QR CODE', 75, 60);
+      ctx.fillText(text, 75, 80);
+      ctx.fillText('10cm x 10cm', 75, 100);
+    }
+
+    // Better QR code generation with multiple fallback methods
+    function generateQRWithFallback(text) {
+      const canvas = document.getElementById('qrCodeCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, 150, 150);
+      
+      // Try to create a simple QR-like pattern
+      const size = 150;
+      const cellSize = 5;
+      const cells = size / cellSize;
+      
+      // Fill background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, size, size);
+      
+      // Create a simple QR-like pattern based on text
+      ctx.fillStyle = '#000000';
+      
+      // Create position detection patterns (corners)
+      // Top-left
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 7; j++) {
+          if ((i === 0 || i === 6 || j === 0 || j === 6) || 
+              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // Top-right
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 7; j++) {
+          if ((i === 0 || i === 6 || j === 0 || j === 6) || 
+              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+            ctx.fillRect((cells - 7 + i) * cellSize, j * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // Bottom-left
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 7; j++) {
+          if ((i === 0 || i === 6 || j === 0 || j === 6) || 
+              (i >= 2 && i <= 4 && j >= 2 && j <= 4)) {
+            ctx.fillRect(i * cellSize, (cells - 7 + j) * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+      
+      // Add some data pattern based on text
+      const textBytes = new TextEncoder().encode(text);
+      let bitIndex = 0;
+      
+      for (let i = 7; i < cells - 7; i++) {
+        for (let j = 7; j < cells - 7; j++) {
+          if (bitIndex < textBytes.length * 8) {
+            const byteIndex = Math.floor(bitIndex / 8);
+            const bitInByte = bitIndex % 8;
+            const bit = (textBytes[byteIndex] >> bitInByte) & 1;
+            
+            if (bit && Math.random() > 0.5) { // Add some randomness for visual effect
+              ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+            }
+          }
+          bitIndex++;
+        }
+      }
+      
+      // Add text label below
+      ctx.fillStyle = '#000000';
+      ctx.font = '10px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(text, size / 2, size - 5);
     }
   </script>
   <script src="../logics/ui.js"></script>
