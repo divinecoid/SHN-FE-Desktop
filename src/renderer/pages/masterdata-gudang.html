@@ -9,6 +9,8 @@
     .content {
       padding: 20px;
       box-sizing: border-box;
+      overflow-y: auto;
+      height: calc(100vh - 60px);
     }
     .gudang-main-wrapper {
       max-width: 1200px;
@@ -179,28 +181,33 @@
       justify-content: center;
       width: 20px;
       height: 20px;
-      border-radius: 50%;
-      background: #3498db;
-      color: white;
-      font-size: 12px;
-      font-weight: bold;
-      transition: all 0.3s ease;
+      border-radius: 3px;
+      background: transparent;
+      color: #6c757d;
+      font-size: 16px;
+      font-weight: 400;
+      transition: all 0.2s ease;
       margin-left: 8px;
       cursor: pointer;
+      border: 1px solid #dee2e6;
     }
     
     .accordion-icon:hover {
-      background: #2980b9;
-      transform: scale(1.1);
+      background: #f8f9fa;
+      color: #495057;
+      border-color: #adb5bd;
     }
     
     .accordion-icon.expanded {
-      transform: rotate(90deg);
+      background: #e9ecef;
+      color: #495057;
+      border-color: #adb5bd;
     }
     
     .accordion-icon::before {
       content: '›';
-      transition: transform 0.3s ease;
+      transition: transform 0.2s ease;
+      font-weight: 300;
     }
     
     .accordion-icon.expanded::before {
@@ -210,7 +217,8 @@
     /* Rack Section */
     .racks-container {
       background: #f8f9fa;
-      padding: 0;
+      padding: 0 0 0 40px;
+      margin-bottom: 16px;
     }
     
     .rack-table {
@@ -934,7 +942,7 @@
                 <button class="warehouse-btn add-rack-btn" onclick="showRackModal(${originalIndex})">+ Rak</button>
                 <button class="warehouse-btn edit-warehouse-btn" onclick="showWarehouseModal(${originalIndex})">Edit</button>
                 <button class="warehouse-btn delete-warehouse-btn" onclick="deleteWarehouse(${originalIndex})">Hapus</button>
-                <span class="accordion-icon"></span>
+                <span class="accordion-icon" onclick="event.stopPropagation(); toggleWarehouse(${originalIndex})"></span>
               </div>
             </td>
           </tr>
