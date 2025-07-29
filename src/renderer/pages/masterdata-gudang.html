@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SURYA LOGAM JAYA | Master Data Gudang</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+  <style>
+    .content {
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .gudang-main-wrapper {
+      max-width: 1200px;
+      margin-left: 0;
+    }
+    #addWarehouseBtn {
+      display: inline-block;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.98rem;
+      cursor: pointer;
+      padding: 8px 10px;
+    }
+    
+    .page-title {
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+    
+    .page-title .main-title {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .page-title .sub-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 1px;
+    }
+    
+    /* Table-style Accordion Styling */
+    .warehouse-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: none;
+      margin-bottom: 20px;
+    }
+    
+    .warehouse-table thead {
+      background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+    }
+    
+    .warehouse-table th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #000000;
+      font-size: 0.95rem;
+      border: none;
+      position: relative;
+    }
+    
+    .warehouse-table th.sortable {
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    .warehouse-table th.sortable:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .warehouse-table tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    .warehouse-table tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .warehouse-table tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    .warehouse-table td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    .warehouse-table td:first-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    /* Warehouse row styling */
+    .warehouse-row {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border-left: 4px solid #3498db;
+    }
+    
+    .warehouse-row:hover {
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      border-left-color: #1976d2;
+    }
+    
+    /* Racks row styling */
+    .racks-row {
+      background: #ffffff;
+    }
+    
+    .racks-row td {
+      padding: 0 !important;
+    }
+    
+    .warehouse-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .warehouse-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .add-rack-btn {
+      background: #27ae60;
+      color: #ffffff;
+    }
+    
+    .add-rack-btn:hover {
+      background: #229954;
+    }
+    
+    .edit-warehouse-btn {
+      background: #3498db;
+      color: #ffffff;
+    }
+    
+    .edit-warehouse-btn:hover {
+      background: #2980b9;
+    }
+    
+    .delete-warehouse-btn {
+      background: #e74c3c;
+      color: #ffffff;
+    }
+    
+    .delete-warehouse-btn:hover {
+      background: #c0392b;
+    }
+    
+    /* Elegant accordion icon */
+    .accordion-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #3498db;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      margin-left: 8px;
+      cursor: pointer;
+    }
+    
+    .accordion-icon:hover {
+      background: #2980b9;
+      transform: scale(1.1);
+    }
+    
+    .accordion-icon.expanded {
+      transform: rotate(90deg);
+    }
+    
+    .accordion-icon::before {
+      content: '›';
+      transition: transform 0.3s ease;
+    }
+    
+    .accordion-icon.expanded::before {
+      transform: rotate(90deg);
+    }
+    
+    /* Rack Section */
+    .racks-container {
+      background: #f8f9fa;
+      padding: 0;
+    }
+    
+    .rack-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      margin: 8px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e9ecef;
+    }
+    
+    .rack-table thead {
+      background: linear-gradient(135deg, #f1f3f4 0%, #e8eaed 100%);
+    }
+    
+    .rack-table th {
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 600;
+      color: #5f6368;
+      font-size: 0.85rem;
+      border: none;
+    }
+    
+    .rack-table tbody tr {
+      border-bottom: 1px solid #f1f3f4;
+      transition: all 0.3s ease;
+      background: #ffffff;
+    }
+    
+    .rack-table tbody tr:hover {
+      background: #f8f9fa;
+      transform: translateY(-1px);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .rack-table tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    .rack-table td {
+      padding: 10px 12px;
+      color: #5f6368;
+      font-size: 0.85rem;
+      border: none;
+    }
+    
+    .rack-table td:first-child {
+      font-weight: 500;
+      color: #3c4043;
+    }
+    
+    .rack-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    
+    .rack-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .view-bins-btn {
+      background: #17a2b8;
+      color: #ffffff;
+    }
+    
+    .view-bins-btn:hover {
+      background: #138496;
+    }
+    
+    .edit-rack-btn {
+      background: #ffc107;
+      color: #212529;
+    }
+    
+    .edit-rack-btn:hover {
+      background: #e0a800;
+    }
+    
+    .delete-rack-btn {
+      background: #dc3545;
+      color: #ffffff;
+    }
+    
+    .delete-rack-btn:hover {
+      background: #c82333;
+    }
+    
+    /* Modal Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.25);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background: #fff;
+      padding: 32px 28px 24px 28px;
+      border-radius: 10px;
+      min-width: 400px;
+      max-width: 90vw;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.13);
+      position: relative;
+    }
+    
+    .modal-title {
+      margin-top: 0;
+      font-size: 1.3rem;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    
+    .modal-actions {
+      text-align: right;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      padding: 8px 18px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .btn-secondary {
+      background: #95a5a6;
+      color: #fff;
+      margin-right: 12px;
+    }
+    
+    .btn-primary {
+      background: #34495e;
+      color: #fff;
+    }
+    
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: none;
+      border: none;
+      font-size: 1.3rem;
+      cursor: pointer;
+      color: #888;
+    }
+    
+    /* Bin Table Styling */
+    .bin-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    
+    .bin-table th {
+      background: #f8f9fa;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #495057;
+      border-bottom: 2px solid #dee2e6;
+    }
+    
+    .bin-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .bin-table tr:hover {
+      background: #f8f9fa;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="gudang-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">Master Data</div>
+        <div class="sub-title">Gudang</div>
+      </div>
+      <button id="addWarehouseBtn">+ Gudang</button>
+      <div class="table-scroll-x">
+        <table id="warehouseTable" class="warehouse-table">
+          <thead>
+            <tr>
+              <th data-col="id" class="sortable">ID Gudang <span class="sort-arrow"></span></th>
+              <th data-col="name" class="sortable">Nama Gudang <span class="sort-arrow"></span></th>
+              <th data-col="location" class="sortable">Lokasi <span class="sort-arrow"></span></th>
+              <th data-col="manager" class="sortable">Manager <span class="sort-arrow"></span></th>
+              <th data-col="racks" class="sortable">Jumlah Rak <span class="sort-arrow"></span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="warehousesContainer">
+            <!-- Warehouses will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Warehouse Modal -->
+  <div id="warehouseModal" class="modal">
+    <div class="modal-content">
+      <h2 id="warehouseModalTitle" class="modal-title">Tambah Gudang</h2>
+      <form id="warehouseForm">
+        <div class="form-group">
+          <label for="warehouseId">ID Gudang</label>
+          <input type="text" id="warehouseId" name="id" required maxlength="8">
+        </div>
+        <div class="form-group">
+          <label for="warehouseName">Nama Gudang</label>
+          <input type="text" id="warehouseName" name="name" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label for="warehouseLocation">Lokasi</label>
+          <input type="text" id="warehouseLocation" name="location" required maxlength="100">
+        </div>
+        <div class="form-group">
+          <label for="warehouseManager">Manager</label>
+          <input type="text" id="warehouseManager" name="manager" required maxlength="50">
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="warehouseCancelBtn" class="btn btn-secondary">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+      <button id="warehouseCloseBtn" class="close-btn">&times;</button>
+    </div>
+  </div>
+
+  <!-- Rack Modal -->
+  <div id="rackModal" class="modal">
+    <div class="modal-content">
+      <h2 id="rackModalTitle" class="modal-title">Tambah Rak</h2>
+      <form id="rackForm">
+        <div class="form-group">
+          <label for="rackId">ID Rak</label>
+          <input type="text" id="rackId" name="id" required maxlength="8">
+        </div>
+        <div class="form-group">
+          <label for="rackName">Nama Rak</label>
+          <input type="text" id="rackName" name="name" required maxlength="30">
+        </div>
+        <div class="form-group">
+          <label for="rackCapacity">Kapasitas (kg)</label>
+          <input type="number" id="rackCapacity" name="capacity" required min="1" max="10000">
+        </div>
+        <div class="form-group">
+          <label for="rackDescription">Deskripsi</label>
+          <input type="text" id="rackDescription" name="description" maxlength="100">
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="rackCancelBtn" class="btn btn-secondary">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+      <button id="rackCloseBtn" class="close-btn">&times;</button>
+    </div>
+  </div>
+
+  <!-- Bin Detail Modal -->
+  <div id="binModal" class="modal">
+    <div class="modal-content" style="min-width: 600px;">
+      <h2 id="binModalTitle" class="modal-title">Detail Bin - <span id="rackNameDisplay"></span></h2>
+      <div id="binTableContainer">
+        <table class="bin-table">
+          <thead>
+            <tr>
+              <th>ID Bin</th>
+              <th>Nama Bin</th>
+              <th>Status</th>
+              <th>Kapasitas (kg)</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="binTableBody">
+            <!-- Bin data will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 20px; text-align: right;">
+        <button id="addBinBtn" class="btn btn-primary">+ Tambah Bin</button>
+        <button id="binCloseBtn" class="btn btn-secondary" style="margin-left: 10px;">Tutup</button>
+      </div>
+      <button id="binModalCloseBtn" class="close-btn">&times;</button>
+    </div>
+  </div>
+
+  <!-- Bin Add/Edit Modal -->
+  <div id="binEditModal" class="modal">
+    <div class="modal-content">
+      <h2 id="binEditModalTitle" class="modal-title">Tambah Bin</h2>
+      <form id="binForm">
+        <div class="form-group">
+          <label for="binId">ID Bin</label>
+          <input type="text" id="binId" name="id" required maxlength="8">
+        </div>
+        <div class="form-group">
+          <label for="binName">Nama Bin</label>
+          <input type="text" id="binName" name="name" required maxlength="30">
+        </div>
+        <div class="form-group">
+          <label for="binStatus">Status</label>
+          <select id="binStatus" name="status" required>
+            <option value="active">Aktif</option>
+            <option value="inactive">Tidak Aktif</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="binCapacity">Kapasitas (kg)</label>
+          <input type="number" id="binCapacity" name="capacity" required min="1" max="10000">
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="binEditCancelBtn" class="btn btn-secondary">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+      <button id="binEditCloseBtn" class="close-btn">&times;</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Warehouse Masterdata with Accordion Structure ---
+    const defaultData = {
+      warehouses: [
+        {
+          id: 'WH001',
+          name: 'Gudang Utama',
+          location: 'Jakarta Pusat',
+          manager: 'Ahmad Supriadi',
+          racks: [
+            {
+              id: 'RK001',
+              name: 'Rak A',
+              capacity: 1000,
+              description: 'Rak untuk logam berat',
+              bins: [
+                { id: 'BN001', name: 'Bin A1', status: 'active', capacity: 500 },
+                { id: 'BN002', name: 'Bin A2', status: 'active', capacity: 500 }
+              ]
+            },
+            {
+              id: 'RK002',
+              name: 'Rak B',
+              capacity: 800,
+              description: 'Rak untuk logam ringan',
+              bins: [
+                { id: 'BN003', name: 'Bin B1', status: 'active', capacity: 400 },
+                { id: 'BN004', name: 'Bin B2', status: 'maintenance', capacity: 400 }
+              ]
+            },
+            {
+              id: 'RK003',
+              name: 'Rak C',
+              capacity: 1200,
+              description: 'Rak untuk logam campuran',
+              bins: [
+                { id: 'BN005', name: 'Bin C1', status: 'active', capacity: 600 },
+                { id: 'BN006', name: 'Bin C2', status: 'active', capacity: 600 }
+              ]
+            },
+            {
+              id: 'RK004',
+              name: 'Rak D',
+              capacity: 1500,
+              description: 'Rak untuk logam premium',
+              bins: [
+                { id: 'BN007', name: 'Bin D1', status: 'active', capacity: 750 },
+                { id: 'BN008', name: 'Bin D2', status: 'active', capacity: 750 }
+              ]
+            },
+            {
+              id: 'RK005',
+              name: 'Rak E',
+              capacity: 900,
+              description: 'Rak untuk logam scrap',
+              bins: [
+                { id: 'BN009', name: 'Bin E1', status: 'active', capacity: 450 },
+                { id: 'BN010', name: 'Bin E2', status: 'maintenance', capacity: 450 }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'WH002',
+          name: 'Gudang Cabang',
+          location: 'Surabaya',
+          manager: 'Budi Santoso',
+          racks: [
+            {
+              id: 'RK006',
+              name: 'Rak F',
+              capacity: 1100,
+              description: 'Rak utama cabang',
+              bins: [
+                { id: 'BN011', name: 'Bin F1', status: 'active', capacity: 550 },
+                { id: 'BN012', name: 'Bin F2', status: 'active', capacity: 550 }
+              ]
+            },
+            {
+              id: 'RK007',
+              name: 'Rak G',
+              capacity: 950,
+              description: 'Rak untuk logam import',
+              bins: [
+                { id: 'BN013', name: 'Bin G1', status: 'active', capacity: 475 },
+                { id: 'BN014', name: 'Bin G2', status: 'active', capacity: 475 }
+              ]
+            },
+            {
+              id: 'RK008',
+              name: 'Rak H',
+              capacity: 1300,
+              description: 'Rak untuk logam ekspor',
+              bins: [
+                { id: 'BN015', name: 'Bin H1', status: 'active', capacity: 650 },
+                { id: 'BN016', name: 'Bin H2', status: 'maintenance', capacity: 650 }
+              ]
+            },
+            {
+              id: 'RK009',
+              name: 'Rak I',
+              capacity: 700,
+              description: 'Rak untuk logam kecil',
+              bins: [
+                { id: 'BN017', name: 'Bin I1', status: 'active', capacity: 350 },
+                { id: 'BN018', name: 'Bin I2', status: 'active', capacity: 350 }
+              ]
+            },
+            {
+              id: 'RK010',
+              name: 'Rak J',
+              capacity: 1600,
+              description: 'Rak untuk logam besar',
+              bins: [
+                { id: 'BN019', name: 'Bin J1', status: 'active', capacity: 800 },
+                { id: 'BN020', name: 'Bin J2', status: 'active', capacity: 800 }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'WH003',
+          name: 'Gudang Bandung',
+          location: 'Bandung',
+          manager: 'Siti Aminah',
+          racks: [
+            {
+              id: 'RK011',
+              name: 'Rak K',
+              capacity: 850,
+              description: 'Rak untuk logam lokal',
+              bins: [
+                { id: 'BN021', name: 'Bin K1', status: 'active', capacity: 425 },
+                { id: 'BN022', name: 'Bin K2', status: 'active', capacity: 425 }
+              ]
+            },
+            {
+              id: 'RK012',
+              name: 'Rak L',
+              capacity: 1050,
+              description: 'Rak untuk logam industri',
+              bins: [
+                { id: 'BN023', name: 'Bin L1', status: 'active', capacity: 525 },
+                { id: 'BN024', name: 'Bin L2', status: 'maintenance', capacity: 525 }
+              ]
+            },
+            {
+              id: 'RK013',
+              name: 'Rak M',
+              capacity: 1400,
+              description: 'Rak untuk logam konstruksi',
+              bins: [
+                { id: 'BN025', name: 'Bin M1', status: 'active', capacity: 700 },
+                { id: 'BN026', name: 'Bin M2', status: 'active', capacity: 700 }
+              ]
+            },
+            {
+              id: 'RK014',
+              name: 'Rak N',
+              capacity: 750,
+              description: 'Rak untuk logam elektronik',
+              bins: [
+                { id: 'BN027', name: 'Bin N1', status: 'active', capacity: 375 },
+                { id: 'BN028', name: 'Bin N2', status: 'active', capacity: 375 }
+              ]
+            },
+            {
+              id: 'RK015',
+              name: 'Rak O',
+              capacity: 1250,
+              description: 'Rak untuk logam otomotif',
+              bins: [
+                { id: 'BN029', name: 'Bin O1', status: 'active', capacity: 625 },
+                { id: 'BN030', name: 'Bin O2', status: 'active', capacity: 625 }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'WH004',
+          name: 'Gudang Medan',
+          location: 'Medan',
+          manager: 'Rudi Hartono',
+          racks: [
+            {
+              id: 'RK016',
+              name: 'Rak P',
+              capacity: 1150,
+              description: 'Rak untuk logam regional',
+              bins: [
+                { id: 'BN031', name: 'Bin P1', status: 'active', capacity: 575 },
+                { id: 'BN032', name: 'Bin P2', status: 'active', capacity: 575 }
+              ]
+            },
+            {
+              id: 'RK017',
+              name: 'Rak Q',
+              capacity: 1350,
+              description: 'Rak untuk logam ekspor',
+              bins: [
+                { id: 'BN033', name: 'Bin Q1', status: 'active', capacity: 675 },
+                { id: 'BN034', name: 'Bin Q2', status: 'maintenance', capacity: 675 }
+              ]
+            },
+            {
+              id: 'RK018',
+              name: 'Rak R',
+              capacity: 1000,
+              description: 'Rak untuk logam import',
+              bins: [
+                { id: 'BN035', name: 'Bin R1', status: 'active', capacity: 500 },
+                { id: 'BN036', name: 'Bin R2', status: 'active', capacity: 500 }
+              ]
+            },
+            {
+              id: 'RK019',
+              name: 'Rak S',
+              capacity: 1450,
+              description: 'Rak untuk logam premium',
+              bins: [
+                { id: 'BN037', name: 'Bin S1', status: 'active', capacity: 725 },
+                { id: 'BN038', name: 'Bin S2', status: 'active', capacity: 725 }
+              ]
+            },
+            {
+              id: 'RK020',
+              name: 'Rak T',
+              capacity: 950,
+              description: 'Rak untuk logam scrap',
+              bins: [
+                { id: 'BN039', name: 'Bin T1', status: 'active', capacity: 475 },
+                { id: 'BN040', name: 'Bin T2', status: 'active', capacity: 475 }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'WH005',
+          name: 'Gudang Makassar',
+          location: 'Makassar',
+          manager: 'Dewi Sartika',
+          racks: [
+            {
+              id: 'RK021',
+              name: 'Rak U',
+              capacity: 1200,
+              description: 'Rak untuk logam timur',
+              bins: [
+                { id: 'BN041', name: 'Bin U1', status: 'active', capacity: 600 },
+                { id: 'BN042', name: 'Bin U2', status: 'active', capacity: 600 }
+              ]
+            },
+            {
+              id: 'RK022',
+              name: 'Rak V',
+              capacity: 1100,
+              description: 'Rak untuk logam lokal',
+              bins: [
+                { id: 'BN043', name: 'Bin V1', status: 'active', capacity: 550 },
+                { id: 'BN044', name: 'Bin V2', status: 'maintenance', capacity: 550 }
+              ]
+            },
+            {
+              id: 'RK023',
+              name: 'Rak W',
+              capacity: 1300,
+              description: 'Rak untuk logam industri',
+              bins: [
+                { id: 'BN045', name: 'Bin W1', status: 'active', capacity: 650 },
+                { id: 'BN046', name: 'Bin W2', status: 'active', capacity: 650 }
+              ]
+            },
+            {
+              id: 'RK024',
+              name: 'Rak X',
+              capacity: 900,
+              description: 'Rak untuk logam kecil',
+              bins: [
+                { id: 'BN047', name: 'Bin X1', status: 'active', capacity: 450 },
+                { id: 'BN048', name: 'Bin X2', status: 'active', capacity: 450 }
+              ]
+            },
+            {
+              id: 'RK025',
+              name: 'Rak Y',
+              capacity: 1500,
+              description: 'Rak untuk logam besar',
+              bins: [
+                { id: 'BN049', name: 'Bin Y1', status: 'active', capacity: 750 },
+                { id: 'BN050', name: 'Bin Y2', status: 'active', capacity: 750 }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+
+    let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
+    let currentWarehouseIndex = null;
+    let currentRackIndex = null;
+    let currentRackData = null;
+
+    function getWarehouseData() {
+      const data = localStorage.getItem('warehouseData');
+      return data ? JSON.parse(data) : defaultData;
+    }
+
+    function setWarehouseData(data) {
+      localStorage.setItem('warehouseData', JSON.stringify(data));
+    }
+
+    function renderWarehouses() {
+      const container = document.getElementById('warehousesContainer');
+      const data = getWarehouseData();
+      console.log('Rendering warehouses with data:', data);
+      let warehouses = data.warehouses;
+      console.log('Warehouses array:', warehouses);
+      
+      // Create a mapping of sorted indices to original indices
+      let originalIndices = warehouses.map((_, index) => index);
+      
+      // Sorting
+      if (sortState.col && sortState.dir) {
+        const sortedData = warehouses.map((warehouse, index) => ({ warehouse, originalIndex: index }));
+        sortedData.sort((a, b) => {
+          let va = a.warehouse[sortState.col];
+          let vb = b.warehouse[sortState.col];
+          if (sortState.col === 'id') { va = va.padStart(8, '0'); vb = vb.padStart(8, '0'); }
+          if (sortState.col === 'racks') { va = a.warehouse.racks.length; vb = b.warehouse.racks.length; }
+          if (va < vb) return sortState.dir === 'asc' ? -1 : 1;
+          if (va > vb) return sortState.dir === 'asc' ? 1 : -1;
+          return 0;
+        });
+        warehouses = sortedData.map(item => item.warehouse);
+        originalIndices = sortedData.map(item => item.originalIndex);
+      }
+      
+      container.innerHTML = warehouses.map((warehouse, displayIndex) => {
+        const originalIndex = originalIndices[displayIndex];
+        return `
+          <tr class="warehouse-row" data-warehouse-index="${originalIndex}" style="cursor: pointer;">
+            <td>
+              <span style="font-family:monospace;">${warehouse.id}</span>
+            </td>
+            <td>${warehouse.name}</td>
+            <td>${warehouse.location}</td>
+            <td>${warehouse.manager}</td>
+            <td>${warehouse.racks.length}</td>
+            <td>
+              <div class="warehouse-actions" onclick="event.stopPropagation();">
+                <button class="warehouse-btn add-rack-btn" onclick="showRackModal(${originalIndex})">+ Rak</button>
+                <button class="warehouse-btn edit-warehouse-btn" onclick="showWarehouseModal(${originalIndex})">Edit</button>
+                <button class="warehouse-btn delete-warehouse-btn" onclick="deleteWarehouse(${originalIndex})">Hapus</button>
+                <span class="accordion-icon"></span>
+              </div>
+            </td>
+          </tr>
+          <tr class="racks-row" data-warehouse-index="${originalIndex}" style="display: none;">
+            <td colspan="6" style="padding: 0;">
+              <div class="racks-container" id="racks-${originalIndex}">
+                <table class="rack-table">
+                  <thead>
+                    <tr>
+                      <th>ID Rak</th>
+                      <th>Nama Rak</th>
+                      <th>Kapasitas (kg)</th>
+                      <th>Jumlah Bin</th>
+                      <th>Deskripsi</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${warehouse.racks.map((rack, rackIndex) => `
+                      <tr>
+                        <td>
+                          <span style="font-family:monospace;">${rack.id}</span>
+                        </td>
+                        <td>${rack.name}</td>
+                        <td>${rack.capacity} kg</td>
+                        <td>${rack.bins.length}</td>
+                        <td>${rack.description}</td>
+                        <td>
+                          <div class="rack-actions">
+                            <button class="rack-btn view-bins-btn" onclick="showBinModal(${originalIndex}, ${rackIndex})">Detail Bin</button>
+                            <button class="rack-btn edit-rack-btn" onclick="showRackModal(${originalIndex}, ${rackIndex})">Edit</button>
+                            <button class="rack-btn delete-rack-btn" onclick="deleteRack(${originalIndex}, ${rackIndex})">Hapus</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      // Update sort arrows
+      document.querySelectorAll('th.sortable').forEach(th => {
+        const arrow = th.querySelector('.sort-arrow');
+        const col = th.getAttribute('data-col');
+        if (sortState.col === col) {
+          arrow.textContent = sortState.dir === 'asc' ? '▲' : (sortState.dir === 'desc' ? '▼' : '');
+        } else {
+          arrow.textContent = '';
+        }
+      });
+    }
+
+    function toggleWarehouse(warehouseIndex) {
+      console.log('toggleWarehouse called with index:', warehouseIndex);
+      
+      // Find all warehouse rows and their corresponding racks rows
+      const warehouseRows = document.querySelectorAll('.warehouse-row');
+      const racksRows = document.querySelectorAll('.racks-row');
+      
+      console.log('Found warehouse rows:', warehouseRows.length);
+      console.log('Found racks rows:', racksRows.length);
+      
+      // Find the specific warehouse row
+      let targetWarehouseRow = null;
+      let targetRacksRow = null;
+      
+      for (let i = 0; i < warehouseRows.length; i++) {
+        const row = warehouseRows[i];
+        const dataIndex = row.getAttribute('data-warehouse-index');
+        console.log(`Row ${i} has data-warehouse-index:`, dataIndex);
+        
+        if (dataIndex == warehouseIndex) {
+          targetWarehouseRow = row;
+          targetRacksRow = racksRows[i];
+          console.log('Found matching rows at index:', i);
+          break;
+        }
+      }
+      
+      if (!targetWarehouseRow || !targetRacksRow) {
+        console.error('Could not find matching rows for warehouse index:', warehouseIndex);
+        return;
+      }
+      
+      const icon = targetWarehouseRow.querySelector('.accordion-icon');
+      console.log('Current display:', targetRacksRow.style.display);
+      
+      if (targetRacksRow.style.display === 'table-row') {
+        targetRacksRow.style.display = 'none';
+        icon.classList.remove('expanded');
+        console.log('Collapsed racks');
+      } else {
+        targetRacksRow.style.display = 'table-row';
+        icon.classList.add('expanded');
+        console.log('Expanded racks');
+      }
+    }
+
+    // Warehouse Modal Functions
+    function showWarehouseModal(warehouseIndex = null) {
+      const modal = document.getElementById('warehouseModal');
+      const form = document.getElementById('warehouseForm');
+      const title = document.getElementById('warehouseModalTitle');
+      
+      if (warehouseIndex !== null) {
+        const data = getWarehouseData();
+        const warehouse = data.warehouses[warehouseIndex];
+        form.warehouseId.value = warehouse.id;
+        form.warehouseName.value = warehouse.name;
+        form.warehouseLocation.value = warehouse.location;
+        form.warehouseManager.value = warehouse.manager;
+        form.warehouseId.disabled = true;
+        title.textContent = 'Edit Gudang';
+        currentWarehouseIndex = warehouseIndex;
+      } else {
+        form.reset();
+        form.warehouseId.disabled = false;
+        title.textContent = 'Tambah Gudang';
+        currentWarehouseIndex = null;
+      }
+      modal.style.display = 'flex';
+    }
+
+    function hideWarehouseModal() {
+      document.getElementById('warehouseModal').style.display = 'none';
+    }
+
+    // Rack Modal Functions
+    function showRackModal(warehouseIndex, rackIndex = null) {
+      const modal = document.getElementById('rackModal');
+      const form = document.getElementById('rackForm');
+      const title = document.getElementById('rackModalTitle');
+      
+      currentWarehouseIndex = warehouseIndex;
+      currentRackIndex = rackIndex;
+      
+      if (rackIndex !== null && rackIndex !== undefined) {
+        const data = getWarehouseData();
+        const rack = data.warehouses[warehouseIndex].racks[rackIndex];
+        form.rackId.value = rack.id;
+        form.rackName.value = rack.name;
+        form.rackCapacity.value = rack.capacity;
+        form.rackDescription.value = rack.description;
+        form.rackId.disabled = true;
+        title.textContent = 'Edit Rak';
+      } else {
+        form.reset();
+        form.rackId.disabled = false;
+        title.textContent = 'Tambah Rak';
+      }
+      modal.style.display = 'flex';
+    }
+
+    function hideRackModal() {
+      document.getElementById('rackModal').style.display = 'none';
+    }
+
+    // Bin Modal Functions
+    function showBinModal(warehouseIndex, rackIndex) {
+      const modal = document.getElementById('binModal');
+      const data = getWarehouseData();
+      const rack = data.warehouses[warehouseIndex].racks[rackIndex];
+      
+      currentWarehouseIndex = warehouseIndex;
+      currentRackIndex = rackIndex;
+      currentRackData = rack;
+      
+      document.getElementById('rackNameDisplay').textContent = rack.name;
+      renderBinTable(rack.bins);
+      modal.style.display = 'flex';
+    }
+
+    function hideBinModal() {
+      document.getElementById('binModal').style.display = 'none';
+    }
+
+    function renderBinTable(bins) {
+      const tbody = document.getElementById('binTableBody');
+      tbody.innerHTML = bins.map((bin, binIndex) => `
+        <tr>
+          <td>${bin.id}</td>
+          <td>${bin.name}</td>
+          <td>
+            <span style="padding: 2px 8px; border-radius: 3px; font-size: 0.8rem; 
+              background: ${bin.status === 'active' ? '#d4edda' : bin.status === 'maintenance' ? '#fff3cd' : '#f8d7da'};
+              color: ${bin.status === 'active' ? '#155724' : bin.status === 'maintenance' ? '#856404' : '#721c24'};">
+              ${bin.status === 'active' ? 'Aktif' : bin.status === 'maintenance' ? 'Maintenance' : 'Tidak Aktif'}
+            </span>
+          </td>
+          <td>${bin.capacity} kg</td>
+          <td>
+            <button onclick="editBin(${binIndex})" style="background: #ffc107; color: #212529; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75rem; cursor: pointer;">Edit</button>
+            <button onclick="deleteBin(${binIndex})" style="background: #dc3545; color: #fff; border: none; padding: 4px 8px; border-radius: 3px; font-size: 0.75rem; cursor: pointer; margin-left: 4px;">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function showBinEditModal(binIndex = null) {
+      const modal = document.getElementById('binEditModal');
+      const form = document.getElementById('binForm');
+      const title = document.getElementById('binEditModalTitle');
+      
+      if (binIndex !== null) {
+        const bin = currentRackData.bins[binIndex];
+        form.binId.value = bin.id;
+        form.binName.value = bin.name;
+        form.binStatus.value = bin.status;
+        form.binCapacity.value = bin.capacity;
+        form.binId.disabled = true;
+        title.textContent = 'Edit Bin';
+        form.dataset.binIndex = binIndex;
+      } else {
+        form.reset();
+        form.binId.disabled = false;
+        title.textContent = 'Tambah Bin';
+        delete form.dataset.binIndex;
+      }
+      modal.style.display = 'flex';
+    }
+
+    function hideBinEditModal() {
+      document.getElementById('binEditModal').style.display = 'none';
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Sorting click handler
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function() {
+          const col = th.getAttribute('data-col');
+          if (sortState.col !== col) {
+            sortState = { col, dir: 'asc' };
+          } else if (sortState.dir === 'asc') {
+            sortState.dir = 'desc';
+          } else if (sortState.dir === 'desc') {
+            sortState = { col: null, dir: null };
+          } else {
+            sortState.dir = 'asc';
+          }
+          renderWarehouses();
+        });
+      });
+      // Warehouse form
+      document.getElementById('warehouseForm').onsubmit = function(e) {
+        e.preventDefault();
+        const id = this.warehouseId.value.trim();
+        const name = this.warehouseName.value.trim();
+        const location = this.warehouseLocation.value.trim();
+        const manager = this.warehouseManager.value.trim();
+        
+        let data = getWarehouseData();
+        
+        if (currentWarehouseIndex !== null) {
+          // Edit
+          data.warehouses[currentWarehouseIndex] = { id, name, location, manager, racks: data.warehouses[currentWarehouseIndex].racks };
+        } else {
+          // Add
+          if (data.warehouses.some(w => w.id === id)) {
+            alert('ID Gudang sudah ada!');
+            return;
+          }
+          data.warehouses.push({ id, name, location, manager, racks: [] });
+        }
+        
+        setWarehouseData(data);
+        renderWarehouses();
+        hideWarehouseModal();
+      };
+
+      // Rack form
+      document.getElementById('rackForm').onsubmit = function(e) {
+        e.preventDefault();
+        const id = this.rackId.value.trim();
+        const name = this.rackName.value.trim();
+        const capacity = parseInt(this.rackCapacity.value);
+        const description = this.rackDescription.value.trim();
+        
+        let data = getWarehouseData();
+        
+        if (currentRackIndex !== null) {
+          // Edit
+          data.warehouses[currentWarehouseIndex].racks[currentRackIndex] = { 
+            id, name, capacity, description, 
+            bins: data.warehouses[currentWarehouseIndex].racks[currentRackIndex].bins 
+          };
+        } else {
+          // Add
+          if (data.warehouses[currentWarehouseIndex].racks.some(r => r.id === id)) {
+            alert('ID Rak sudah ada!');
+            return;
+          }
+          data.warehouses[currentWarehouseIndex].racks.push({ id, name, capacity, description, bins: [] });
+        }
+        
+        setWarehouseData(data);
+        renderWarehouses();
+        hideRackModal();
+      };
+
+      // Bin form
+      document.getElementById('binForm').onsubmit = function(e) {
+        e.preventDefault();
+        const id = this.binId.value.trim();
+        const name = this.binName.value.trim();
+        const status = this.binStatus.value;
+        const capacity = parseInt(this.binCapacity.value);
+        
+        let data = getWarehouseData();
+        const binIndex = this.dataset.binIndex;
+        
+        if (binIndex !== undefined) {
+          // Edit
+          data.warehouses[currentWarehouseIndex].racks[currentRackIndex].bins[binIndex] = { id, name, status, capacity };
+        } else {
+          // Add
+          if (data.warehouses[currentWarehouseIndex].racks[currentRackIndex].bins.some(b => b.id === id)) {
+            alert('ID Bin sudah ada!');
+            return;
+          }
+          data.warehouses[currentWarehouseIndex].racks[currentRackIndex].bins.push({ id, name, status, capacity });
+        }
+        
+        setWarehouseData(data);
+        currentRackData = data.warehouses[currentWarehouseIndex].racks[currentRackIndex];
+        renderBinTable(currentRackData.bins);
+        hideBinEditModal();
+      };
+
+      // Modal close buttons
+      document.getElementById('warehouseCloseBtn').onclick = hideWarehouseModal;
+      document.getElementById('warehouseCancelBtn').onclick = hideWarehouseModal;
+      document.getElementById('rackCloseBtn').onclick = hideRackModal;
+      document.getElementById('rackCancelBtn').onclick = hideRackModal;
+      document.getElementById('binCloseBtn').onclick = hideBinModal;
+      document.getElementById('binModalCloseBtn').onclick = hideBinModal;
+      document.getElementById('binEditCloseBtn').onclick = hideBinEditModal;
+      document.getElementById('binEditCancelBtn').onclick = hideBinEditModal;
+
+      // Add warehouse button
+      document.getElementById('addWarehouseBtn').onclick = () => showWarehouseModal();
+
+      // Add bin button
+      document.getElementById('addBinBtn').onclick = () => showBinEditModal();
+
+      // Initial render
+      if (!localStorage.getItem('warehouseData')) {
+        console.log('Setting default warehouse data');
+        setWarehouseData(defaultData);
+      }
+      console.log('Current warehouse data:', getWarehouseData());
+      renderWarehouses();
+      
+      // Add click event listeners for warehouse rows AFTER rendering
+      document.addEventListener('click', function(e) {
+        console.log('Click detected:', e.target);
+        if (e.target.closest('.warehouse-row')) {
+          console.log('Warehouse row clicked');
+          const warehouseRow = e.target.closest('.warehouse-row');
+          const warehouseIndex = parseInt(warehouseRow.getAttribute('data-warehouse-index'));
+          console.log('Warehouse index:', warehouseIndex);
+          toggleWarehouse(warehouseIndex);
+        }
+      });
+    });
+
+    // Delete functions
+    function deleteWarehouse(warehouseIndex) {
+      if (confirm('Hapus gudang ini?')) {
+        let data = getWarehouseData();
+        data.warehouses.splice(warehouseIndex, 1);
+        setWarehouseData(data);
+        renderWarehouses();
+      }
+    }
+
+    function deleteRack(warehouseIndex, rackIndex) {
+      if (confirm('Hapus rak ini?')) {
+        let data = getWarehouseData();
+        data.warehouses[warehouseIndex].racks.splice(rackIndex, 1);
+        setWarehouseData(data);
+        renderWarehouses();
+      }
+    }
+
+    function deleteBin(binIndex) {
+      if (confirm('Hapus bin ini?')) {
+        let data = getWarehouseData();
+        data.warehouses[currentWarehouseIndex].racks[currentRackIndex].bins.splice(binIndex, 1);
+        setWarehouseData(data);
+        currentRackData = data.warehouses[currentWarehouseIndex].racks[currentRackIndex];
+        renderBinTable(currentRackData.bins);
+      }
+    }
+
+    function editBin(binIndex) {
+      showBinEditModal(binIndex);
+    }
+  </script>
+  <script src="../logics/ui.js"></script>
+</body>
+</html> 
