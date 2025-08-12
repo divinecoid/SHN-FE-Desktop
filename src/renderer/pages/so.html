@@ -27,6 +27,9 @@
         <div class="main-title">TRANSAKSI</div>
         <div class="sub-title">Sales Order (SO)</div>
       </div>
+      
+      <!-- Scrollable container untuk list view -->
+      <div class="so-list-scrollable-container">
     
     <!-- List View Section -->
     <div id="listView">
@@ -38,7 +41,7 @@
       </div>
       
       <!-- Search and Filter Section -->
-      <div class="search-filter-section" style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef;">
+      <div class="action-bar" style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef;">
         <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px;">
             <label for="searchSO" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50;">Cari SO:</label>
@@ -73,21 +76,23 @@
         </div>
       </div>
       
-      <table id="soTable" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-        <thead>
-          <tr style="background: #ecf0f1;">
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">No SO</th>
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Pelanggan</th>
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Tanggal SO</th>
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Asal Gudang</th>
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Jumlah Item</th>
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Total Harga</th>
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Status</th>
-            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: center;">Aksi</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="so-table-container">
+        <table id="soTable" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+          <thead>
+            <tr style="background: #ecf0f1;">
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">No SO</th>
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Pelanggan</th>
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Tanggal SO</th>
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Asal Gudang</th>
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Jumlah Item</th>
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Total Harga</th>
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Status</th>
+              <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
       
       <!-- Summary Info -->
       <div class="summary-info" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px;">
@@ -222,6 +227,7 @@
         <br/>
         
       </div>
+      </div> <!-- End of so-list-scrollable-container -->
     </div>
   </div>
   
