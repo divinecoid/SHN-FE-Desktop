@@ -184,17 +184,17 @@ function showBasePlateSelect(woId, itemIndex, jenisBarang, bentukBarang) {
     filteredItems.forEach(item => {
         modalContent += `
             <tr>
-                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.kodeItem || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.kodeBarang || '-'}</td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.namaItem || '-'}</td>
-                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.gradeBarang || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.grade || '-'}</td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
-                    ${item.panjang || '-'} × ${item.lebar || '-'}
+                    ${item.namaItem ? extractSizeFromNamaItem(item.namaItem) : '-'}
                 </td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
-                    ${getUnitDisplay(item.satuan) || '-'}
+                    -
                 </td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
-                    <button onclick="selectBasePlate(${woId}, ${itemIndex}, '${item.namaItem}', '${item.kodeItem}')" 
+                    <button onclick="selectBasePlate(${woId}, ${itemIndex}, '${item.namaItem}', '${item.kodeBarang}')" 
                             style="
                                 background: #27ae60; 
                                 color: white; 
@@ -315,17 +315,17 @@ function showBasePlateSelectForSO(itemIndex, jenisBarang, bentukBarang) {
     filteredItems.forEach(item => {
         modalContent += `
             <tr>
-                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.kodeItem || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.kodeBarang || '-'}</td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.namaItem || '-'}</td>
-                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.gradeBarang || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.grade || '-'}</td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
-                    ${item.panjang || '-'} × ${item.lebar || '-'}
+                    ${item.namaItem ? extractSizeFromNamaItem(item.namaItem) : '-'}
                 </td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
-                    ${getUnitDisplay(item.satuan) || '-'}
+                    -
                 </td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
-                    <button onclick="selectBasePlateForSO(${itemIndex}, '${item.namaItem}', '${item.kodeItem}')" 
+                    <button onclick="selectBasePlateForSO(${itemIndex}, '${item.namaItem}', '${item.kodeBarang}')" 
                             style="
                                 background: #27ae60; 
                                 color: white; 
@@ -654,6 +654,22 @@ function getUnitDisplay(units) {
         case 'per_kg': return 'per kg';
         default: return units;
     }
+}
+
+// Helper function to extract size information from namaItem
+function extractSizeFromNamaItem(namaItem) {
+    if (!namaItem) return '-';
+    
+    // Look for patterns like "DIA 127X100MM", "DIA. 102MMX2000", etc.
+    const sizeMatch = namaItem.match(/(\d+(?:\.\d+)?)\s*[Xx]\s*(\d+(?:\.\d+)?)/i);
+    if (sizeMatch) {
+        const width = sizeMatch[1];
+        const height = sizeMatch[2];
+        return `${width} × ${height}`;
+    }
+    
+    // If no size pattern found, return the namaItem as is
+    return namaItem;
 }
 
 function showWODetails() {
@@ -1005,7 +1021,7 @@ function viewWO(id) {
                     <div><strong>Tanggal WO:</strong> ${formatDate(wo.woDate)}</div>
                     <div><strong>Deadline:</strong> ${wo.deadline ? formatDate(wo.deadline) : '-'}</div>
                     <div><strong>Estimasi Jam Kerja:</strong> ${wo.estimatedHours ? wo.estimatedHours + ' jam' : '-'}</div>
-                    <div><strong>Ditetapkan Kepada:</strong> ${wo.assignedTo || '-'}</div>
+                    <div><strong>PIC:</strong> ${wo.assignedTo || '-'}</div>
                 </div>
             </div>
             
