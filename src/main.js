@@ -58,6 +58,13 @@ function createWindow () {
           }
         },
         {
+          label: 'Input SO',
+          accelerator: 'CmdOrCtrl+S',
+          click: () => {
+            win.loadFile('src/renderer/pages/so.html');
+          }
+        },
+        {
           label: 'AR / AP',
           accelerator: 'CmdOrCtrl+A',
           click: () => {
@@ -335,6 +342,7 @@ function createWindow () {
               alert('Keyboard Shortcuts:\\n\\n' +
                 'Ctrl+D - Dashboard\\n' +
                 'Ctrl+P - Input PO\\n' +
+                'Ctrl+S - Input SO\\n' +
                 'Ctrl+A - AR/AP\\n' +
                 'Ctrl+M - Mutasi\\n' +
                 'Ctrl+F - FUI\\n' +

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SURYA LOGAM JAYA | PT. SURYA HARSA NAGARA</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="so-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">TRANSAKSI</div>
+        <div class="sub-title">Sales Order (SO)</div>
+      </div>
+    
+    <!-- List View Section -->
+    <div id="listView">
+      <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <h2 style="margin: 0; color: #2c3e50;">Daftar Sales Order</h2>
+        <button id="tambahSOBtn" style="background: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
+          <span style="margin-right: 8px;">+</span>Tambah Sales Order
+        </button>
+      </div>
+      
+      <!-- Search and Filter Section -->
+      <div class="search-filter-section" style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef;">
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <label for="searchSO" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50;">Cari SO:</label>
+            <input type="text" id="searchSO" placeholder="Cari berdasarkan No SO, nama pelanggan..." style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+          </div>
+          <div style="min-width: 150px;">
+            <label for="filterStatus" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50;">Status:</label>
+            <select id="filterStatus" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+              <option value="">Semua Status</option>
+              <option value="Draft">Draft</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div style="min-width: 150px;">
+            <label for="filterDate" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50;">Periode:</label>
+            <select id="filterDate" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+              <option value="">Semua Periode</option>
+              <option value="today">Hari Ini</option>
+              <option value="week">Minggu Ini</option>
+              <option value="month">Bulan Ini</option>
+              <option value="quarter">Kuartal Ini</option>
+              <option value="year">Tahun Ini</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: end; gap: 10px;">
+            <button id="clearFilterBtn" style="background: #95a5a6; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;">Clear Filter</button>
+            <button id="exportSOBtn" style="background: #3498db; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;">Export</button>
+          </div>
+        </div>
+      </div>
+      
+      <table id="soTable" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+          <tr style="background: #ecf0f1;">
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">No SO</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Pelanggan</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Tanggal SO</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Asal Gudang</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Jumlah Item</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Total Harga</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Status</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: center;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      
+      <!-- Summary Info -->
+      <div class="summary-info" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div><strong>Total SO:</strong> <span id="totalSOCount">0</span></div>
+            <div><strong>Total Nilai:</strong> Rp <span id="totalSOValue">0</span></div>
+            <div><strong>Rata-rata per SO:</strong> Rp <span id="avgSOValue">0</span></div>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Draft: <span id="draftCount">0</span></span>
+            <span style="background: #3498db; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Confirmed: <span id="confirmedCount">0</span></span>
+            <span style="background: #e67e22; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">In Progress: <span id="progressCount">0</span></span>
+            <span style="background: #27ae60; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Completed: <span id="completedCount">0</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Form Section (Hidden by default) -->
+    <div id="inputView" style="display: none;">
+      <div class="input-scrollable-container">
+        <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+          <h2 style="margin: 0; color: #2c3e50;">Input Sales Order Baru</h2>
+          <button id="kembaliKeListBtn" style="background: #95a5a6; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
+            ← Kembali ke List
+          </button>
+        </div>
+        
+        <!-- Customer Information Section -->
+        <div class="customer-info-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="margin-top: 0; color: #2c3e50;">Informasi Pelanggan</h3>
+          <div class="row-4col">
+            <div><label for="customerName">Nama Pelanggan:</label><input type="text" id="customerName" required class="input-long"></div>
+            <div><label for="customerPhone">Telepon:</label><input type="tel" id="customerPhone" class="input-long"></div>
+            <div><label for="customerEmail">Email:</label><input type="email" id="customerEmail" class="input-long"></div>
+            <div><label for="customerAddress">Alamat:</label><input type="text" id="customerAddress" class="input-long"></div>
+          </div>
+          <div class="row-4col" style="margin-top: 15px;">
+            <div><label for="soNumber">Nomor SO:</label><input type="text" id="soNumber" placeholder="Auto-generate" readonly class="input-long" style="background-color: #e9ecef;"></div>
+            <div><label for="soDate">Tanggal SO:</label><input type="date" id="soDate" required class="input-long"></div>
+            <div><label for="deliveryDate">Tanggal Pengiriman:</label><input type="date" id="deliveryDate" required class="input-long"></div>
+            <div><label for="paymentTerms">Syarat Pembayaran:</label><select id="paymentTerms" class="input-short">
+              <option value="cash">Cash</option>
+              <option value="30_days">30 Hari</option>
+              <option value="60_days">60 Hari</option>
+              <option value="90_days">90 Hari</option>
+            </select></div>
+          </div>
+          <div class="row-4col" style="margin-top: 15px;">
+            <div><label for="asalGudang">Asal Gudang:</label><select id="asalGudang" required class="input-long">
+              <option value="">Pilih Gudang</option>
+            </select></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </div>
+        </div>
+
+        <form id="itemForm">
+          <!-- Row 1: Input fields -->
+          <div class="row-4col">
+            <div><label for="panjang">Panjang (m):</label><input type="number" id="panjang" step="0.01" required class="input-long"></div>
+            <div><label for="lebar">Lebar (m):</label><input type="number" id="lebar" step="0.01" required class="input-long"></div>
+            <div><label for="qty">Qty:</label><input type="number" id="qty" min="1" value="1" required class="input-long"></div>
+            <div><label for="jenisBarang">Jenis Barang:</label><select id="jenisBarang" class="input-short" required></select></div>
+          </div>
+          <!-- Row 1.5: Additional item properties -->
+          <div class="row-4col" style="margin-top: 15px;">
+            <div><label for="bentukBarang">Bentuk Barang:</label><select id="bentukBarang" class="input-short" required></select></div>
+            <div><label for="gradeBarang">Grade Barang:</label><select id="gradeBarang" class="input-short" required></select></div>
+            <div></div>
+            <div></div>
+          </div>
+          <!-- Row 1.5: Price and Units -->
+          <div class="row-4col" style="margin-top: 15px;">
+            <div><label for="customPrice">Harga:</label><input type="number" id="customPrice" step="1000" min="0" placeholder="Auto dari jenis plat" class="input-long"></div>
+            <div><label for="units">Satuan:</label><select id="units" class="input-short" required>
+              <option value="per_m2">per dimensi m²</option>
+              <option value="per_lembar">per lembar</option>
+              <option value="per_kg">per kg</option>
+            </select></div>
+            <div><label for="discount">Diskon (%):</label><input type="number" id="discount" step="0.01" min="0" max="100" value="0" class="input-long"></div>
+            <div><label for="notes">Catatan:</label><input type="text" id="notes" placeholder="Optional" class="input-long"></div>
+          </div>
+          <!-- Row 2+3: Output/info and Tambah Item side by side -->
+          <div class="info-action-row">
+            <div class="info-row-merged">
+              <span class="info-block"><span class="info-label">Ketebalan</span><span class="info-value-unit"><span id="ketebalan">-</span><span class="info-unit">mm</span></span></span>
+              <span class="info-block"><span class="info-label">Luas/item</span><span class="info-value-unit"><span id="luas">0.00</span><span class="info-unit">m²</span></span></span>
+              <span class="info-block"><span class="info-label">Harga</span><span class="info-value-unit">Rp <span id="harga">0</span><span id="unitDisplay">/m²</span></span></span>
+              <span class="info-block"><span class="info-label">Total Item</span><span class="info-value-unit">Rp <span id="total">0</span></span></span>
+            </div>
+            <div><button type="button" id="tambahItem">Tambah Item</button></div>
+          </div>
+          <!-- End Row 2+3 -->
+        </form>
+        
+        <h3>Daftar Item dalam SO</h3>
+        <table id="itemTable" border="1">
+          <thead>
+            <tr>
+              <th>#</th><th>Jenis Barang</th><th>Bentuk</th><th>Grade</th><th>Dimensi</th><th>Qty</th><th>Luas/item</th><th>Harga</th><th>Satuan</th><th>Diskon</th><th>Total</th><th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        
+        <div class="so-summary" style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <div class="row-4col">
+            <div><strong>Subtotal:</strong> Rp <span id="subtotal">0</span></div>
+            <div><strong>Total Diskon:</strong> Rp <span id="totalDiscount">0</span></div>
+            <div><strong>PPN (11%):</strong> Rp <span id="ppn">0</span></div>
+            <div><strong>Total Harga SO:</strong> Rp <span id="totalSO">0</span></div>
+          </div>
+        </div>
+        
+        <div class="so-total-actions">
+          <button id="simpanSO" style="background: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Simpan SO</button>
+          <button id="printSO" style="background: #3498db; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; margin-left: 10px;">Print SO</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../logics/so.js"></script>
+  <script src="../logics/ui.js"></script>
+</body>
+<!-- Custom Confirm Dialog -->
+<div id="customConfirm" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:32px 28px; border-radius:10px; box-shadow:0 2px 16px #0002; min-width:260px; text-align:center;">
+    <div id="customConfirmMsg" style="margin-bottom:18px; font-size:1.1em;">Yakin ingin logout?</div>
+    <button id="customConfirmYes" style="background:#3498db; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; cursor:pointer;">Ya</button>
+    <button id="customConfirmNo" style="background:#eee; color:#444; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; margin-left:18px; cursor:pointer;">Tidak</button>
+  </div>
+</div>
+</html>
