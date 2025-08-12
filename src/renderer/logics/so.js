@@ -604,7 +604,7 @@ function viewSO(id) {
     
     // Create modal content
     let modalContent = `
-        <div style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+        <div style="max-width: 800px; max-height: 65vh; overflow-y: auto;">
             <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">Sales Order: ${so.soNumber}</h2>
             
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
@@ -859,7 +859,7 @@ function showModal(title, content) {
                 <h3 style="margin: 0;">${title}</h3>
                 <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">×</button>
             </div>
-            <div style="padding: 20px; overflow-y: auto; max-height: calc(90vh - 80px);">
+            <div style="padding: 20px; max-height: calc(90vh - 80px);">
                 ${content}
             </div>
         </div>
