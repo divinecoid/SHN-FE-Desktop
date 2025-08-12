@@ -53,12 +53,23 @@
         <div><label for="qty">Qty:</label><input type="number" id="qty" min="1" value="1" required class="input-long"></div>
         <div><label for="jenisPlat">Jenis Plat:</label><select id="jenisPlat" class="input-short"></select></div>
       </div>
+      <!-- Row 1.5: Price and Units -->
+      <div class="row-4col" style="margin-top: 15px;">
+        <div><label for="customPrice">Harga:</label><input type="number" id="customPrice" step="1000" min="0" placeholder="Auto dari jenis plat" class="input-long"></div>
+        <div><label for="units">Satuan:</label><select id="units" class="input-short" required>
+          <option value="per_m2">per dimensi m²</option>
+          <option value="per_lembar">per lembar</option>
+          <option value="per_kg">per kg</option>
+        </select></div>
+        <div></div>
+        <div></div>
+      </div>
       <!-- Row 2+3: Output/info and Tambah Item side by side -->
       <div class="info-action-row">
         <div class="info-row-merged">
           <span class="info-block"><span class="info-label">Ketebalan</span><span class="info-value-unit"><span id="ketebalan">-</span><span class="info-unit">mm</span></span></span>
           <span class="info-block"><span class="info-label">Luas/item</span><span class="info-value-unit"><span id="luas">0.00</span><span class="info-unit">m²</span></span></span>
-          <span class="info-block"><span class="info-label">Harga/m²</span><span class="info-value-unit">Rp <span id="harga">0</span></span></span>
+          <span class="info-block"><span class="info-label">Harga</span><span class="info-value-unit">Rp <span id="harga">0</span><span id="unitDisplay">/m²</span></span></span>
           <span class="info-block"><span class="info-label">Total Item</span><span class="info-value-unit">Rp <span id="total">0</span></span></span>
         </div>
         <div><button type="button" id="tambahItem">Tambah Item</button></div>
@@ -69,7 +80,7 @@
     <table id="itemTable" border="1">
       <thead>
         <tr>
-          <th>#</th><th>Jenis</th><th>Dimensi</th><th>Qty</th><th>Luas/item</th><th>Harga/m²</th><th>Total</th><th>Aksi</th>
+          <th>#</th><th>Jenis</th><th>Dimensi</th><th>Qty</th><th>Luas/item</th><th>Harga</th><th>Satuan</th><th>Total</th><th>Aksi</th>
         </tr>
       </thead>
       <tbody></tbody>

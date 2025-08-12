@@ -37,12 +37,58 @@ function updateItemForm() {
   const lebar = parseFloat(document.getElementById('lebar').value) || 0;
   const qty = parseInt(document.getElementById('qty').value) || 1;
   const jenis = document.getElementById('jenisPlat').value;
+  const customPrice = parseFloat(document.getElementById('customPrice').value);
+  const units = document.getElementById('units').value;
   const plat = getPlatData(jenis);
   const luas = panjang * lebar;
+  
+  // Update ketebalan and luas
   document.getElementById('ketebalan').textContent = plat ? plat.ketebalan : '';
   document.getElementById('luas').textContent = luas.toFixed(2);
-  document.getElementById('harga').textContent = plat ? plat.harga.toLocaleString() : '';
-  document.getElementById('total').textContent = plat ? (luas * plat.harga * qty).toLocaleString() : '';
+  
+  // Determine price to use (custom or from plat data)
+  const harga = customPrice || (plat ? plat.harga : 0);
+  
+  // Update unit display
+  const unitDisplay = document.getElementById('unitDisplay');
+  switch(units) {
+    case 'per_lembar':
+      unitDisplay.textContent = '/lembar';
+      break;
+    case 'per_kg':
+      unitDisplay.textContent = '/kg';
+      break;
+    case 'per_m2':
+    default:
+      unitDisplay.textContent = '/m²';
+      break;
+  }
+  
+  // Display price
+  document.getElementById('harga').textContent = harga.toLocaleString();
+  
+  // Calculate total based on unit type
+  let total = 0;
+  if (harga > 0) {
+    switch(units) {
+      case 'per_lembar':
+        total = harga * qty;
+        break;
+      case 'per_kg':
+        // For per_kg calculation, we need weight. Using a rough estimate of aluminum density
+        // Aluminum density ≈ 2.7 g/cm³ = 2700 kg/m³
+        const volume = luas * (plat ? plat.ketebalan / 1000 : 0.002); // ketebalan in meters
+        const weight = volume * 2700; // kg
+        total = harga * weight * qty;
+        break;
+      case 'per_m2':
+      default:
+        total = harga * luas * qty;
+        break;
+    }
+  }
+  
+  document.getElementById('total').textContent = total.toLocaleString();
 }
 
 function tambahItem() {
@@ -50,13 +96,38 @@ function tambahItem() {
   const lebar = parseFloat(document.getElementById('lebar').value);
   const qty = parseInt(document.getElementById('qty').value);
   const jenis = document.getElementById('jenisPlat').value;
+  const customPrice = parseFloat(document.getElementById('customPrice').value);
+  const units = document.getElementById('units').value;
   const plat = getPlatData(jenis);
+  
   if (!panjang || !lebar || !qty || !plat) {
     alert('Lengkapi data item!');
     return;
   }
+  
   const luas = panjang * lebar;
-  const total = luas * plat.harga * qty;
+  const harga = customPrice || plat.harga;
+  
+  // Calculate total based on unit type
+  let total = 0;
+  let weight = 0;
+  
+  switch(units) {
+    case 'per_lembar':
+      total = harga * qty;
+      break;
+    case 'per_kg':
+      // Calculate weight for aluminum
+      const volume = luas * (plat.ketebalan / 1000); // ketebalan in meters
+      weight = volume * 2700; // kg (aluminum density)
+      total = harga * weight * qty;
+      break;
+    case 'per_m2':
+    default:
+      total = harga * luas * qty;
+      break;
+  }
+  
   currentItems.push({
     jenis,
     panjang,
@@ -64,11 +135,15 @@ function tambahItem() {
     ketebalan: plat.ketebalan,
     qty,
     luas,
-    harga: plat.harga,
+    harga,
+    units,
+    weight: weight || null,
     total
   });
   renderItemTable();
   document.getElementById('itemForm').reset();
+  // Reset units to default
+  document.getElementById('units').value = 'per_m2';
   updateItemForm();
 }
 
@@ -83,14 +158,31 @@ function renderItemTable() {
   let totalPO = 0;
   currentItems.forEach((item, idx) => {
     totalPO += item.total;
+    
+    // Format unit display
+    let unitText = '';
+    switch(item.units) {
+      case 'per_lembar':
+        unitText = 'per lembar';
+        break;
+      case 'per_kg':
+        unitText = 'per kg';
+        break;
+      case 'per_m2':
+      default:
+        unitText = 'per m²';
+        break;
+    }
+    
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${idx+1}</td>
       <td>${item.jenis}</td>
       <td>${item.panjang}x${item.lebar}x${item.ketebalan}</td>
       <td>${item.qty}</td>
-      <td>${item.luas.toFixed(2)}</td>
+      <td>${item.luas.toFixed(2)} m²</td>
       <td>Rp ${item.harga.toLocaleString()}</td>
+      <td>${unitText}</td>
       <td>Rp ${item.total.toLocaleString()}</td>
       <td><button onclick="hapusItem(${idx})">Hapus</button></td>
     `;
@@ -141,6 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('panjang').addEventListener('input', updateItemForm);
   document.getElementById('lebar').addEventListener('input', updateItemForm);
   document.getElementById('qty').addEventListener('input', updateItemForm);
+  document.getElementById('customPrice').addEventListener('input', updateItemForm);
+  document.getElementById('units').addEventListener('change', updateItemForm);
   document.getElementById('tambahItem').addEventListener('click', tambahItem);
   document.getElementById('simpanPO').addEventListener('click', simpanPO);
 }); 
