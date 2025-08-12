@@ -292,13 +292,7 @@ function createWindow () {
             win.loadFile('src/renderer/pages/fui.html');
           }
         },
-        {
-          label: 'Workshop',
-          accelerator: 'CmdOrCtrl+Shift+W',
-          click: () => {
-            win.loadFile('src/renderer/pages/workshop.html');
-          }
-        },
+
         {
           label: 'Report',
           accelerator: 'CmdOrCtrl+R',
@@ -369,7 +363,7 @@ function createWindow () {
                 'Ctrl+A - AR/AP\\n' +
                 'Ctrl+M - Mutasi Stock\\n' +
                 'Ctrl+W - Work Order\\n' +
-                'Ctrl+Shift+W - Workshop\\n' +
+
                 'Ctrl+F - FUI\\n' +
                 'Ctrl+R - Report\\n' +
                 'Ctrl+1-9 - Masterdata items\\n' +

@@ -118,6 +118,97 @@ function setBasePlate() {
   updateRemainingWeight();
 }
 
+// Fungsi untuk auto-create base plate sesuai konfigurasi Work Order
+function autoCreateBasePlate(config) {
+  console.log('Auto-creating base plate with config:', config);
+  
+  // Set nilai input sesuai konfigurasi
+  document.getElementById('baseWidth').value = config.baseWidth || 100;
+  if (config.type === '2D') {
+    document.getElementById('baseHeight').value = config.baseHeight || 150;
+  }
+  
+  // Buat base plate secara otomatis
+  setBasePlate();
+  
+  console.log('Base plate auto-created successfully');
+}
+
+// Fungsi untuk auto-create cut sesuai konfigurasi Work Order
+// Fungsi ini tidak dipanggil otomatis, hanya untuk manual trigger
+function autoCreateCut(config) {
+  console.log('Auto-creating cut with config:', config);
+  
+  // Set nilai input cut sesuai konfigurasi
+  document.getElementById('cutWidth').value = config.cutWidth || 20;
+  if (config.type === '2D') {
+    document.getElementById('cutHeight').value = config.cutHeight || 30;
+  }
+  
+  // Buat cut secara otomatis
+  if (config.type === '1D') {
+    addCutAuto();
+  } else {
+    addCutHorizontal();
+  }
+  
+  console.log('Cut auto-created successfully');
+}
+
+// Fungsi untuk auto-configure workshop berdasarkan konfigurasi Work Order
+function autoConfigureWorkshopFromConfig(config) {
+  console.log('Auto-configuring workshop from config:', config);
+  
+  // Set shape type
+  localStorage.setItem('workshopShapeType', config.type);
+  
+  // Update UI berdasarkan shape type
+  if (config.type === '1D') {
+    // Hide height fields for 1D (shaft)
+    document.querySelectorAll('.height-field').forEach(field => {
+      field.style.display = 'none';
+    });
+    
+    // Hide horizontal and vertical cut buttons for 1D
+    document.getElementById('addCutHorizontalBtn').style.display = 'none';
+    document.getElementById('addCutVerticalBtn').style.display = 'none';
+    
+    // Show auto cut button for 1D
+    document.getElementById('addCutAuto').style.display = 'block';
+    
+    // Update labels for 1D
+    document.querySelector('label[for="baseWidth"]').textContent = 'Base Length (cm):';
+    document.querySelector('label[for="cutWidth"]').textContent = 'Cut Length (cm):';
+    document.querySelector('#setBase').textContent = 'Create Base Shaft';
+    
+  } else {
+    // Show all fields for 2D (plate)
+    document.querySelectorAll('.height-field').forEach(field => {
+      field.style.display = 'block';
+    });
+    
+    // Show horizontal and vertical cut buttons for 2D
+    document.getElementById('addCutHorizontalBtn').style.display = 'block';
+    document.getElementById('addCutVerticalBtn').style.display = 'block';
+    
+    // Hide auto cut button for 2D
+    document.getElementById('addCutAuto').style.display = 'none';
+    
+    // Update labels for 2D
+    document.querySelector('label[for="baseWidth"]').textContent = 'Base Width (cm):';
+    document.querySelector('label[for="cutWidth"]').textContent = 'Cut Width (cm):';
+    document.querySelector('#setBase').textContent = 'Create Base Plate';
+  }
+  
+  // Auto-create base plate saja di awal (tanpa cut)
+  if (config.autoCreateBase) {
+    setTimeout(() => {
+      autoCreateBasePlate(config);
+      console.log('Base plate auto-created successfully');
+    }, 100);
+  }
+}
+
 document.getElementById('setBase').addEventListener('click', setBasePlate);
 
 
@@ -528,10 +619,124 @@ function addCut() {
   saveCutReport('manual', {widthCm, heightCm, color});
 }
 
+// Fungsi addCutAuto yang diperbaiki untuk auto-create dari Work Order
 function addCutAuto() {
-  // Implementasi logika auto cut sesuai kebutuhan
-  // Placeholder: panggil addCut() sebagai contoh
-  addCut();
+  const widthCm = parseFloat(document.getElementById('cutWidth').value);
+  const heightCm = getShapeType() === '1D' ? 10 : parseFloat(document.getElementById('cutHeight').value); // Fixed height for 1D
+  const color = document.getElementById('cutColor').value;
+  
+  if (!baseRect) {
+    showNotification('Buat plat dasar terlebih dahulu!');
+    return;
+  }
+  
+  const scale = 5;
+  const widthPx = widthCm * scale;
+  const heightPx = heightCm * scale;
+  
+  // Area plat dasar
+  const baseLeft = baseRect.left - baseRect.width/2;
+  const baseTop = baseRect.top - baseRect.height/2;
+  const baseRight = baseLeft + baseRect.width;
+  const baseBottom = baseTop + baseRect.height;
+  
+  // Cari posisi yang tepat untuk cut
+  let posX, posY;
+  
+  if (getShapeType() === '1D') {
+    // Untuk 1D (shaft), posisikan cut horizontal di tengah base shaft
+    // Default horizontal: cut sejajar dengan panjang shaft
+    posX = baseRect.left;
+    posY = baseRect.top;
+    
+    // Jika ada cut sebelumnya, posisikan di sebelahnya
+    if (cuts.length > 0) {
+      const lastCut = cuts[cuts.length - 1];
+      const lastCutRight = lastCut.rect.left + lastCut.rect.width/2;
+      posX = lastCutRight + widthPx/2 + 5; // 5px gap
+      
+      // Jika melebihi base shaft, reset ke awal
+      if (posX + widthPx/2 > baseRect.left + baseRect.width/2) {
+        posX = baseRect.left - baseRect.width/2 + widthPx/2;
+      }
+    }
+  } else {
+    // Untuk 2D, posisikan cut di tengah base plate
+    posX = baseRect.left;
+    posY = baseRect.top;
+  }
+  
+  // Buat potongan baru
+  const cutRect = new fabric.Rect({
+    left: posX,
+    top: posY,
+    width: widthPx,
+    height: heightPx,
+    fill: color,
+    selectable: true,
+    originX: 'center',
+    originY: 'center'
+  });
+  
+  cutRect.createdAt = Date.now();
+  cutRect.cutId = generateCutId();
+  
+  // Label ukuran lebar
+  const labelW = new fabric.Text(`${widthCm} cm`, {
+    left: posX,
+    top: posY - heightPx/2 - 20,
+    fontSize: 16,
+    fill: '#333',
+    originX: 'center',
+    originY: 'middle',
+    selectable: false,
+    evented: false,
+    visible: false
+  });
+  
+  // Label ukuran tinggi (hanya untuk 2D)
+  let labelH = null;
+  if (getShapeType() === '2D') {
+    labelH = new fabric.Text(`${heightCm} cm`, {
+      left: posX + widthPx/2 + 10,
+      top: posY,
+      fontSize: 16,
+      fill: '#333',
+      originX: 'center',
+      originY: 'middle',
+      selectable: false,
+      evented: false,
+      visible: false
+    });
+  }
+  
+  // Tambahkan ke canvas
+  canvas.add(cutRect);
+  canvas.add(labelW);
+  if (labelH) canvas.add(labelH);
+  
+  // Simpan ke array cuts
+  cuts.push({
+    rect: cutRect,
+    labelW: labelW,
+    labelH: labelH,
+    createdAt: cutRect.createdAt,
+    cutId: cutRect.cutId
+  });
+  
+  // Update canvas
+  canvas.requestRenderAll();
+  updateRemainingWeight();
+  
+  // Save to history
+  saveHistory();
+  
+  // Show notification
+  if (getShapeType() === '1D') {
+    showNotification(`Cut horizontal berhasil ditambahkan: ${widthCm} cm`);
+  } else {
+    showNotification(`Cut berhasil ditambahkan: ${widthCm} × ${heightCm} cm`);
+  }
 }
 
 // Wrap addCutAuto and addCut to save report

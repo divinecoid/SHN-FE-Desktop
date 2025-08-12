@@ -54,6 +54,40 @@
     .btn-view { background: #3498db; color: white; }
     .btn-edit { background: #f39c12; color: white; }
     .btn-delete { background: #e74c3c; color: white; }
+    
+    /* Workshop button styling */
+    .workshop-btn {
+      transition: all 0.2s ease;
+    }
+    
+    .workshop-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .workshop-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    .workshop-name {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .workshop-name.has-workshop {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    .workshop-name.no-workshop {
+      background: #f8f9fa;
+      color: #95a5a6;
+    }
   </style>
 </head>
 <body>
@@ -212,7 +246,7 @@
                 <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Luas (m²)</th>
                 <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Satuan</th>
                 <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Plat/Shaft Dasar</th>
-                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Workshop</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;" title="Klik tombol untuk membuka Workshop dengan konfigurasi otomatis">Workshop</th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -269,7 +303,7 @@
   </div>
   
   <!-- Custom Modal untuk Notifikasi -->
-  <div id="customModal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:10001; align-items:center; justify-content:center;">
+  <div id="customModal" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:10001; align-items:center; justify-content:center;">
     <div style="background:white; padding:32px; border-radius:16px; text-align:center; max-width:500px; width:90%; box-shadow:0 20px 40px rgba(0,0,0,0.3);">
       <div id="modalIcon" style="font-size:48px; margin-bottom:16px;">✅</div>
       <div id="modalTitle" style="font-size:1.3em; font-weight:700; color:#2c3e50; margin-bottom:12px;">Berhasil!</div>

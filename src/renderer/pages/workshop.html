@@ -25,6 +25,30 @@
     </div>
   </div>
   <div class="content">
+    <!-- Page Mode Indicator -->
+    <div id="pageModeIndicator" style="display: none; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px; margin-bottom: 16px; max-width: 600px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 1.1em; font-weight: 600; color: #856404;">🔧</span>
+        <span id="modeText" style="font-weight: 500; color: #856404;"></span>
+      </div>
+    </div>
+    
+    <!-- Work Order Item Info Display -->
+    <div id="woItemInfo" style="display: none; background: #e3f2fd; border: 1px solid #1976d2; border-radius: 8px; padding: 16px; margin-bottom: 16px; max-width: 600px;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <span style="font-size: 1.2em; font-weight: 600; color: #1976d2;">📋 Item Work Order (Auto-Configured)</span>
+        <span id="woItemName" style="font-weight: 500; color: #2c3e50;"></span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; font-size: 0.9em;">
+        <div><strong>Jenis:</strong> <span id="woItemJenis"></span></div>
+        <div><strong>Bentuk:</strong> <span id="woItemBentuk"></span></div>
+        <div><strong>Grade:</strong> <span id="woItemGrade"></span></div>
+        <div><strong>Qty:</strong> <span id="woItemQty"></span></div>
+        <div><strong>Base Plate:</strong> <span id="woItemBasePlate"></span></div>
+        <div><strong>Workshop Type:</strong> <span id="woItemWorkshopType"></span></div>
+      </div>
+    </div>
+    
     <button class="config-toggle-btn" id="configToggleBtn" title="Toggle Workshop Config">⚙️</button>
     <div id="configBox">
       <div class="config-drag-handle">⚙️ Workshop Config</div>
@@ -64,9 +88,12 @@
         <div class="form-actions">
           <button type="button" id="loadProgressBtn" style="background:#666666; color:#fff; width:100%;">Muat Progress</button>
         </div>
-        <div class="form-actions">
-          <button type="button" id="showLayersBtn" style="background:#444444; color:#fff; width:100%;">Show Cut Layers</button>
-        </div>
+              <div class="form-actions">
+        <button type="button" id="showLayersBtn" style="background:#444444; color:#fff; width:100%; margin-bottom:8px;">Show Cut Layers</button>
+        <button type="button" id="resetConfigBtn" style="background:#e74c3c; color:#fff; width:100%; margin-bottom:8px;" title="Reset ke konfigurasi manual">Reset Config</button>
+        <button type="button" id="testConfigBtn" style="background:#9b59b6; color:#fff; width:100%; margin-bottom:8px;" title="Test konfigurasi dari localStorage">Test Config</button>
+        <button type="button" id="autoCreateBtn" style="background:#27ae60; color:#fff; width:100%; margin-bottom:8px;" title="Auto-create Cut sesuai konfigurasi Work Order">Auto Create Cut</button>
+      </div>
       </form>
     </div>
     <div id="canvas-container">
@@ -131,9 +158,50 @@
     let selectedShapeType = null;
     
     document.addEventListener('DOMContentLoaded', function() {
-      // Show shape type selection modal every time
-      const shapeTypeModal = document.getElementById('shapeTypeModal');
-      shapeTypeModal.style.display = 'flex';
+      // Check if we have workshop configuration from Work Order
+      const workshopConfig = localStorage.getItem('workshopConfig');
+      
+      // Check if this page was opened from Work Order button
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromWorkOrder = urlParams.get('from') === 'workorder';
+      
+      console.log('URL parameters:', window.location.search);
+      console.log('Page opened from Work Order:', fromWorkOrder);
+      console.log('Workshop config exists:', !!workshopConfig);
+      
+      if (workshopConfig && fromWorkOrder) {
+        try {
+          const config = JSON.parse(workshopConfig);
+          console.log('Workshop config found from Work Order:', config);
+          console.log('Config type:', config.type);
+          console.log('Config dimensions:', {
+            baseLength: config.baseLength,
+            baseWidth: config.baseWidth,
+            baseHeight: config.baseHeight
+          });
+          
+          // Show auto-configured mode indicator
+          showPageModeIndicator('auto', config.type);
+          
+          // Auto-configure workshop based on Work Order data
+          autoConfigureWorkshop(config);
+          
+          // Don't show shape type modal - use config instead
+          const shapeTypeModal = document.getElementById('shapeTypeModal');
+          shapeTypeModal.style.display = 'none';
+          
+        } catch (error) {
+          console.error('Error parsing workshop config:', error);
+          // Fallback to manual selection if config is invalid
+          showPageModeIndicator('manual', null);
+          showShapeTypeModal();
+        }
+      } else {
+        // No config or not from Work Order, show manual selection
+        console.log('Showing manual shape selection (no config or not from Work Order)');
+        showPageModeIndicator('manual', null);
+        showShapeTypeModal();
+      }
       
       // Shape type selection handlers
       document.getElementById('shape1D').addEventListener('click', function() {
@@ -168,7 +236,231 @@
         this.style.background = '#f8f9fa';
         this.style.transform = 'translateY(0)';
       });
+      
+      // Reset config button handler
+      document.getElementById('resetConfigBtn').addEventListener('click', function() {
+        if (confirm('Yakin ingin reset ke konfigurasi manual? Konfigurasi dari Work Order akan dihapus.')) {
+          resetToManualConfig();
+        }
+      });
+      
+      // Test config button handler
+      document.getElementById('testConfigBtn').addEventListener('click', function() {
+        const config = localStorage.getItem('workshopConfig');
+        if (config) {
+          try {
+            const parsed = JSON.parse(config);
+            console.log('Current workshop config:', parsed);
+            alert(`Config found:\nType: ${parsed.type}\nBase Length: ${parsed.baseLength}\nBase Width: ${parsed.baseWidth}\nBase Height: ${parsed.baseHeight}`);
+          } catch (error) {
+            console.error('Error parsing config:', error);
+            alert('Error parsing config');
+          }
+        } else {
+          alert('No workshop config found');
+        }
+      });
+      
+      // Auto create button handler
+      document.getElementById('autoCreateBtn').addEventListener('click', function() {
+        const config = localStorage.getItem('workshopConfig');
+        if (config) {
+          try {
+            const parsed = JSON.parse(config);
+            console.log('Auto-creating with config:', parsed);
+            if (typeof autoCreateCut === 'function') {
+              autoCreateCut(parsed);
+              showInfoMessage('Cut berhasil dibuat otomatis sesuai konfigurasi Work Order!');
+            } else {
+              alert('Fungsi auto-create cut tidak tersedia');
+            }
+          } catch (error) {
+            console.error('Error parsing config:', error);
+            alert('Error parsing config');
+          }
+        } else {
+          alert('No workshop config found');
+        }
+      });
     });
+    
+    // Function to auto-configure workshop based on Work Order data
+    function autoConfigureWorkshop(config) {
+      console.log('Auto-configuring workshop with:', config);
+      console.log('Setting shape type to:', config.type);
+      
+      // Set shape type based on config
+      selectedShapeType = config.type;
+      
+      // Update config based on shape type
+      if (config.type === '1D') {
+        // Configure for 1D (shaft)
+        document.querySelectorAll('.height-field').forEach(field => {
+          field.style.display = 'none';
+        });
+        
+        document.getElementById('addCutHorizontalBtn').style.display = 'none';
+        document.getElementById('addCutVerticalBtn').style.display = 'none';
+        document.getElementById('addCutAuto').style.display = 'block';
+        
+        // Update labels for 1D
+        document.querySelector('label[for="baseWidth"]').textContent = 'Base Length (cm):';
+        document.querySelector('label[for="cutWidth"]').textContent = 'Cut Length (cm):';
+        document.querySelector('#setBase').textContent = 'Create Base Shaft';
+        
+        // Set values from Work Order data
+        console.log('Setting 1D values:', {
+          baseLength: config.baseLength,
+          cutLength: config.cutLength
+        });
+        document.getElementById('baseWidth').value = config.baseLength || 100;
+        document.getElementById('cutWidth').value = config.cutLength || 20;
+        
+      } else {
+        // Configure for 2D (plate)
+        document.querySelectorAll('.height-field').forEach(field => {
+          field.style.display = 'block';
+        });
+        
+        document.getElementById('addCutHorizontalBtn').style.display = 'block';
+        document.getElementById('addCutVerticalBtn').style.display = 'block';
+        document.getElementById('addCutAuto').style.display = 'none';
+        
+        // Update labels for 2D
+        document.querySelector('label[for="baseWidth"]').textContent = 'Base Width (cm):';
+        document.querySelector('label[for="cutWidth"]').textContent = 'Cut Width (cm):';
+        document.querySelector('#setBase').textContent = 'Create Base Plate';
+        
+        // Set values from Work Order data
+        console.log('Setting 2D values:', {
+          baseWidth: config.baseWidth,
+          baseHeight: config.baseHeight,
+          cutWidth: config.cutWidth,
+          cutHeight: config.cutHeight
+        });
+        document.getElementById('baseWidth').value = config.baseWidth || 300;
+        document.getElementById('baseHeight').value = config.baseHeight || 150;
+        document.getElementById('cutWidth').value = config.cutWidth || 20;
+        document.getElementById('cutHeight').value = config.cutHeight || 30;
+      }
+      
+      // Store selection in localStorage
+      localStorage.setItem('workshopShapeType', config.type);
+      
+      // Display Work Order item information
+      displayWOItemInfo(config);
+      
+      // Auto-create base plate saja di awal (tanpa cut)
+      if (typeof autoConfigureWorkshopFromConfig === 'function') {
+        console.log('Calling autoConfigureWorkshopFromConfig...');
+        autoConfigureWorkshopFromConfig(config);
+      } else {
+        console.error('Function autoConfigureWorkshopFromConfig not found!');
+        showInfoMessage('Warning: Auto-create function not available');
+      }
+      
+      // Show success message
+      showInfoMessage(`Workshop dikonfigurasi otomatis dari Work Order: ${config.type} - ${config.itemData?.namaItem || 'N/A'}. Base plate/shaft telah dibuat otomatis.`);
+    }
+    
+    // Function to display Work Order item information
+    function displayWOItemInfo(config) {
+      const woItemInfo = document.getElementById('woItemInfo');
+      const woItemName = document.getElementById('woItemName');
+      const woItemJenis = document.getElementById('woItemJenis');
+      const woItemBentuk = document.getElementById('woItemBentuk');
+      const woItemGrade = document.getElementById('woItemGrade');
+      const woItemQty = document.getElementById('woItemQty');
+      const woItemBasePlate = document.getElementById('woItemBasePlate');
+      const woItemWorkshopType = document.getElementById('woItemWorkshopType');
+      
+      if (config.itemData) {
+        woItemName.textContent = config.itemData.namaItem || 'N/A';
+        woItemJenis.textContent = config.itemData.jenisBarang || 'N/A';
+        woItemBentuk.textContent = config.itemData.bentukBarang || 'N/A';
+        woItemGrade.textContent = config.itemData.gradeBarang || 'N/A';
+        woItemQty.textContent = config.itemData.qty || 'N/A';
+        woItemBasePlate.textContent = config.itemData.basePlate || 'N/A';
+        woItemWorkshopType.textContent = config.type || 'N/A';
+        
+        woItemInfo.style.display = 'block';
+      }
+    }
+    
+    // Function to show shape type selection modal manually
+    function showShapeTypeModal() {
+      const shapeTypeModal = document.getElementById('shapeTypeModal');
+      shapeTypeModal.style.display = 'flex';
+    }
+    
+    // Function to show page mode indicator
+    function showPageModeIndicator(mode, workshopType) {
+      const pageModeIndicator = document.getElementById('pageModeIndicator');
+      const modeText = document.getElementById('modeText');
+      
+      if (mode === 'auto') {
+        modeText.textContent = `Mode: Auto-Configured dari Work Order (${workshopType})`;
+        pageModeIndicator.style.display = 'block';
+        pageModeIndicator.style.background = '#e3f2fd';
+        pageModeIndicator.style.borderColor = '#1976d2';
+      } else {
+        modeText.textContent = 'Mode: Manual Selection - Pilih jenis bentuk (1D/2D)';
+        pageModeIndicator.style.display = 'block';
+        pageModeIndicator.style.background = '#fff3cd';
+        pageModeIndicator.style.borderColor = '#ffc107';
+      }
+    }
+    
+    // Function to show info message
+    function showInfoMessage(message) {
+      // Create a temporary info message
+      const infoMsg = document.createElement('div');
+      infoMsg.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4caf50;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10001;
+        font-weight: 500;
+        max-width: 400px;
+        word-wrap: break-word;
+      `;
+      infoMsg.textContent = message;
+      
+      document.body.appendChild(infoMsg);
+      
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        if (infoMsg.parentNode) {
+          infoMsg.parentNode.removeChild(infoMsg);
+        }
+      }, 5000);
+    }
+    
+    // Function to reset to manual configuration
+    function resetToManualConfig() {
+      // Clear workshop config from localStorage
+      localStorage.removeItem('workshopConfig');
+      
+      // Hide Work Order item info
+      document.getElementById('woItemInfo').style.display = 'none';
+      
+      // Update mode indicator to manual
+      showPageModeIndicator('manual', null);
+      
+      // Reset to default values
+      selectedShapeType = null;
+      
+      // Show shape type selection modal
+      showShapeTypeModal();
+      
+      // Show info message
+      showInfoMessage('Konfigurasi direset ke manual. Silakan pilih jenis bentuk.');
+    }
     
     function selectShapeType(type) {
       selectedShapeType = type;

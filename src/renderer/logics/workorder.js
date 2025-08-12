@@ -79,8 +79,9 @@ function showDetailModal(title, content) {
     const modal = document.createElement('div');
     modal.style.cssText = `
         position: fixed;
-        left: 0;
-        top: 0;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
         width: 100vw;
         height: 100vh;
         background: rgba(0,0,0,0.5);
@@ -610,34 +611,28 @@ function displaySOItems() {
         baseCell.appendChild(baseButton);
         baseCell.style.textAlign = 'center';
         
-        // Workshop Selection
+        // Workshop button - always show "Buka Workshop" regardless of workshop assignment
         const workshopCell = row.insertCell(9);
-        const workshopSelect = document.createElement('select');
-        workshopSelect.style.width = '100%';
-        workshopSelect.style.padding = '4px';
-        workshopSelect.style.borderRadius = '4px';
-        workshopSelect.style.border = '1px solid #ddd';
-        
-        // Add options for workshop
-        const workshopOptions = ['', 'Workshop A - Cutting', 'Workshop B - Welding', 'Workshop C - Assembly', 'Workshop D - Finishing'];
-        workshopOptions.forEach(option => {
-            const opt = document.createElement('option');
-            opt.value = option;
-            opt.textContent = option;
-            workshopSelect.appendChild(opt);
+        const workshopBtn = document.createElement('button');
+        workshopBtn.textContent = '🏭 Buka Workshop';
+        workshopBtn.style.cssText = `
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 600;
+        `;
+        workshopBtn.title = 'Buka Workshop dengan konfigurasi otomatis (Bentuk, Ukuran, dll)';
+        workshopBtn.addEventListener('click', function() {
+            openWorkshopWithConfig(item);
         });
         
-        // Set default value if exists
-        if (item.workshop) {
-            workshopSelect.value = item.workshop;
-        }
+        workshopCell.appendChild(workshopBtn);
         
-        // Store selection in item
-        workshopSelect.addEventListener('change', function() {
-            item.workshop = this.value;
-        });
-        
-        workshopCell.appendChild(workshopSelect);
         workshopCell.style.textAlign = 'center';
         
         // Center align numeric columns
@@ -670,6 +665,342 @@ function extractSizeFromNamaItem(namaItem) {
     
     // If no size pattern found, return the namaItem as is
     return namaItem;
+}
+
+// Function to open workshop with pre-configured settings
+// This function stores configuration in localStorage and redirects to workshop.html
+// The workshop page should read 'workshopConfig' from localStorage to auto-configure:
+// 
+// CONFIGURATION STRUCTURE:
+// {
+//   type: "1D" | "2D" (automatically determined from item shape),
+//   baseLength: number (from item.panjang),
+//   baseWidth: number (from item.lebar), 
+//   baseHeight: number (same as width for 1D, from item.lebar for 2D),
+//   cutLength: number (from item.panjang - ukuran yang dipotong),
+//   cutWidth: number (from item.lebar - ukuran yang dipotong),
+//   cutHeight: number (same as width for 1D, from item.lebar for 2D),
+//   itemData: { /* complete item information */ },
+//   timestamp: "ISO string",
+//   source: "workorder",
+//   woNumber: "WO number for reference"
+// }
+//
+// WORKSHOP PAGE SHOULD:
+// 1. Auto-select 1D/2D based on workshopConfig.type
+// 2. Auto-create Base Plate/Shaft with baseLength/baseWidth/baseHeight
+// 3. Auto-create Cut with cutLength/cutWidth/cutHeight
+// 4. Display item information from itemData for reference
+function openWorkshopWithConfig(item) {
+    // Determine workshop type based on item shape
+    let workshopType = '1D'; // Default to 1D
+    
+    if (item.bentukBarang || item.bentuk) {
+        const bentuk = (item.bentukBarang || item.bentuk).toLowerCase();
+        console.log('Item bentuk:', bentuk); // Debug log
+        
+        if (bentuk === 'plat' || bentuk === 'sheet' || bentuk === 'plate' || bentuk === 'lembar') {
+            workshopType = '2D';
+        } else if (bentuk === 'as' || bentuk === 'shaft' || bentuk === 'rod' || bentuk === 'pipe' || bentuk === 'silinder') {
+            workshopType = '1D';
+        }
+    }
+    
+    console.log('Workshop type determined:', workshopType); // Debug log
+    
+    // Extract dimensions from item data (ukuran asli dari SO)
+    let originalLength = 0;
+    let originalWidth = 0;
+    let originalHeight = 0;
+    
+    if (item.panjang && item.lebar) {
+        originalLength = parseFloat(item.panjang) || 0;
+        originalWidth = parseFloat(item.lebar) || 0;
+        originalHeight = parseFloat(item.lebar) || 0; // For 1D items, height = width
+    } else if (item.namaItem) {
+        // Try to extract from namaItem if panjang/lebar not available
+        const sizeMatch = item.namaItem.match(/(\d+(?:\.\d+)?)\s*[Xx]\s*(\d+(?:\.\d+)?)/i);
+        if (sizeMatch) {
+            originalLength = parseFloat(sizeMatch[1]) || 0;
+            originalWidth = parseFloat(sizeMatch[2]) || 0;
+            originalHeight = parseFloat(sizeMatch[2]) || 0;
+        }
+    }
+    
+    // Extract dimensions from basePlate if available (ukuran yang dipilih sebagai Plat/Shaft dasar)
+    let baseLength = originalLength;
+    let baseWidth = originalWidth;
+    let baseHeight = originalHeight;
+    
+    if (item.basePlate) {
+        // Try to extract dimensions from basePlate namaItem
+        const basePlateMatch = item.basePlate.match(/(\d+(?:\.\d+)?)\s*[Xx]\s*(\d+(?:\.\d+)?)/i);
+        if (basePlateMatch) {
+            baseLength = parseFloat(basePlateMatch[1]) || originalLength;
+            baseWidth = parseFloat(basePlateMatch[2]) || originalWidth;
+            baseHeight = parseFloat(basePlateMatch[2]) || originalHeight;
+        }
+    }
+    
+    // Calculate cut dimensions (ukuran yang akan dipotong - mengikuti ukuran item asli)
+    let cutLength = originalLength;
+    let cutWidth = originalWidth;
+    let cutHeight = originalHeight;
+    
+    // Store workshop configuration in localStorage for the workshop page to use
+    const workshopConfig = {
+        // Workshop type (1D or 2D)
+        type: workshopType,
+        
+        // Base dimensions (from selected basePlate or item data)
+        baseLength: baseLength,
+        baseWidth: baseWidth,
+        baseHeight: baseHeight,
+        
+        // Cut dimensions (from original item dimensions - what needs to be cut)
+        cutLength: cutLength,
+        cutWidth: cutWidth,
+        cutHeight: cutHeight,
+        
+        // Original item dimensions for reference
+        originalLength: originalLength,
+        originalWidth: originalWidth,
+        originalHeight: originalHeight,
+        
+        // Item properties
+        itemData: {
+            jenisBarang: item.jenisBarang || item.jenis,
+            bentukBarang: item.bentukBarang || item.bentuk,
+            gradeBarang: item.gradeBarang || item.grade,
+            namaItem: item.namaItem,
+            qty: item.qty,
+            luas: item.luas,
+            basePlate: item.basePlate,
+            workshop: item.workshop
+        },
+        
+        // Configuration metadata
+        timestamp: new Date().toISOString(),
+        source: 'workorder',
+        woNumber: item.woNumber || 'N/A',
+        
+        // Auto-create flags
+        autoCreateBase: true,
+        autoCreateCut: true
+    };
+    
+    console.log('Workshop config to be sent:', workshopConfig); // Debug log
+    
+    localStorage.setItem('workshopConfig', JSON.stringify(workshopConfig));
+    
+    // Redirect to workshop page with parameter to indicate it's from Work Order
+    window.location.href = 'workshop.html?from=workorder';
+}
+
+// Function to show workshop selection modal
+function showWorkshopSelectionModal(item, index) {
+    const modalContent = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🏭</div>
+            <h3 style="color: #3498db; margin-bottom: 16px;">Pilih Workshop</h3>
+            <p style="color: #555; margin-bottom: 24px; line-height: 1.5;">
+                Pilih workshop untuk item <strong>${item.jenisBarang || item.jenis}</strong><br>
+                Bentuk: <strong>${item.bentukBarang || item.bentuk}</strong>
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <button onclick="selectWorkshop('${index}', 'Workshop A - Cutting')" style="
+                    background: #e74c3c; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop A - Cutting</button>
+                
+                <button onclick="selectWorkshop('${index}', 'Workshop B - Welding')" style="
+                    background: #f39c12; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop B - Welding</button>
+                
+                <button onclick="selectWorkshop('${index}', 'Workshop C - Assembly')" style="
+                    background: #27ae60; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop C - Assembly</button>
+                
+                <button onclick="selectWorkshop('${index}', 'Workshop D - Finishing')" style="
+                    background: #9b59b6; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop D - Finishing</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="this.closest('.modal').remove()" style="
+                    background: #95a5a6; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 24px; 
+                    border-radius: 6px; 
+                    font-size: 16px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Batal</button>
+            </div>
+        </div>
+    `;
+    
+    showDetailModal('Pilih Workshop', modalContent);
+}
+
+// Function to select workshop for an item
+function selectWorkshop(itemIndex, workshopName) {
+    // Update the item's workshop
+    if (selectedItems[itemIndex]) {
+        selectedItems[itemIndex].workshop = workshopName;
+    }
+    
+    // Close modal
+    document.querySelector('.modal').remove();
+    
+    // Show success message
+    showSuccessModal(`Workshop berhasil dipilih: ${workshopName}`);
+    
+    // Refresh the display
+    setTimeout(() => {
+        displaySelectedItems();
+    }, 1000);
+}
+
+// Function to open workshop with config from viewWO modal
+function openWorkshopWithConfigFromView(woId, itemIndex) {
+    const wo = woList.find(w => w.id === woId);
+    if (!wo || !wo.items[itemIndex]) return;
+    
+    const item = wo.items[itemIndex];
+    openWorkshopWithConfig(item);
+}
+
+// Function to show workshop selection modal from viewWO modal
+function showWorkshopSelectionModalFromView(woId, itemIndex) {
+    const wo = woList.find(w => w.id === woId);
+    if (!wo || !wo.items[itemIndex]) return;
+    
+    const item = wo.items[itemIndex];
+    
+    const modalContent = `
+        <div style="text-align: center; padding: 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🏭</div>
+            <h3 style="color: #3498db; margin-bottom: 16px;">Pilih Workshop</h3>
+            <p style="color: #555; margin-bottom: 24px; line-height: 1.5;">
+                Pilih workshop untuk item <strong>${item.jenisBarang || item.jenis}</strong><br>
+                Bentuk: <strong>${item.bentukBarang || item.bentuk}</strong>
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <button onclick="selectWorkshopFromView(${woId}, ${itemIndex}, 'Workshop A - Cutting')" style="
+                    background: #e74c3c; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop A - Cutting</button>
+                
+                <button onclick="selectWorkshopFromView(${woId}, ${itemIndex}, 'Workshop B - Welding')" style="
+                    background: #f39c12; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop B - Welding</button>
+                
+                <button onclick="selectWorkshopFromView(${woId}, ${itemIndex}, 'Workshop C - Assembly')" style="
+                    background: #27ae60; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop C - Assembly</button>
+                
+                <button onclick="selectWorkshopFromView(${woId}, ${itemIndex}, 'Workshop D - Finishing')" style="
+                    background: #9b59b6; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 16px; 
+                    border-radius: 6px; 
+                    font-size: 14px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Workshop D - Finishing</button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="this.closest('.modal').remove()" style="
+                    background: #95a5a6; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 24px; 
+                    border-radius: 6px; 
+                    font-size: 16px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Batal</button>
+            </div>
+        </div>
+    `;
+    
+    showDetailModal('Pilih Workshop', modalContent);
+}
+
+// Function to select workshop from viewWO modal
+function selectWorkshopFromView(woId, itemIndex, workshopName) {
+    const wo = woList.find(w => w.id === woId);
+    if (!wo || !wo.items[itemIndex]) return;
+    
+    // Update the item's workshop
+    wo.items[itemIndex].workshop = workshopName;
+    
+    // Save to localStorage
+    localStorage.setItem('woList', JSON.stringify(woList));
+    
+    // Close modal
+    document.querySelector('.modal').remove();
+    
+    // Show success message
+    showSuccessModal(`Workshop berhasil dipilih: ${workshopName}`);
+    
+    // Refresh the WO detail view
+    setTimeout(() => {
+        viewWO(woId);
+    }, 1000);
 }
 
 function showWODetails() {
@@ -720,15 +1051,31 @@ function displaySelectedItems() {
         baseCell.appendChild(baseSpan);
         baseCell.style.textAlign = 'center';
         
-        // Workshop Display
+        // Workshop Display with redirect button
         const workshopCell = row.insertCell(8);
-        const workshopSpan = document.createElement('span');
-        workshopSpan.textContent = item.workshop || '-';
-        workshopSpan.style.padding = '4px 8px';
-        workshopSpan.style.background = item.workshop ? '#e3f2fd' : '#f8f9fa';
-        workshopSpan.style.borderRadius = '4px';
-        workshopSpan.style.fontSize = '12px';
-        workshopCell.appendChild(workshopSpan);
+        
+        // Workshop button - always show "Buka Workshop" regardless of workshop assignment
+        const workshopBtn = document.createElement('button');
+        workshopBtn.textContent = '🏭 Buka Workshop';
+        workshopBtn.className = 'workshop-btn';
+        workshopBtn.style.cssText = `
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 600;
+        `;
+        workshopBtn.title = 'Buka Workshop dengan konfigurasi otomatis (Bentuk, Ukuran, dll)';
+        workshopBtn.addEventListener('click', function() {
+            openWorkshopWithConfig(item);
+        });
+        
+        workshopCell.appendChild(workshopBtn);
+        
         workshopCell.style.textAlign = 'center';
         
         // Action buttons
@@ -1093,7 +1440,23 @@ function viewWO(id) {
                         ${item.basePlate || 'Pilih Plat/Shaft...'}
                     </button>
                 </td>
-                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">${item.workshop || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    <button onclick="openWorkshopWithConfigFromView(${wo.id}, ${itemIndex})" 
+                            style="
+                                background: #3498db;
+                                color: white;
+                                border: none;
+                                border-radius: 4px;
+                                padding: 6px 12px;
+                                font-size: 11px;
+                                cursor: pointer;
+                                white-space: nowrap;
+                                font-weight: 600;
+                            "
+                            title="Buka Workshop dengan konfigurasi otomatis (Bentuk, Ukuran, dll)">
+                        🏭 Buka Workshop
+                    </button>
+                </td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div style="
@@ -1458,3 +1821,5 @@ function printWO(id) {
     
     showDetailModal('Print Work Order', modalContent);
 }
+
+
