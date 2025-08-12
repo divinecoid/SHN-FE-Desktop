@@ -112,9 +112,14 @@
       <div class="input-scrollable-container">
         <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
           <h2 style="margin: 0; color: #2c3e50;">Input Sales Order Baru</h2>
-          <button id="kembaliKeListBtn" style="background: #95a5a6; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
-            ← Kembali ke List
-          </button>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="fillTestData()" style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">Fill Test Data</button>
+            <button onclick="addTestItem()" style="background: #f39c12; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">Add Test Item</button>
+            <button onclick="testSimpanSO()" style="background: #27ae60; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 12px;">Test Simpan SO</button>
+            <button id="kembaliKeListBtn" style="background: #95a5a6; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
+              ← Kembali ke List
+            </button>
+          </div>
         </div>
         
         <!-- Customer Information Section -->
@@ -210,8 +215,7 @@
           <button id="printSO" style="background: #3498db; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; margin-left: 10px;">Print SO</button>
         </div>
         
-        <!-- Test button for debugging -->
-        <button onclick="alert('Test button works!'); console.log('Test button clicked');" style="position:fixed; top:10px; right:10px; z-index:10001; background:#e74c3c; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer;">Test Button</button>
+
         <br/>
         <br/>
         <br/>

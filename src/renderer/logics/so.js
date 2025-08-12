@@ -154,6 +154,11 @@ function setupEventListeners() {
     console.log('Simpan SO button found:', !!document.getElementById('simpanSO'));
     console.log('Input view found:', !!document.getElementById('inputView'));
     
+    // Add test functions to window for HTML onclick
+    window.fillTestData = fillTestData;
+    window.addTestItem = addTestItem;
+    window.testSimpanSO = testSimpanSO;
+    
     // Print SO button
     const printSOBtn = document.getElementById('printSO');
     if (printSOBtn) {
@@ -1564,4 +1569,121 @@ function generateSONumber() {
     const sequence = todaySOs.length + 1;
     const soNumber = `SO-${year}${month}${day}-${String(sequence).padStart(3, '0')}`;
     document.getElementById('soNumber').value = soNumber;
+}
+
+// Function to fill test data for testing purposes
+function fillTestData() {
+    console.log('Filling test data...');
+    
+    // Fill customer information
+    document.getElementById('customerName').value = 'PT Test Customer';
+    document.getElementById('customerPhone').value = '08123456789';
+    document.getElementById('customerEmail').value = 'test@customer.com';
+    document.getElementById('customerAddress').value = 'Jl. Test No. 123, Jakarta Pusat';
+    
+    // Set dates
+    const today = new Date();
+    const deliveryDate = new Date();
+    deliveryDate.setDate(today.getDate() + 14); // 14 days from today
+    
+    document.getElementById('soDate').valueAsDate = today;
+    document.getElementById('deliveryDate').valueAsDate = deliveryDate;
+    
+    // Set payment terms and warehouse
+    document.getElementById('paymentTerms').value = '30_days';
+    
+    // Set warehouse if available
+    const asalGudangSelect = document.getElementById('asalGudang');
+    if (asalGudangSelect.options.length > 1) {
+        asalGudangSelect.value = asalGudangSelect.options[1].value; // Select first warehouse
+    }
+    
+    // Fill item form with test data
+    document.getElementById('panjang').value = '2.5';
+    document.getElementById('lebar').value = '1.2';
+    document.getElementById('qty').value = '10';
+    
+    // Set item properties if available
+    const jenisBarangSelect = document.getElementById('jenisBarang');
+    if (jenisBarangSelect.options.length > 1) {
+        jenisBarangSelect.value = jenisBarangSelect.options[1].value;
+    }
+    
+    const bentukBarangSelect = document.getElementById('bentukBarang');
+    if (bentukBarangSelect.options.length > 1) {
+        bentukBarangSelect.value = bentukBarangSelect.options[1].value;
+    }
+    
+    const gradeBarangSelect = document.getElementById('gradeBarang');
+    if (gradeBarangSelect.options.length > 1) {
+        gradeBarangSelect.value = gradeBarangSelect.options[1].value;
+    }
+    
+    // Set price and units
+    document.getElementById('customPrice').value = '150000';
+    document.getElementById('units').value = 'per_m2';
+    document.getElementById('discount').value = '5';
+    document.getElementById('notes').value = 'Test order untuk testing sistem';
+    
+    // Trigger form update to calculate totals
+    if (typeof updateItemForm === 'function') {
+        updateItemForm();
+    }
+    
+    // Add the item to the list
+    if (typeof tambahItem === 'function') {
+        setTimeout(() => {
+            tambahItem();
+            console.log('Test item added successfully');
+        }, 100);
+    }
+    
+    console.log('Test data filled successfully!');
+    showSuccessModal('Test data berhasil diisi! Silakan klik "Tambah Item" jika belum ada item, lalu klik "Simpan SO"');
+}
+
+// Function to add test item to the list
+function addTestItem() {
+    console.log('Adding test item...');
+    
+    // Check if form has data
+    const panjang = document.getElementById('panjang').value;
+    const lebar = document.getElementById('lebar').value;
+    const qty = document.getElementById('qty').value;
+    
+    if (!panjang || !lebar || !qty) {
+        showWarningModal('Form item masih kosong! Klik "Fill Test Data" terlebih dahulu.');
+        return;
+    }
+    
+    // Add the item
+    if (typeof tambahItem === 'function') {
+        tambahItem();
+        console.log('Test item added successfully');
+        showSuccessModal('Test item berhasil ditambahkan! Sekarang bisa klik "Simpan SO"');
+    } else {
+        showErrorModal('Fungsi tambahItem tidak tersedia');
+    }
+}
+
+// Function to test Simpan SO functionality
+function testSimpanSO() {
+    console.log('Testing Simpan SO...');
+    
+    // Check if we have items
+    if (typeof currentItems !== 'undefined' && currentItems.length > 0) {
+        console.log('Current items found:', currentItems.length);
+        showInfoModal(`Ada ${currentItems.length} item dalam list. Mencoba simpan SO...`);
+        
+        // Try to save SO
+        setTimeout(() => {
+            if (typeof simpanSO === 'function') {
+                simpanSO();
+            } else {
+                showErrorModal('Fungsi simpanSO tidak tersedia');
+            }
+        }, 1000);
+    } else {
+        showWarningModal('Belum ada item dalam list! Klik "Add Test Item" terlebih dahulu.');
+    }
 } 
