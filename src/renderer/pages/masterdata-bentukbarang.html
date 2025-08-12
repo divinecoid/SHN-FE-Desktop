@@ -213,6 +213,7 @@
               <th data-col="id" class="sortable">ID <span class="sort-arrow"></span></th>
               <th data-col="kode" class="sortable">Kode <span class="sort-arrow"></span></th>
               <th data-col="nama" class="sortable">Nama <span class="sort-arrow"></span></th>
+              <th data-col="dimensi" class="sortable">Dimensi <span class="sort-arrow"></span></th>
               <th>Aksi</th>
             </tr>
           </thead>
@@ -240,6 +241,14 @@
           <label for="bentukNama" style="display:block;font-weight:500;margin-bottom:4px;">Nama</label>
           <input type="text" id="bentukNama" name="nama" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="32">
         </div>
+        <div style="margin-bottom:20px;">
+          <label for="bentukDimensi" style="display:block;font-weight:500;margin-bottom:4px;">Dimensi</label>
+          <select id="bentukDimensi" name="dimensi" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required>
+            <option value="">Pilih Dimensi</option>
+            <option value="Shaft (1D)">Shaft (1D)</option>
+            <option value="Plat (2D)">Plat (2D)</option>
+          </select>
+        </div>
         <div style="text-align:right;">
           <button type="button" id="batalBtn" style="margin-right:12px;padding:8px 18px;background:#95a5a6;border:none;border-radius:5px;cursor:pointer;color:#fff;">Batal</button>
           <button type="submit" style="padding:8px 18px;background:#34495e;color:#fff;border:none;border-radius:5px;cursor:pointer;">Simpan</button>
@@ -251,8 +260,8 @@
   <script>
     // --- Bentuk Barang CRUD with localStorage + Sorting ---
     const defaultData = [
-      { id: '0001', kode: 'AS', nama: 'AS' },
-      { id: '0002', kode: 'CNU', nama: 'CANAL U' }
+      { id: '0001', kode: 'AS', nama: 'AS', dimensi: 'Shaft (1D)' },
+      { id: '0002', kode: 'CNU', nama: 'CANAL U', dimensi: 'Plat (2D)' }
     ];
     let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
     function getBentukData() {
@@ -283,6 +292,7 @@
           </td>
           <td>${row.kode}</td>
           <td>${row.nama}</td>
+          <td>${row.dimensi || ''}</td>
           <td>
             <button class="editBtn" data-idx="${idx}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
             <button class="deleteBtn" data-idx="${idx}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
@@ -327,17 +337,18 @@
         const id = this.bentukId.value.trim();
         const kode = this.bentukKode.value.trim();
         const nama = this.bentukNama.value.trim();
+        const dimensi = this.bentukDimensi.value.trim();
         let data = getBentukData();
         if (this.dataset.editIdx !== undefined) {
           // Edit
-          data[this.dataset.editIdx] = { id, kode, nama };
+          data[this.dataset.editIdx] = { id, kode, nama, dimensi };
         } else {
           // Add
           if (data.some(d => d.id === id)) {
             alert('ID sudah ada!');
             return;
           }
-          data.push({ id, kode, nama });
+          data.push({ id, kode, nama, dimensi });
         }
         setBentukData(data);
         renderTable();
@@ -368,6 +379,7 @@
         form.bentukId.value = data.id;
         form.bentukKode.value = data.kode;
         form.bentukNama.value = data.nama;
+        form.bentukDimensi.value = data.dimensi;
         form.bentukId.disabled = true;
         title.textContent = 'Edit Bentuk Barang';
         form.dataset.editIdx = editIdx;

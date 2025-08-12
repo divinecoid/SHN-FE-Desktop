@@ -84,7 +84,7 @@ function showDetailModal(title, content) {
         width: 100vw;
         height: 100vh;
         background: rgba(0,0,0,0.5);
-        z-index: 10000;
+        z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -128,6 +128,274 @@ function showDetailModal(title, content) {
             modal.remove();
         }
     });
+}
+
+// Function to show base plate/shaft selection popup
+function showBasePlateSelect(woId, itemIndex, jenisBarang, bentukBarang) {
+    // Get masterdata item barang from localStorage
+    const itemBarangList = JSON.parse(localStorage.getItem('itemBarang') || '[]');
+    //show item barang list
+    console.log('itemBarangList', itemBarangList);
+
+    // Filter items based on Jenis and Bentuk (case-insensitive)
+    const filteredItems = itemBarangList.filter(item => 
+        item.jenis?.toLowerCase() === jenisBarang?.toLowerCase() && 
+        item.bentuk?.toLowerCase() === bentukBarang?.toLowerCase()
+    );
+    console.log('filteredItems', filteredItems);
+    
+    // If no items found, show message
+    if (filteredItems.length === 0) {
+        showWarningModal(`Tidak ada item barang dengan Jenis "${jenisBarang}" dan Bentuk "${bentukBarang}" di masterdata. Silakan tambahkan item barang terlebih dahulu.`);
+        return;
+    }
+    
+    // Create modal content
+    let modalContent = `
+        <div style="max-width: 800px; max-height: 70vh; overflow-y: auto;">
+            <h3 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">
+                Pilih Plat/Shaft Dasar
+            </h3>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div><strong>Jenis Barang:</strong> ${jenisBarang}</div>
+                    <div><strong>Bentuk Barang:</strong> ${bentukBarang}</div>
+                </div>
+                <div style="color: #7f8c8d; font-size: 14px;">
+                    Menampilkan ${filteredItems.length} item barang yang sesuai dengan filter
+                </div>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background: #ecf0f1;">
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Kode Item</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Nama Item</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Grade</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Ukuran (m)</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Satuan</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    filteredItems.forEach(item => {
+        modalContent += `
+            <tr>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.kodeItem || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.namaItem || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.gradeBarang || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    ${item.panjang || '-'} × ${item.lebar || '-'}
+                </td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    ${getUnitDisplay(item.satuan) || '-'}
+                </td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    <button onclick="selectBasePlate(${woId}, ${itemIndex}, '${item.namaItem}', '${item.kodeItem}')" 
+                            style="
+                                background: #27ae60; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 4px; 
+                                padding: 6px 12px; 
+                                cursor: pointer; 
+                                font-size: 12px;
+                                font-weight: 600;
+                            "
+                            title="Pilih item ini sebagai Plat/Shaft Dasar">
+                        Pilih
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    modalContent += `
+                </tbody>
+            </table>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="this.closest('.modal').remove()" style="
+                    background: #95a5a6; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 24px; 
+                    border-radius: 6px; 
+                    font-size: 16px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Tutup</button>
+            </div>
+        </div>
+    `;
+    
+    showDetailModal('Pilih Plat/Shaft Dasar', modalContent);
+}
+
+// Function to select base plate for SO items (before WO creation)
+function selectBasePlateForSO(itemIndex, namaItem, kodeItem) {
+    // Update the item's basePlate in the selectedSO
+    if (selectedSO && selectedSO.items[itemIndex]) {
+        selectedSO.items[itemIndex].basePlate = namaItem;
+        selectedSO.items[itemIndex].basePlateKode = kodeItem;
+        
+        // Update the selectedItems array if this item is selected
+        const selectedItem = selectedItems.find(selected => selected.originalIndex === itemIndex);
+        if (selectedItem) {
+            selectedItem.basePlate = namaItem;
+            selectedItem.basePlateKode = kodeItem;
+        }
+        
+        // Close modal
+        document.querySelector('.modal').remove();
+        
+        // Show success message
+        showSuccessModal(`Plat/Shaft Dasar berhasil dipilih: ${namaItem}`);
+        
+        // Refresh the SO items display
+        setTimeout(() => {
+            displaySOItems();
+        }, 1000);
+    } else {
+        showErrorModal('Item tidak ditemukan dalam Sales Order!');
+    }
+}
+
+// Function to show base plate/shaft selection popup for SO items
+function showBasePlateSelectForSO(itemIndex, jenisBarang, bentukBarang) {
+    // Get masterdata item barang from localStorage
+    const itemBarangList = JSON.parse(localStorage.getItem('itemBarang') || '[]');
+    
+    // Filter items based on Jenis and Bentuk (case-insensitive)
+    const filteredItems = itemBarangList.filter(item => 
+        item.jenis?.toLowerCase() === jenisBarang?.toLowerCase() && 
+        item.bentuk?.toLowerCase() === bentukBarang?.toLowerCase()
+    );
+    
+    // If no items found, show message
+    if (filteredItems.length === 0) {
+        showWarningModal(`Tidak ada item barang dengan Jenis "${jenisBarang}" dan Bentuk "${bentukBarang}" di masterdata. Silakan tambahkan item barang terlebih dahulu.`);
+        return;
+    }
+    
+    // Create modal content
+    let modalContent = `
+        <div style="max-width: 800px; max-height: 70vh; overflow-y: auto;">
+            <h3 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">
+                Pilih Plat/Shaft Dasar
+            </h3>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div><strong>Jenis Barang:</strong> ${jenisBarang}</div>
+                    <div><strong>Bentuk Barang:</strong> ${bentukBarang}</div>
+                </div>
+                <div style="color: #7f8c8d; font-size: 14px;">
+                    Menampilkan ${filteredItems.length} item barang yang sesuai dengan filter
+                </div>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background: #ecf0f1;">
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Kode Item</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Nama Item</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Grade</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Ukuran (m)</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Satuan</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    filteredItems.forEach(item => {
+        modalContent += `
+            <tr>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.kodeItem || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.namaItem || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px;">${item.gradeBarang || '-'}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    ${item.panjang || '-'} × ${item.lebar || '-'}
+                </td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    ${getUnitDisplay(item.satuan) || '-'}
+                </td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    <button onclick="selectBasePlateForSO(${itemIndex}, '${item.namaItem}', '${item.kodeItem}')" 
+                            style="
+                                background: #27ae60; 
+                                color: white; 
+                                border: none; 
+                                border-radius: 4px; 
+                                padding: 6px 12px; 
+                                cursor: pointer; 
+                                font-size: 12px;
+                                font-weight: 600;
+                            "
+                            title="Pilih item ini sebagai Plat/Shaft Dasar">
+                        Pilih
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    modalContent += `
+                </tbody>
+            </table>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="this.closest('.modal').remove()" style="
+                    background: #95a5a6; 
+                    color: white; 
+                    border: none; 
+                    padding: 12px 24px; 
+                    border-radius: 6px; 
+                    font-size: 16px; 
+                    font-weight: 600; 
+                    cursor: pointer;
+                ">Tutup</button>
+            </div>
+        </div>
+    `;
+    
+    showDetailModal('Pilih Plat/Shaft Dasar', modalContent);
+}
+
+// Function to select base plate and update WO
+function selectBasePlate(woId, itemIndex, namaItem, kodeItem) {
+    // Find the WO
+    const wo = woList.find(w => w.id === woId);
+    if (!wo) {
+        showErrorModal('Work Order tidak ditemukan!');
+        return;
+    }
+    
+    // Update the item's basePlate
+    if (wo.items[itemIndex]) {
+        wo.items[itemIndex].basePlate = namaItem;
+        wo.items[itemIndex].basePlateKode = kodeItem;
+        
+        // Save to localStorage
+        localStorage.setItem('woList', JSON.stringify(woList));
+        
+        // Close modal
+        document.querySelector('.modal').remove();
+        
+        // Show success message
+        showSuccessModal(`Plat/Shaft Dasar berhasil dipilih: ${namaItem}`);
+        
+        // Refresh the WO detail view
+        setTimeout(() => {
+            viewWO(woId);
+        }, 1000);
+    } else {
+        showErrorModal('Item tidak ditemukan dalam Work Order!');
+    }
 }
 
 // Helper functions for formatting
@@ -315,6 +583,63 @@ function displaySOItems() {
         row.insertCell(6).textContent = item.luas.toFixed(2);
         row.insertCell(7).textContent = getUnitDisplay(item.units);
         
+        // Base Plate/Shaft Selection
+        const baseCell = row.insertCell(8);
+        const baseButton = document.createElement('button');
+        baseButton.textContent = item.basePlate || 'Pilih Plat/Shaft...';
+        baseButton.style.cssText = `
+            background: ${item.basePlate ? '#e8f5e8' : '#f8f9fa'}; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            padding: 4px 8px; 
+            cursor: pointer; 
+            font-size: 12px;
+            width: 100%;
+            text-align: left;
+            color: ${item.basePlate ? '#2c3e50' : '#95a5a6'};
+        `;
+        baseButton.title = 'Klik untuk memilih Plat/Shaft Dasar';
+        
+        // Add click event to open base plate selection
+        baseButton.addEventListener('click', function() {
+            // For SO items, we don't have WO ID yet, so we'll use a temporary approach
+            // We'll store the selection directly in the item object
+            showBasePlateSelectForSO(index, item.jenisBarang || item.jenis, item.bentukBarang || item.bentuk);
+        });
+        
+        baseCell.appendChild(baseButton);
+        baseCell.style.textAlign = 'center';
+        
+        // Workshop Selection
+        const workshopCell = row.insertCell(9);
+        const workshopSelect = document.createElement('select');
+        workshopSelect.style.width = '100%';
+        workshopSelect.style.padding = '4px';
+        workshopSelect.style.borderRadius = '4px';
+        workshopSelect.style.border = '1px solid #ddd';
+        
+        // Add options for workshop
+        const workshopOptions = ['', 'Workshop A - Cutting', 'Workshop B - Welding', 'Workshop C - Assembly', 'Workshop D - Finishing'];
+        workshopOptions.forEach(option => {
+            const opt = document.createElement('option');
+            opt.value = option;
+            opt.textContent = option;
+            workshopSelect.appendChild(opt);
+        });
+        
+        // Set default value if exists
+        if (item.workshop) {
+            workshopSelect.value = item.workshop;
+        }
+        
+        // Store selection in item
+        workshopSelect.addEventListener('change', function() {
+            item.workshop = this.value;
+        });
+        
+        workshopCell.appendChild(workshopSelect);
+        workshopCell.style.textAlign = 'center';
+        
         // Center align numeric columns
         for (let i = 4; i <= 7; i++) {
             row.cells[i].style.textAlign = 'center';
@@ -368,8 +693,30 @@ function displaySelectedItems() {
         row.insertCell(5).textContent = item.luas.toFixed(2);
         row.insertCell(6).textContent = getUnitDisplay(item.units);
         
+        // Base Plate/Shaft Display
+        const baseCell = row.insertCell(7);
+        const baseSpan = document.createElement('span');
+        baseSpan.textContent = item.basePlate || '-';
+        baseSpan.style.padding = '4px 8px';
+        baseSpan.style.background = item.basePlate ? '#e8f5e8' : '#f8f9fa';
+        baseSpan.style.borderRadius = '4px';
+        baseSpan.style.fontSize = '12px';
+        baseCell.appendChild(baseSpan);
+        baseCell.style.textAlign = 'center';
+        
+        // Workshop Display
+        const workshopCell = row.insertCell(8);
+        const workshopSpan = document.createElement('span');
+        workshopSpan.textContent = item.workshop || '-';
+        workshopSpan.style.padding = '4px 8px';
+        workshopSpan.style.background = item.workshop ? '#e3f2fd' : '#f8f9fa';
+        workshopSpan.style.borderRadius = '4px';
+        workshopSpan.style.fontSize = '12px';
+        workshopCell.appendChild(workshopSpan);
+        workshopCell.style.textAlign = 'center';
+        
         // Action buttons
-        const actionCell = row.insertCell(7);
+        const actionCell = row.insertCell(9);
         const splitBtn = document.createElement('button');
         splitBtn.textContent = 'Pisahkan';
         splitBtn.style.background = '#e74c3c';
@@ -685,13 +1032,15 @@ function viewWO(id) {
                         <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Qty</th>
                         <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Luas (m²)</th>
                         <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Satuan</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Plat/Shaft Dasar</th>
+                        <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Workshop</th>
                         <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Progress</th>
                     </tr>
                 </thead>
                 <tbody>
     `;
     
-    wo.items.forEach(item => {
+    wo.items.forEach((item, itemIndex) => {
         let unitsDisplay = '';
         if (item.units === 'per_m2') unitsDisplay = 'per m²';
         else if (item.units === 'per_lembar') unitsDisplay = 'per lembar';
@@ -711,6 +1060,24 @@ function viewWO(id) {
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">${item.qty || 0}</td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">${item.luas ? item.luas.toFixed(2) + ' m²' : '-'}</td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">${unitsDisplay}</td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
+                    <button onclick="showBasePlateSelect(${wo.id}, ${itemIndex}, '${item.jenisBarang || item.jenis || ''}', '${item.bentukBarang || ''}')" 
+                            style="
+                                background: ${item.basePlate ? '#e8f5e8' : '#f8f9fa'}; 
+                                border: 1px solid #ddd; 
+                                border-radius: 4px; 
+                                padding: 4px 8px; 
+                                cursor: pointer; 
+                                font-size: 12px;
+                                width: 100%;
+                                text-align: left;
+                                color: ${item.basePlate ? '#2c3e50' : '#95a5a6'};
+                            "
+                            title="Klik untuk memilih Plat/Shaft Dasar">
+                        ${item.basePlate || 'Pilih Plat/Shaft...'}
+                    </button>
+                </td>
+                <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">${item.workshop || '-'}</td>
                 <td style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div style="
@@ -859,9 +1226,9 @@ function deleteWO(id) {
 }
 
 function confirmDeleteWO(id) {
-    woList = woList.filter(w => w.id !== id);
-    localStorage.setItem('woList', JSON.stringify(woList));
-    loadWOList();
+        woList = woList.filter(w => w.id !== id);
+        localStorage.setItem('woList', JSON.stringify(woList));
+        loadWOList();
     
     // Close modal and show success message
     document.querySelector('.modal').remove();
@@ -990,9 +1357,13 @@ function exportWOList() {
 function performExport() {
     try {
         // Create CSV content
-        let csvContent = 'No WO,No SO,Pelanggan,Status,Prioritas,Tanggal WO,Deadline,Estimasi Jam,Assigned To,Total Item\n';
+        let csvContent = 'No WO,No SO,Pelanggan,Status,Prioritas,Tanggal WO,Deadline,Estimasi Jam,Assigned To,Total Item,Base Plate/Shaft,Workshop\n';
         
         woList.forEach(wo => {
+            // Get base plate and workshop info from items
+            const basePlates = [...new Set(wo.items.map(item => item.basePlate).filter(Boolean))].join('; ');
+            const workshops = [...new Set(wo.items.map(item => item.workshop).filter(Boolean))].join('; ');
+            
             const row = [
                 wo.woNumber,
                 wo.soNumber,
@@ -1003,7 +1374,9 @@ function performExport() {
                 wo.deadline ? formatDate(wo.deadline) : '-',
                 wo.estimatedHours || '-',
                 wo.assignedTo || '-',
-                wo.items.length
+                wo.items.length,
+                basePlates || '-',
+                workshops || '-'
             ].map(field => `"${field}"`).join(',');
             
             csvContent += row + '\n';
