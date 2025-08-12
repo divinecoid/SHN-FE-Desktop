@@ -1,264 +1,113 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Work Order Demo - SURYA LOGAM JAYA</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f5f5f5;
-    }
-    .demo-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .demo-section {
-      margin-bottom: 30px;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: #f9f9f9;
-    }
-    .demo-title {
-      color: #2c3e50;
-      border-bottom: 2px solid #3498db;
-      padding-bottom: 10px;
-      margin-bottom: 20px;
-    }
-    .feature-list {
-      list-style: none;
-      padding: 0;
-    }
-    .feature-list li {
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-    }
-    .feature-list li:before {
-      content: "✓";
-      color: #27ae60;
-      font-weight: bold;
-      margin-right: 10px;
-      font-size: 18px;
-    }
-    .code-block {
-      background: #2c3e50;
-      color: #ecf0f1;
-      padding: 15px;
-      border-radius: 5px;
-      font-family: monospace;
-      overflow-x: auto;
-      margin: 10px 0;
-    }
-    .step {
-      background: #e8f5e8;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 10px 0;
-      border-left: 4px solid #27ae60;
-    }
-    .step h4 {
-      margin: 0 0 10px 0;
-      color: #27ae60;
-    }
-    .navigation-info {
-      background: #e3f2fd;
-      padding: 15px;
-      border-radius: 5px;
-      border-left: 4px solid #2196f3;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Work Order Popup Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .demo-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .demo-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .demo-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .demo-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .demo-description {
+            color: #555;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
-  <div class="demo-container">
-    <h1 class="demo-title">Work Order System Demo</h1>
-    
-    <div class="demo-section">
-      <h2 class="demo-title">🎯 Fitur Utama yang Telah Dibuat</h2>
-      <ul class="feature-list">
-        <li>Halaman Work Order lengkap dengan list view dan form input</li>
-        <li>Pembuatan Work Order dari Sales Order yang ada</li>
-        <li>Pemisahan item menjadi Work Order baru</li>
-        <li>Sistem pencarian dan filter Work Order</li>
-        <li>Manajemen status Work Order (Draft, In Progress, Completed, Cancelled)</li>
-        <li>Sistem prioritas (Low, Medium, High, Urgent)</li>
-        <li>Auto-generate nomor Work Order</li>
-        <li>Integrasi dengan data Sales Order</li>
-        <li>Responsive design yang konsisten dengan sistem</li>
-      </ul>
+    <div class="demo-container">
+        <h1 style="text-align: center; color: #2c3e50; margin-bottom: 30px;">
+            🚀 Work Order Popup Demo
+        </h1>
+        
+        <div class="demo-section">
+            <h2 class="demo-title">✨ Fitur yang Telah Diimplementasikan</h2>
+            <div class="demo-description">
+                <ul>
+                    <li><strong>Detail Popup:</strong> Popup detail lengkap untuk setiap Work Order</li>
+                    <li><strong>Modal Notifikasi:</strong> Sistem modal untuk success, error, warning, dan info</li>
+                    <li><strong>Konfirmasi Hapus:</strong> Modal konfirmasi sebelum menghapus WO</li>
+                    <li><strong>Edit WO:</strong> Modal informasi untuk fitur edit (akan datang)</li>
+                    <li><strong>Print WO:</strong> Modal untuk fitur print (akan datang)</li>
+                    <li><strong>Export Data:</strong> Modal untuk export data ke CSV</li>
+                    <li><strong>Progress Tracking:</strong> Visual progress bar untuk setiap item</li>
+                    <li><strong>Responsive Design:</strong> Modal yang responsif dan mudah digunakan</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="demo-title">🎯 Cara Penggunaan</h2>
+            <div class="demo-description">
+                <ol>
+                    <li>Buka halaman Work Order di aplikasi utama</li>
+                    <li>Klik tombol "👁️" pada baris Work Order yang ingin dilihat detailnya</li>
+                    <li>Popup detail akan muncul dengan informasi lengkap</li>
+                    <li>Gunakan tombol aksi yang tersedia (Edit, Print, dll)</li>
+                    <li>Modal akan menampilkan informasi atau konfirmasi yang diperlukan</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2 class="demo-title">🔧 Teknis Implementasi</h2>
+            <div class="demo-description">
+                <ul>
+                    <li><strong>Modal System:</strong> Menggunakan custom modal yang konsisten dengan Sales Order</li>
+                    <li><strong>Event Handling:</strong> Keyboard support (ESC untuk tutup modal)</li>
+                    <li><strong>Responsive:</strong> Modal menyesuaikan ukuran layar</li>
+                    <li><strong>Animation:</strong> Transisi smooth untuk UX yang lebih baik</li>
+                    <li><strong>Error Handling:</strong> Validasi data dan error handling yang robust</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <button class="demo-button" onclick="window.open('src/renderer/pages/workorder.html', '_blank')">
+                🚀 Buka Halaman Work Order
+            </button>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px; color: #7f8c8d; font-size: 14px;">
+            <p>✨ Popup detail Work Order telah berhasil diimplementasikan!</p>
+            <p>Fitur ini mirip dengan Sales Order dan memberikan pengalaman pengguna yang konsisten.</p>
+        </div>
     </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">📁 File yang Dibuat</h2>
-      <div class="code-block">
-src/renderer/pages/workorder.html    # Halaman utama Work Order
-src/renderer/logics/workorder.js      # Logika dan fungsi Work Order
-WORKORDER_README.md                   # Dokumentasi lengkap
-WORKORDER_DEMO.html                  # File demo ini
-      </div>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">🚀 Cara Menggunakan</h2>
-      
-      <div class="step">
-        <h4>Langkah 1: Akses Work Order</h4>
-        <p>Buka aplikasi dan klik menu "Work Order" di navigasi utama</p>
-      </div>
-      
-      <div class="step">
-        <h4>Langkah 2: Buat Work Order Baru</h4>
-        <p>Klik tombol "Tambah Work Order" → Pilih Sales Order → Pilih item → Klik "Buat Work Order"</p>
-      </div>
-      
-      <div class="step">
-        <h4>Langkah 3: Isi Detail Work Order</h4>
-        <p>Isi deskripsi, estimasi jam kerja, pekerja, deadline, dan prioritas</p>
-      </div>
-      
-      <div class="step">
-        <h4>Langkah 4: Pisahkan Item (Opsional)</h4>
-        <p>Gunakan tombol "Pisahkan" untuk membuat Work Order terpisah dari item tertentu</p>
-      </div>
-      
-      <div class="step">
-        <h4>Langkah 5: Simpan dan Kelola</h4>
-        <p>Klik "Simpan Work Order" dan kelola Work Order yang sudah dibuat</p>
-      </div>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">🔗 Integrasi dengan Sistem</h2>
-      <ul class="feature-list">
-        <li><strong>Sales Order:</strong> Work Order dibuat berdasarkan SO yang ada</li>
-        <li><strong>Master Data:</strong> Menggunakan jenis, bentuk, grade barang yang sudah ada</li>
-        <li><strong>Storage:</strong> Data tersimpan di localStorage browser</li>
-        <li><strong>Navigation:</strong> Menu Work Order ditambahkan ke navigasi utama</li>
-      </ul>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">📊 Struktur Data Work Order</h2>
-      <div class="code-block">
-{
-  woNumber: "WO-20250101-001",     // Format: WO-YYYYMMDD-XXX
-  soNumber: "SO-2025001",          // Referensi ke Sales Order
-  customerName: "PT. Contoh",      // Nama pelanggan
-  items: [...],                    // Array item yang dipilih
-  status: "Draft",                 // Status Work Order
-  priority: "Medium",              // Prioritas pekerjaan
-  description: "Deskripsi pekerjaan",
-  estimatedHours: 8,               // Estimasi jam kerja
-  assignedTo: "Nama Pekerja",      // Pekerja yang ditugaskan
-  deadline: "2025-01-08"           // Deadline pekerjaan
-}
-      </div>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">🎨 Fitur UI/UX</h2>
-      <ul class="feature-list">
-        <li>Design yang konsisten dengan sistem yang ada</li>
-        <li>Responsive layout untuk berbagai ukuran layar</li>
-        <li>Color coding untuk status dan prioritas</li>
-        <li>Form validation dan error handling</li>
-        <li>Auto-complete dan default values</li>
-        <li>Search dan filter yang user-friendly</li>
-        <li>Action buttons yang jelas dan mudah digunakan</li>
-      </ul>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">🔍 Fitur Pencarian dan Filter</h2>
-      <ul class="feature-list">
-        <li><strong>Search:</strong> Cari berdasarkan No WO, No SO, nama pelanggan, atau item</li>
-        <li><strong>Status Filter:</strong> Filter berdasarkan status Work Order</li>
-        <li><strong>Periode Filter:</strong> Filter berdasarkan periode (hari ini, minggu ini, bulan ini, dll)</li>
-        <li><strong>Clear Filter:</strong> Reset semua filter dengan satu klik</li>
-      </ul>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">⚡ Fitur Pemisahan Item</h2>
-      <p>Setiap item dalam Work Order dapat dipisahkan menjadi Work Order baru:</p>
-      <ul class="feature-list">
-        <li>Tombol "Pisahkan" pada setiap item</li>
-        <li>Work Order baru otomatis dibuat dengan nomor unik</li>
-        <li>Status awal: Draft</li>
-        <li>Referensi ke Sales Order asli tetap terjaga</li>
-        <li>Item yang dipisahkan tidak dapat dikembalikan</li>
-      </ul>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">📱 Responsive Design</h2>
-      <ul class="feature-list">
-        <li>Layout yang menyesuaikan dengan ukuran layar</li>
-        <li>Grid system yang fleksibel</li>
-        <li>Form input yang responsive</li>
-        <li>Table yang dapat di-scroll horizontal pada mobile</li>
-        <li>Button dan action yang mudah diakses di mobile</li>
-      </ul>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">🔧 Teknis Implementasi</h2>
-      <ul class="feature-list">
-        <li>Vanilla JavaScript tanpa framework tambahan</li>
-        <li>LocalStorage untuk penyimpanan data</li>
-        <li>Event-driven architecture</li>
-        <li>Modular function design</li>
-        <li>Error handling dan validation</li>
-        <li>Auto-numbering system</li>
-        <li>Data consistency checks</li>
-      </ul>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">🚀 Pengembangan Selanjutnya</h2>
-      <ul class="feature-list">
-        <li>Status tracking dan progress monitoring</li>
-        <li>Sistem notifikasi untuk deadline</li>
-        <li>Laporan produksi dan efisiensi</li>
-        <li>Integrasi dengan sistem workshop</li>
-        <li>Export data ke Excel/PDF</li>
-        <li>User management dan permission</li>
-        <li>Real-time updates</li>
-      </ul>
-    </div>
-
-    <div class="navigation-info">
-      <h3>📍 Cara Akses Work Order</h3>
-      <p><strong>Menu Navigasi:</strong> Work Order telah ditambahkan ke menu navigasi utama di halaman index.html</p>
-      <p><strong>URL Langsung:</strong> Buka file <code>src/renderer/pages/workorder.html</code></p>
-      <p><strong>Integrasi:</strong> Sistem terintegrasi dengan Sales Order yang sudah ada</p>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">✅ Status Implementasi</h2>
-      <ul class="feature-list">
-        <li>✅ Halaman Work Order lengkap</li>
-        <li>✅ Logika JavaScript lengkap</li>
-        <li>✅ Integrasi dengan Sales Order</li>
-        <li>✅ Sistem pemisahan item</li>
-        <li>✅ Search dan filter</li>
-        <li>✅ Responsive design</li>
-        <li>✅ Dokumentasi lengkap</li>
-        <li>✅ Menu navigasi</li>
-      </ul>
-    </div>
-
-    <div class="demo-section">
-      <h2 class="demo-title">📞 Support dan Bantuan</h2>
-      <p>Untuk informasi lebih lanjut, silakan lihat file <code>WORKORDER_README.md</code> yang berisi dokumentasi lengkap sistem Work Order.</p>
-      <p>Sistem ini siap digunakan dan terintegrasi dengan sistem Inventory & Workshop SURYA LOGAM JAYA yang sudah ada.</p>
-    </div>
-  </div>
 </body>
 </html>

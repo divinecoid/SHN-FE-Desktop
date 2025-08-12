@@ -36,6 +36,16 @@ function createWindow () {
         event.preventDefault();
       }
     }
+    
+    // Handle Ctrl + Shift + I for DevTools
+    if (input.control && input.shift && input.key === 'I') {
+      event.preventDefault();
+      if (win.webContents.isDevToolsOpened()) {
+        win.webContents.closeDevTools();
+      } else {
+        win.webContents.openDevTools();
+      }
+    }
   });
 
   // Create menu template
@@ -364,6 +374,7 @@ function createWindow () {
                 'Ctrl+R - Report\\n' +
                 'Ctrl+1-9 - Masterdata items\\n' +
                 'Ctrl+L - Logout\\n' +
+                'Ctrl+Shift+I - Toggle DevTools\\n' +
                 'Ctrl+Q - Exit');
             `);
           }

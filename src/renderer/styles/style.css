@@ -1630,6 +1630,14 @@ body.login-page {
   color: white;
   cursor: not-allowed;
   opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.so-table-container .btn-convert:disabled:hover,
+.so-table-container .btn-convert[disabled]:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .so-table-container .btn-hapus {
@@ -1639,6 +1647,48 @@ body.login-page {
 
 .so-table-container .btn-hapus:hover {
   background: #c0392b;
+}
+
+/* Fill Test Data Button Styling */
+#fillTestDataBtn {
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+#fillTestDataBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(243, 156, 18, 0.4);
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+}
+
+#fillTestDataBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
+}
+
+#fillTestDataBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+#fillTestDataBtn:hover::before {
+  left: 100%;
 }
 
 /* Responsive adjustments for action buttons */
@@ -1652,6 +1702,11 @@ body.login-page {
     font-size: 11px;
     min-width: 60px;
     margin: 1px;
+  }
+  
+  #fillTestDataBtn {
+    padding: 8px 16px;
+    font-size: 13px;
   }
 }
 

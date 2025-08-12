@@ -76,6 +76,8 @@ function showInfoModal(message) {
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     loadMasterData();
+    createSampleWarehouseData(); // Create sample warehouse data if none exists
+    createSampleSOData(); // Create sample SO data if none exists
     loadSOList();
     setupEventListeners();
     updateSummaryInfo();
@@ -95,6 +97,34 @@ function setupEventListeners() {
             if (e.target === customModal) {
                 hideModal();
             }
+        });
+    }
+    
+    // Test Convert button listener
+    const testConvertBtn = document.getElementById('testConvertBtn');
+    if (testConvertBtn) {
+        testConvertBtn.addEventListener('click', function() {
+            console.log('Test Convert button clicked');
+            console.log('Current SO list:', soList);
+            console.log('Current stock list:', JSON.parse(localStorage.getItem('stockList') || '[]'));
+            console.log('Current warehouse list:', JSON.parse(localStorage.getItem('warehouseList') || '[]'));
+            
+            if (soList.length > 0) {
+                const firstSO = soList[0];
+                console.log('Testing conversion with first SO:', firstSO);
+                convertToWO(firstSO.id);
+            } else {
+                showWarningModal('Tidak ada Sales Order untuk diuji');
+            }
+        });
+    }
+    
+    // Fill Test Data button listener
+    const fillTestDataBtn = document.getElementById('fillTestDataBtn');
+    if (fillTestDataBtn) {
+        fillTestDataBtn.addEventListener('click', function() {
+            console.log('Fill Test Data button clicked');
+            fillTestData();
         });
     }
     
@@ -953,7 +983,31 @@ function renderFilteredSOList() {
         const convertButtonStyle = canConvertToWO ? 
             'background: #27ae60; color: white; cursor: pointer;' : 
             'background: #95a5a6; color: white; cursor: not-allowed;';
-        const convertButtonText = canConvertToWO ? 'Convert to WO' : 'Cannot Convert';
+        
+        // Enhanced button text for partial WO
+        let convertButtonText = 'Convert to WO';
+        if (so.status === 'Partial WO') {
+            convertButtonText = `Re-Convert (${so.partialWOInfo?.conversionRate || '0'}%)`;
+        } else if (!canConvertToWO) {
+            convertButtonText = 'Cannot Convert';
+        }
+        
+        // Enhanced status display for partial WO
+        let statusDisplay = so.status;
+        if (so.status === 'Partial WO' && so.partialWOInfo) {
+            statusDisplay = `Partial WO (${so.partialWOInfo.conversionRate}%)`;
+        }
+        
+        // Add info buttons for partial WO
+        let infoButtons = '';
+        if (so.status === 'Partial WO' && so.partialWOInfo) {
+            infoButtons += `<button class="btn-info" onclick="showPartialWOInfo(${so.id})" style="background: #9b59b6; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-right: 4px;">ℹ️ Info</button>`;
+            
+            // Add stock reduction details button if available
+            if (so.partialWOInfo.stockReduction) {
+                infoButtons += `<button class="btn-stock" onclick="showStockReductionDetails(${so.id})" style="background: #e67e22; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; margin-right: 4px;">📦 Stok</button>`;
+            }
+        }
         
         row.innerHTML = `
             <td>${so.soNumber}</td>
@@ -962,10 +1016,11 @@ function renderFilteredSOList() {
             <td>${getWarehouseDisplay(so.asalGudang)}</td>
             <td>${so.items.length}</td>
             <td>Rp ${so.total.toLocaleString('id-ID')}</td>
-            <td><span style="color: ${getStatusColor(so.status)}">${so.status}</span></td>
+            <td><span style="color: ${getStatusColor(so.status)}">${statusDisplay}</span></td>
             <td>
+                ${infoButtons}
                 <button class="btn-view" onclick="viewSO(${so.id})">View</button>
-                <button class="btn-convert" onclick="${canConvertToWO ? 'convertToWO(' + so.id + ')' : 'void(0)'}" ${!canConvertToWO ? 'disabled' : ''}>${convertButtonText}</button>
+                <button class="btn-convert" onclick="convertToWO(${so.id})" ${!canConvertToWO ? 'disabled' : ''}>${convertButtonText}</button>
                 <button class="btn-hapus" onclick="deleteSO(${so.id})">Hapus</button>
             </td>
         `;
@@ -978,6 +1033,7 @@ function getStatusColor(status) {
         'Draft': '#f39c12',
         'Confirmed': '#3498db',
         'In Progress': '#e67e22',
+        'Partial WO': '#9b59b6', // Purple for partial conversion
         'Completed': '#27ae60',
         'Cancelled': '#e74c3c'
     };
@@ -1003,6 +1059,7 @@ function updateSummaryInfo() {
         'Draft': 0,
         'Confirmed': 0,
         'In Progress': 0,
+        'Partial WO': 0,
         'Completed': 0,
         'Cancelled': 0
     };
@@ -1018,6 +1075,7 @@ function updateSummaryInfo() {
     document.getElementById('draftCount').textContent = statusCounts['Draft'];
     document.getElementById('confirmedCount').textContent = statusCounts['Confirmed'];
     document.getElementById('progressCount').textContent = statusCounts['In Progress'];
+    document.getElementById('partialWOCount').textContent = statusCounts['Partial WO'];
     document.getElementById('completedCount').textContent = statusCounts['Completed'];
 }
 
@@ -1062,93 +1120,995 @@ function exportSOList() {
 
 // Function to convert SO to WO with stock validation
 function convertToWO(soId) {
-    const so = soList.find(s => s.id === soId);
-    if (!so) {
-        showErrorModal('Sales Order tidak ditemukan');
-        return;
-    }
-    
-    // Check if SO status is appropriate for conversion
-    if (so.status === 'Completed' || so.status === 'Cancelled') {
-        showErrorModal('Sales Order dengan status ' + so.status + ' tidak dapat dikonversi menjadi Work Order');
-        return;
-    }
-    
-    // Validate stock availability
-    const stockValidation = validateStockForWO(so);
-    if (!stockValidation.isValid) {
-        showErrorModal('Stok tidak mencukupi untuk konversi ke WO:\n' + stockValidation.message);
-        return;
-    }
-    
-    // Confirm conversion
-    if (confirm(`Yakin ingin mengkonversi Sales Order ${so.soNumber} menjadi Work Order?\n\nStok tersedia dan siap untuk diproses.`)) {
-        // Create Work Order
-        const wo = createWorkOrderFromSO(so);
+    try {
+        console.log('Converting SO to WO:', soId);
         
-        // Update SO status
-        so.status = 'In Progress';
+        const so = soList.find(s => s.id === soId);
+        if (!so) {
+            showErrorModal('Sales Order tidak ditemukan');
+            return;
+        }
+        
+        console.log('SO found:', so);
+        
+        // Check if SO status is appropriate for conversion
+        if (so.status === 'Completed' || so.status === 'Cancelled') {
+            showErrorModal('Sales Order dengan status ' + so.status + ' tidak dapat dikonversi menjadi Work Order');
+            return;
+        }
+        
+        // Check if SO has items
+        if (!so.items || so.items.length === 0) {
+            showErrorModal('Sales Order tidak memiliki item yang dapat dikonversi');
+            return;
+        }
+        
+        // Validate stock availability
+        const stockValidation = validateStockForWO(so);
+        console.log('Stock validation result:', stockValidation);
+        
+        if (!stockValidation.isValid) {
+            // Show detailed information about what can and cannot be converted
+            let errorMessage = 'Stok tidak mencukupi untuk konversi ke WO:\n\n';
+            
+            if (stockValidation.convertibleItems.length > 0) {
+                errorMessage += `✅ Item yang dapat dikonversi (${stockValidation.convertibleItems.length}):\n`;
+                stockValidation.convertibleItems.forEach(item => {
+                    errorMessage += `   • ${item.jenisBarang || item.jenis} - ${item.qty} pcs (${item.luas}m²)\n`;
+                });
+                errorMessage += `\n💰 Total nilai: Rp ${stockValidation.totalConvertibleValue.toLocaleString('id-ID')}\n\n`;
+            }
+            
+            if (stockValidation.nonConvertibleItems.length > 0) {
+                errorMessage += `❌ Item yang tidak dapat dikonversi (${stockValidation.nonConvertibleItems.length}):\n`;
+                stockValidation.nonConvertibleItems.forEach(item => {
+                    errorMessage += `   • ${item.jenisBarang || item.jenis} - ${item.reason}\n`;
+                });
+                errorMessage += `\n💰 Total nilai: Rp ${stockValidation.totalNonConvertibleValue.toLocaleString('id-ID')}\n\n`;
+            }
+            
+            errorMessage += `📊 Tingkat konversi: ${stockValidation.conversionRate}%`;
+            
+            // Ask user if they want to proceed with partial conversion
+            if (stockValidation.convertibleItems.length > 0) {
+                const proceedPartial = confirm(
+                    errorMessage + '\n\n' +
+                    'Apakah Anda ingin melanjutkan dengan konversi partial?\n' +
+                    'Hanya item yang stoknya mencukupi yang akan dikonversi menjadi WO.'
+                );
+                
+                if (proceedPartial) {
+                    // Proceed with partial conversion
+                    proceedWithPartialConversion(so, stockValidation);
+                    return;
+                }
+            }
+            
+            showErrorModal(errorMessage);
+            return;
+        }
+        
+        // Confirm conversion (full conversion)
+        if (confirm(`Yakin ingin mengkonversi Sales Order ${so.soNumber} menjadi Work Order?\n\nSemua item (${stockValidation.convertibleItems.length}) dapat dikonversi.\nStok tersedia dan siap untuk diproses.`)) {
+            try {
+                // Create Work Order with all items
+                const wo = createWorkOrderFromSO(so, stockValidation.convertibleItems);
+                console.log('Work Order created (full):', wo);
+                
+                // Update SO status
+                so.status = 'In Progress';
+                localStorage.setItem('soList', JSON.stringify(soList));
+                
+                // Save Work Order
+                saveWorkOrder(wo);
+                console.log('Work Order saved successfully');
+                
+                // Refresh display
+                renderFilteredSOList();
+                updateSummaryInfo();
+                
+                // Build success message with stock reduction info
+                let successMessage = `Sales Order ${so.soNumber} berhasil dikonversi menjadi Work Order ${wo.woNumber}!\n\n`;
+                successMessage += `✅ Semua ${stockValidation.convertibleItems.length} item berhasil dikonversi\n`;
+                successMessage += `💰 Total nilai: Rp ${stockValidation.totalConvertibleValue.toLocaleString('id-ID')}\n\n`;
+                
+                // Add stock reduction information
+                if (wo.stockReduction && wo.stockReduction.success) {
+                    successMessage += `📦 Pengurangan Stok:\n`;
+                    successMessage += `   • Total stok berkurang: ${wo.stockReduction.totalReduced.toFixed(2)}m²\n`;
+                    successMessage += `   • Item yang diproses: ${wo.stockReduction.itemsProcessed}\n`;
+                    successMessage += `   • Status: ${wo.stockReduction.message}\n\n`;
+                }
+                
+                successMessage += `📊 Status SO diubah menjadi "In Progress"`;
+                
+                showSuccessModal(successMessage);
+                
+                // Redirect to Work Order page after successful conversion
+                setTimeout(() => {
+                    if (confirm('Konversi berhasil! Apakah Anda ingin melihat Work Order yang baru dibuat?')) {
+                        window.location.href = 'workorder.html';
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error during conversion:', error);
+                showErrorModal('Terjadi kesalahan saat mengkonversi SO ke WO: ' + error.message);
+            }
+        }
+    } catch (error) {
+        console.error('Error in convertToWO:', error);
+        showErrorModal('Terjadi kesalahan: ' + error.message);
+    }
+}
+
+// Function to proceed with partial conversion
+function proceedWithPartialConversion(so, stockValidation) {
+    try {
+        console.log('Proceeding with partial conversion for SO:', so.soNumber);
+        console.log('Convertible items:', stockValidation.convertibleItems);
+        console.log('Non-convertible items:', stockValidation.nonConvertibleItems);
+        
+        // Create Work Order with only convertible items
+        const wo = createWorkOrderFromSO(so, stockValidation.convertibleItems);
+        console.log('Partial Work Order created:', wo);
+        
+        // Update SO status to indicate partial conversion
+        so.status = 'Partial WO';
+        so.partialWOInfo = {
+            convertedItems: stockValidation.convertibleItems.length,
+            totalItems: so.items.length,
+            conversionRate: stockValidation.conversionRate,
+            convertedValue: stockValidation.totalConvertibleValue,
+            nonConvertedValue: stockValidation.totalNonConvertibleValue,
+            convertedAt: new Date().toISOString(),
+            stockReduction: wo.stockReduction // Store stock reduction info
+        };
+        
         localStorage.setItem('soList', JSON.stringify(soList));
         
         // Save Work Order
         saveWorkOrder(wo);
+        console.log('Partial Work Order saved successfully');
         
         // Refresh display
-        loadSOList();
+        renderFilteredSOList();
+        updateSummaryInfo();
         
-        showSuccessModal(`Sales Order ${so.soNumber} berhasil dikonversi menjadi Work Order ${wo.woNumber}!\nStatus SO diubah menjadi "In Progress".`);
+        // Show success message with detailed information
+        let successMessage = `Sales Order ${so.soNumber} berhasil dikonversi menjadi Work Order ${wo.woNumber}!\n\n`;
+        successMessage += `✅ Item yang dikonversi (${stockValidation.convertibleItems.length}):\n`;
+        stockValidation.convertibleItems.forEach(item => {
+            successMessage += `   • ${item.jenisBarang || item.jenis} - ${item.qty} pcs (${item.luas}m²)\n`;
+        });
+        successMessage += `\n💰 Total nilai dikonversi: Rp ${stockValidation.totalConvertibleValue.toLocaleString('id-ID')}\n\n`;
+        
+        // Add stock reduction information
+        if (wo.stockReduction && wo.stockReduction.success) {
+            successMessage += `📦 Pengurangan Stok:\n`;
+            successMessage += `   • Total stok berkurang: ${wo.stockReduction.totalReduced.toFixed(2)}m²\n`;
+            successMessage += `   • Item yang diproses: ${wo.stockReduction.itemsProcessed}\n`;
+            successMessage += `   • Status: ${wo.stockReduction.message}\n\n`;
+        }
+        
+        if (stockValidation.nonConvertibleItems.length > 0) {
+            successMessage += `⚠️ Item yang tidak dikonversi (${stockValidation.nonConvertibleItems.length}):\n`;
+            stockValidation.nonConvertibleItems.forEach(item => {
+                successMessage += `   • ${item.jenisBarang || item.jenis} - ${item.reason}\n`;
+            });
+            successMessage += `\n💰 Total nilai tidak dikonversi: Rp ${stockValidation.totalNonConvertibleValue.toLocaleString('id-ID')}\n\n`;
+        }
+        
+        successMessage += `📊 Tingkat konversi: ${stockValidation.conversionRate}%\n📋 Status SO diubah menjadi "Partial WO"`;
+        
+        showSuccessModal(successMessage);
+        
+        // Redirect to Work Order page after successful conversion
+        setTimeout(() => {
+            if (confirm('Konversi partial berhasil! Apakah Anda ingin melihat Work Order yang baru dibuat?')) {
+                window.location.href = 'workorder.html';
+            }
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Error during partial conversion:', error);
+        showErrorModal('Terjadi kesalahan saat konversi partial: ' + error.message);
     }
 }
 
-// Function to validate stock availability for WO conversion
-function validateStockForWO(so) {
-    let stockList = JSON.parse(localStorage.getItem('stockList') || '[]');
-    const warehouseId = so.asalGudang;
-    
-    // If no stock data exists, create sample data for testing
-    if (stockList.length === 0) {
-        stockList = createSampleStockData();
-        localStorage.setItem('stockList', JSON.stringify(stockList));
+// Function to show partial WO information
+function showPartialWOInfo(soId) {
+    try {
+        const so = soList.find(s => s.id === soId);
+        if (!so || so.status !== 'Partial WO' || !so.partialWOInfo) {
+            showWarningModal('Informasi Partial WO tidak tersedia');
+            return;
+        }
+        
+        const info = so.partialWOInfo;
+        let message = `📋 Informasi Konversi Partial WO\n\n`;
+        message += `📊 Sales Order: ${so.soNumber}\n`;
+        message += `👤 Customer: ${so.customerName}\n\n`;
+        message += `✅ Item yang berhasil dikonversi: ${info.convertedItems} dari ${info.totalItems}\n`;
+        message += `📈 Tingkat konversi: ${info.conversionRate}%\n\n`;
+        message += `💰 Nilai yang dikonversi: Rp ${info.convertedValue.toLocaleString('id-ID')}\n`;
+        message += `⚠️ Nilai yang tidak dikonversi: Rp ${info.nonConvertedValue.toLocaleString('id-ID')}\n\n`;
+        message += `📅 Waktu konversi: ${new Date(info.convertedAt).toLocaleString('id-ID')}\n\n`;
+        message += `💡 Anda dapat mengkonversi ulang untuk item yang belum dikonversi dengan klik tombol "Re-Convert"`;
+        
+        // Add stock reduction information if available
+        if (so.partialWOInfo && so.partialWOInfo.stockReduction) {
+            message += `\n\n📦 Informasi Pengurangan Stok:\n`;
+            message += `   • Total stok berkurang: ${so.partialWOInfo.stockReduction.totalReduced.toFixed(2)}m²\n`;
+            message += `   • Item yang diproses: ${so.partialWOInfo.stockReduction.itemsProcessed}\n`;
+            message += `   • Status: ${so.partialWOInfo.stockReduction.message}`;
+        }
+        
+        showInfoModal(message);
+        
+    } catch (error) {
+        console.error('Error showing partial WO info:', error);
+        showErrorModal('Terjadi kesalahan saat menampilkan info Partial WO: ' + error.message);
     }
-    
-    // Filter stock by warehouse
-    const warehouseStock = stockList.filter(stock => stock.warehouseId == warehouseId);
-    
-    if (warehouseStock.length === 0) {
+}
+
+// Function to show detailed stock reduction information
+function showStockReductionDetails(soId) {
+    try {
+        const so = soList.find(s => s.id === soId);
+        if (!so || !so.partialWOInfo || !so.partialWOInfo.stockReduction) {
+            showWarningModal('Informasi pengurangan stok tidak tersedia');
+            return;
+        }
+        
+        const stockReduction = so.partialWOInfo.stockReduction;
+        let message = `📦 Detail Pengurangan Stok\n\n`;
+        message += `📊 Sales Order: ${so.soNumber}\n`;
+        message += `👤 Customer: ${so.customerName}\n`;
+        message += `📅 Waktu: ${new Date(so.partialWOInfo.convertedAt).toLocaleString('id-ID')}\n\n`;
+        message += `📈 Ringkasan:\n`;
+        message += `   • Total stok berkurang: ${stockReduction.totalReduced.toFixed(2)}m²\n`;
+        message += `   • Item yang diproses: ${stockReduction.itemsProcessed}\n`;
+        message += `   • Status: ${stockReduction.message}\n\n`;
+        
+        if (stockReduction.details && stockReduction.details.length > 0) {
+            message += `📋 Detail per Item:\n`;
+            stockReduction.details.forEach((detail, index) => {
+                message += `\n${index + 1}. ${detail.itemName}\n`;
+                message += `   • Status: ${detail.status}\n`;
+                message += `   • Dibutuhkan: ${detail.required.toFixed(2)}m²\n`;
+                message += `   • Berkurang: ${detail.reduced.toFixed(2)}m²\n`;
+                
+                if (detail.stockReductions && detail.stockReductions.length > 0) {
+                    message += `   • Detail stok:\n`;
+                    detail.stockReductions.forEach(stock => {
+                        message += `     - Stock ID ${stock.stockId}: ${stock.reduced.toFixed(2)}m² (${stock.originalLuas.toFixed(2)}m² → ${stock.remaining.toFixed(2)}m²)\n`;
+                    });
+                }
+            });
+        }
+        
+        showInfoModal(message);
+        
+    } catch (error) {
+        console.error('Error showing stock reduction details:', error);
+        showErrorModal('Terjadi kesalahan saat menampilkan detail pengurangan stok: ' + error.message);
+    }
+}
+
+// Function to reduce stock quantities when creating Work Order
+function reduceStockForWO(itemsForWO, warehouseId) {
+    try {
+        console.log('Reducing stock for WO items:', itemsForWO);
+        console.log('Warehouse ID:', warehouseId);
+        
+        let stockList = JSON.parse(localStorage.getItem('stockList') || '[]');
+        const warehouseStock = stockList.filter(stock => stock.warehouseId == warehouseId);
+        
+        if (warehouseStock.length === 0) {
+            console.warn('No stock found in warehouse:', warehouseId);
+            return {
+                success: false,
+                message: 'Tidak ada stok di gudang',
+                totalReduced: 0,
+                itemsProcessed: 0,
+                details: []
+            };
+        }
+        
+        const reductionDetails = [];
+        let totalReduced = 0;
+        let itemsProcessed = 0;
+        
+        // Process each item in the WO
+        for (const woItem of itemsForWO) {
+            console.log('Processing WO item:', woItem);
+            
+            const requiredArea = woItem.luas * woItem.qty;
+            const itemJenis = woItem.jenisBarang || woItem.jenis || 'Unknown';
+            const itemKetebalan = woItem.ketebalan || 2.0;
+            
+            console.log('Required area:', requiredArea, 'Item jenis:', itemJenis, 'Ketebalan:', itemKetebalan);
+            
+            // Find matching stock items
+            const matchingStocks = warehouseStock.filter(stock => {
+                const stockMatches = stock.jenisPlat && stock.jenisPlat.includes(itemJenis.split(' ')[0]);
+                const thicknessMatches = Math.abs(stock.ketebalan - itemKetebalan) <= 0.5;
+                return stockMatches && thicknessMatches;
+            });
+            
+            if (matchingStocks.length === 0) {
+                console.warn('No matching stock found for item:', woItem);
+                reductionDetails.push({
+                    itemId: woItem.id,
+                    itemName: itemJenis,
+                    status: 'No matching stock',
+                    reduced: 0,
+                    required: requiredArea
+                });
+                continue;
+            }
+            
+            // Sort stocks by available area (largest first) for efficient reduction
+            matchingStocks.sort((a, b) => b.luas - a.luas);
+            
+            let remainingRequired = requiredArea;
+            let itemReduced = 0;
+            const stockReductions = [];
+            
+            // Reduce stock quantities
+            for (const stock of matchingStocks) {
+                if (remainingRequired <= 0) break;
+                
+                const availableInStock = stock.luas;
+                const toReduce = Math.min(availableInStock, remainingRequired);
+                
+                // Reduce stock quantity
+                stock.luas -= toReduce;
+                stock.qty = Math.max(1, Math.floor(stock.luas / (stock.panjang * stock.lebar)));
+                
+                // Update stock item
+                stock.updatedAt = new Date().toISOString();
+                
+                stockReductions.push({
+                    stockId: stock.id,
+                    originalLuas: availableInStock,
+                    reduced: toReduce,
+                    remaining: stock.luas
+                });
+                
+                remainingRequired -= toReduce;
+                itemReduced += toReduce;
+                
+                console.log(`Reduced stock ${stock.id}: ${toReduce}m² (${availableInStock}m² → ${stock.luas}m²)`);
+                
+                // Remove stock if completely consumed
+                if (stock.luas <= 0) {
+                    stock.luas = 0;
+                    stock.qty = 0;
+                    stock.status = 'Depleted';
+                }
+            }
+            
+            if (itemReduced > 0) {
+                itemsProcessed++;
+                totalReduced += itemReduced;
+                
+                reductionDetails.push({
+                    itemId: woItem.id,
+                    itemName: itemJenis,
+                    status: 'Success',
+                    reduced: itemReduced,
+                    required: requiredArea,
+                    remaining: remainingRequired,
+                    stockReductions: stockReductions
+                });
+                
+                console.log(`Item ${itemJenis}: Reduced ${itemReduced}m², Remaining: ${itemReduced}m²`);
+            } else {
+                reductionDetails.push({
+                    itemId: woItem.id,
+                    itemName: itemJenis,
+                    status: 'Failed - No stock available',
+                    reduced: 0,
+                    required: requiredArea,
+                    remaining: requiredArea
+                });
+            }
+        }
+        
+        // Save updated stock list
+        localStorage.setItem('stockList', JSON.stringify(stockList));
+        
+        const result = {
+            success: true,
+            message: `Berhasil mengurangi stok untuk ${itemsProcessed} item`,
+            totalReduced: totalReduced,
+            itemsProcessed: itemsProcessed,
+            details: reductionDetails
+        };
+        
+        console.log('Stock reduction completed:', result);
+        return result;
+        
+    } catch (error) {
+        console.error('Error reducing stock for WO:', error);
         return {
-            isValid: false,
-            message: `Tidak ada stok di gudang ${getWarehouseDisplay(warehouseId)}`
+            success: false,
+            message: 'Error saat mengurangi stok: ' + error.message,
+            totalReduced: 0,
+            itemsProcessed: 0,
+            details: []
         };
     }
-    
-    // Check each item in SO
-    for (const soItem of so.items) {
-        const requiredArea = soItem.luas * soItem.qty; // Total area needed
-        const itemJenis = soItem.jenisBarang || soItem.jenis || 'Unknown';
-        const itemKetebalan = soItem.ketebalan || 2.0; // Default thickness
+}
+
+// Function to validate stock availability for WO conversion with partial support
+function validateStockForWO(so) {
+    try {
+        console.log('Validating stock for SO:', so);
         
-        const availableStock = warehouseStock.filter(stock => 
-            stock.jenisPlat === itemJenis && 
-            stock.ketebalan === itemKetebalan
-        );
+        let stockList = JSON.parse(localStorage.getItem('stockList') || '[]');
+        const warehouseId = so.asalGudang;
         
-        if (availableStock.length === 0) {
+        console.log('Warehouse ID:', warehouseId);
+        console.log('Current stock list:', stockList);
+        
+        // If no stock data exists, create sample data for testing
+        if (stockList.length === 0) {
+            console.log('No stock data found, creating sample data...');
+            stockList = createSampleStockData();
+            localStorage.setItem('stockList', JSON.stringify(stockList));
+        }
+        
+        // Filter stock by warehouse
+        const warehouseStock = stockList.filter(stock => stock.warehouseId == warehouseId);
+        console.log('Warehouse stock:', warehouseStock);
+        
+        if (warehouseStock.length === 0) {
             return {
                 isValid: false,
-                message: `Tidak ada stok ${itemJenis} dengan ketebalan ${itemKetebalan}mm di gudang`
+                message: `Tidak ada stok di gudang ${getWarehouseDisplay(warehouseId)}`,
+                convertibleItems: [],
+                nonConvertibleItems: []
             };
         }
         
-        const totalAvailableArea = availableStock.reduce((sum, stock) => sum + stock.luas, 0);
-        if (totalAvailableArea < requiredArea) {
-            return {
-                isValid: false,
-                message: `Stok ${itemJenis} tidak mencukupi. Dibutuhkan: ${requiredArea.toFixed(2)}m², Tersedia: ${totalAvailableArea.toFixed(2)}m²`
-            };
+        const convertibleItems = [];
+        const nonConvertibleItems = [];
+        let totalConvertibleValue = 0;
+        let totalNonConvertibleValue = 0;
+        
+        // Check each item in SO
+        for (const soItem of so.items) {
+            console.log('Checking item:', soItem);
+            
+            const requiredArea = soItem.luas * soItem.qty; // Total area needed
+            const itemJenis = soItem.jenisBarang || soItem.jenis || 'Unknown';
+            const itemKetebalan = soItem.ketebalan || 2.0; // Default thickness
+            
+            console.log('Required area:', requiredArea, 'Item jenis:', itemJenis, 'Ketebalan:', itemKetebalan);
+            
+            // More flexible matching for stock items
+            const availableStock = warehouseStock.filter(stock => {
+                const stockMatches = stock.jenisPlat && stock.jenisPlat.includes(itemJenis.split(' ')[0]); // Match first word
+                const thicknessMatches = Math.abs(stock.ketebalan - itemKetebalan) <= 0.5; // Allow 0.5mm tolerance
+                return stockMatches && thicknessMatches;
+            });
+            
+            console.log('Available stock for this item:', availableStock);
+            
+            if (availableStock.length === 0) {
+                // No stock available for this item
+                nonConvertibleItems.push({
+                    ...soItem,
+                    reason: `Tidak ada stok ${itemJenis} dengan ketebalan ${itemKetebalan}mm di gudang`,
+                    availableStock: 0,
+                    requiredStock: requiredArea
+                });
+                totalNonConvertibleValue += soItem.total || 0;
+                continue;
+            }
+            
+            const totalAvailableArea = availableStock.reduce((sum, stock) => sum + stock.luas, 0);
+            console.log('Total available area:', totalAvailableArea, 'Required:', requiredArea);
+            
+            if (totalAvailableArea < requiredArea) {
+                // Stock insufficient for this item
+                nonConvertibleItems.push({
+                    ...soItem,
+                    reason: `Stok ${itemJenis} tidak mencukupi. Dibutuhkan: ${requiredArea.toFixed(2)}m², Tersedia: ${totalAvailableArea.toFixed(2)}m²`,
+                    availableStock: totalAvailableArea,
+                    requiredStock: requiredArea
+                });
+                totalNonConvertibleValue += soItem.total || 0;
+            } else {
+                // Stock sufficient for this item
+                convertibleItems.push({
+                    ...soItem,
+                    availableStock: totalAvailableArea,
+                    requiredStock: requiredArea
+                });
+                totalConvertibleValue += soItem.total || 0;
+            }
         }
+        
+        console.log('Stock validation completed');
+        console.log('Convertible items:', convertibleItems.length);
+        console.log('Non-convertible items:', nonConvertibleItems.length);
+        
+        // Return detailed validation result
+        return {
+            isValid: convertibleItems.length > 0, // Valid if at least one item can be converted
+            message: convertibleItems.length > 0 ? 
+                `Dapat dikonversi ${convertibleItems.length} item dari ${so.items.length} item total` :
+                'Tidak ada item yang dapat dikonversi',
+            convertibleItems: convertibleItems,
+            nonConvertibleItems: nonConvertibleItems,
+            totalConvertibleValue: totalConvertibleValue,
+            totalNonConvertibleValue: totalNonConvertibleValue,
+            conversionRate: (convertibleItems.length / so.items.length * 100).toFixed(1)
+        };
+        
+    } catch (error) {
+        console.error('Error in validateStockForWO:', error);
+        return {
+            isValid: false,
+            message: 'Error saat validasi stok: ' + error.message,
+            convertibleItems: [],
+            nonConvertibleItems: []
+        };
+    }
+}
+
+// Function to create sample warehouse data for testing
+function createSampleWarehouseData() {
+    const existingWarehouse = JSON.parse(localStorage.getItem('warehouseList') || '[]');
+    if (existingWarehouse.length > 0) {
+        console.log('Sample warehouse data already exists');
+        return;
     }
     
-    return { isValid: true, message: 'Stok mencukupi' };
+    console.log('Creating sample warehouse data...');
+    
+    const sampleWarehouse = [
+        {
+            id: 1,
+            nama: 'Gudang Utama',
+            lokasi: 'Jakarta Pusat',
+            alamat: 'Jl. Gudang Utama No. 1, Jakarta Pusat',
+            kapasitas: 1000,
+            satuan: 'm²',
+            status: 'Active',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        },
+        {
+            id: 2,
+            nama: 'Gudang Cabang 1',
+            lokasi: 'Jakarta Selatan',
+            alamat: 'Jl. Gudang Cabang No. 1, Jakarta Selatan',
+            kapasitas: 500,
+            satuan: 'm²',
+            status: 'Active',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }
+    ];
+    
+    localStorage.setItem('warehouseList', JSON.stringify(sampleWarehouse));
+    console.log('Sample warehouse data created:', sampleWarehouse);
+}
+
+// Function to fill test data with random items
+function fillTestData() {
+    try {
+        console.log('Filling test data with random items...');
+        
+        // Ensure master data exists first
+        ensureMasterDataExists();
+        
+        // Clear existing items first
+        const previousItemsCount = currentItems.length;
+        console.log('Previous items count:', previousItemsCount);
+        currentItems = [];
+        
+        // Add random seed based on current time to ensure different results each time
+        const randomSeed = Date.now() + Math.random();
+        const timestamp = new Date().toLocaleString('id-ID');
+        console.log('=== FILL TEST DATA EXECUTED ===');
+        console.log('Timestamp:', timestamp);
+        console.log('Random seed:', randomSeed);
+        console.log('===============================');
+        
+        // Generate random number of items (3-8 items)
+        const numItems = Math.floor((randomSeed % 6) + 3);
+        console.log(`Generating ${numItems} random items...`);
+        
+        // Get master data for variety
+        const jenisBarangList = JSON.parse(localStorage.getItem('jenisBarang') || '[]');
+        const bentukBarangList = JSON.parse(localStorage.getItem('bentukBarang') || '[]');
+        const gradeBarangList = JSON.parse(localStorage.getItem('gradeBarang') || '[]');
+        
+        // Fallback options if master data is empty
+        const jenisBarangOptions = jenisBarangList.length > 0 ? 
+            jenisBarangList.map(item => item.nama) : 
+            ['Aluminium 1100', 'Aluminium 6061', 'Aluminium 7075', 
+             'Stainless Steel 304', 'Stainless Steel 316', 'Stainless Steel 430',
+             'Galvanized Steel', 'Mild Steel', 'Copper', 'Brass'];
+        
+        const bentukBarangOptions = bentukBarangList.length > 0 ? 
+            bentukBarangList.map(item => item.nama) : 
+            ['Plat', 'Pipa', 'Profil', 'Kawat', 'Lembaran', 'Kotak'];
+        
+        const gradeBarangOptions = gradeBarangList.length > 0 ? 
+            gradeBarangList.map(item => item.nama) : 
+            ['Grade A', 'Grade B', 'Grade C', 'Premium', 'Standard', 'Economy'];
+        
+        const unitsOptions = ['per_m2', 'per_lembar', 'per_kg'];
+        
+        // Generate random items with enhanced randomness
+        for (let i = 0; i < numItems; i++) {
+            // Enhanced random dimensions with more variation
+            const randomFactor1 = (randomSeed * (i + 1)) % 1000 / 1000;
+            const randomFactor2 = (randomSeed * (i + 2)) % 1000 / 1000;
+            
+            const panjang = parseFloat((randomFactor1 * 3.5 + 0.5).toFixed(2));
+            const lebar = parseFloat((randomFactor2 * 3.5 + 0.5).toFixed(2));
+            const qty = Math.floor((randomSeed * (i + 3)) % 10) + 1; // 1-10 pieces
+            
+            // Enhanced random selections with rotation
+            const jenisBarang = jenisBarangOptions[Math.floor((randomSeed * (i + 4)) % jenisBarangOptions.length)];
+            const bentukBarang = bentukBarangOptions[Math.floor((randomSeed * (i + 5)) % bentukBarangOptions.length)];
+            const gradeBarang = gradeBarangOptions[Math.floor((randomSeed * (i + 6)) % gradeBarangOptions.length)];
+            const units = unitsOptions[Math.floor((randomSeed * (i + 7)) % unitsOptions.length)];
+            
+            // Enhanced random price with more variation
+            let basePrice = 100000; // Default price
+            const priceRandom = (randomSeed * (i + 8)) % 1000 / 1000;
+            
+            if (jenisBarang.includes('Aluminium')) {
+                basePrice = 150000 + (priceRandom * 100000); // 150k - 250k
+            } else if (jenisBarang.includes('Stainless Steel')) {
+                basePrice = 250000 + (priceRandom * 150000); // 250k - 400k
+            } else if (jenisBarang.includes('Steel')) {
+                basePrice = 80000 + (priceRandom * 70000); // 80k - 150k
+            } else if (jenisBarang.includes('Copper')) {
+                basePrice = 300000 + (priceRandom * 200000); // 300k - 500k
+            } else if (jenisBarang.includes('Brass')) {
+                basePrice = 200000 + (priceRandom * 100000); // 200k - 300k
+            }
+            
+            // Enhanced random discount (0-30%)
+            const discount = parseFloat(((randomSeed * (i + 9)) % 300 / 10).toFixed(1));
+            
+            // Enhanced random notes with rotation
+            const notesOptions = [
+                'Urgent delivery', 'High quality required', 'Standard specification',
+                'Custom finish', 'Export quality', 'Local market', 'Sample order',
+                'Bulk order', 'Special requirement', 'Regular stock', 'Premium grade',
+                'Industrial use', 'Construction material', 'Automotive parts',
+                'Electronics components', 'Medical equipment', 'Aerospace grade'
+            ];
+            const notes = notesOptions[Math.floor((randomSeed * (i + 10)) % notesOptions.length)];
+            
+            // Calculate values
+            const luas = panjang * lebar;
+            let harga = basePrice;
+            
+            // Adjust price based on units
+            if (units === 'per_lembar') {
+                harga = basePrice * luas;
+            } else if (units === 'per_kg') {
+                // Estimate weight using density
+                const density = jenisBarang.includes('Aluminium') ? 2700 : 
+                              jenisBarang.includes('Stainless') ? 8000 : 
+                              jenisBarang.includes('Steel') ? 7850 : 8500;
+                const ketebalan = 2; // mm
+                const volume = luas * (ketebalan / 1000);
+                const weight = volume * density;
+                harga = basePrice * weight;
+            }
+            
+            const discountAmount = (harga * luas * qty * discount) / 100;
+            const total = (harga * luas * qty) - discountAmount;
+            
+            // Create item object with enhanced random ID
+            const item = {
+                id: Date.now() + i + Math.floor(randomSeed % 1000),
+                jenisBarang: jenisBarang,
+                bentukBarang: bentukBarang,
+                gradeBarang: gradeBarang,
+                panjang: panjang,
+                lebar: lebar,
+                qty: qty,
+                luas: luas,
+                ketebalan: 2.0,
+                harga: Math.round(harga),
+                units: units,
+                discount: discount,
+                discountAmount: Math.round(discountAmount),
+                total: Math.round(total),
+                notes: notes
+            };
+            
+            currentItems.push(item);
+            console.log(`Generated item ${i + 1}:`, item);
+        }
+        
+        // Update tables and summary
+        renderItemTable();
+        updateSOSummary();
+        
+        // Fill customer and warehouse data randomly
+        fillRandomCustomerData();
+        fillRandomWarehouseData();
+        
+        // Show success message with random seed info
+        showSuccessModal(`Berhasil mengisi ${numItems} item test data dengan variasi random!\n\nRandom Seed: ${randomSeed}\n\nItem termasuk berbagai jenis material, dimensi, dan spesifikasi yang berbeda.\n\nData customer dan gudang juga telah diisi secara random.`);
+        
+        console.log('Test data filled successfully with random seed:', randomSeed);
+        console.log('Generated items:', currentItems);
+        console.log('=== SUMMARY ===');
+        console.log('Previous items:', previousItemsCount);
+        console.log('New items:', currentItems.length);
+        console.log('Total change:', currentItems.length - previousItemsCount);
+        console.log('===============');
+        
+    } catch (error) {
+        console.error('Error filling test data:', error);
+        showErrorModal('Terjadi kesalahan saat mengisi test data: ' + error.message);
+    }
+}
+
+// Function to ensure master data exists for test data generation
+function ensureMasterDataExists() {
+    try {
+        // Check and create jenis barang if empty
+        let jenisBarang = JSON.parse(localStorage.getItem('jenisBarang') || '[]');
+        if (jenisBarang.length === 0) {
+            jenisBarang = [
+                { id: 1, nama: 'Aluminium 1100', deskripsi: 'Aluminium alloy 1100' },
+                { id: 2, nama: 'Aluminium 6061', deskripsi: 'Aluminium alloy 6061' },
+                { id: 3, nama: 'Stainless Steel 304', deskripsi: 'Stainless steel 304' },
+                { id: 4, nama: 'Stainless Steel 316', deskripsi: 'Stainless steel 316' },
+                { id: 5, nama: 'Galvanized Steel', deskripsi: 'Galvanized steel sheet' },
+                { id: 6, nama: 'Mild Steel', deskripsi: 'Mild steel plate' },
+                { id: 7, nama: 'Copper', deskripsi: 'Copper sheet' },
+                { id: 8, nama: 'Brass', deskripsi: 'Brass sheet' }
+            ];
+            localStorage.setItem('jenisBarang', JSON.stringify(jenisBarang));
+            console.log('Created sample jenis barang data');
+        }
+        
+        // Check and create bentuk barang if empty
+        let bentukBarang = JSON.parse(localStorage.getItem('bentukBarang') || '[]');
+        if (bentukBarang.length === 0) {
+            bentukBarang = [
+                { id: 1, nama: 'Plat', deskripsi: 'Flat plate' },
+                { id: 2, nama: 'Pipa', deskripsi: 'Pipe/tube' },
+                { id: 3, nama: 'Profil', deskripsi: 'Profile section' },
+                { id: 4, nama: 'Kawat', deskripsi: 'Wire' },
+                { id: 5, nama: 'Lembaran', deskripsi: 'Sheet' },
+                { id: 6, nama: 'Kotak', deskripsi: 'Box section' }
+            ];
+            localStorage.setItem('bentukBarang', JSON.stringify(bentukBarang));
+            console.log('Created sample bentuk barang data');
+        }
+        
+        // Check and create grade barang if empty
+        let gradeBarang = JSON.parse(localStorage.getItem('gradeBarang') || '[]');
+        if (gradeBarang.length === 0) {
+            gradeBarang = [
+                { id: 1, nama: 'Grade A', deskripsi: 'Premium grade' },
+                { id: 2, nama: 'Grade B', deskripsi: 'Standard grade' },
+                { id: 3, nama: 'Grade C', deskripsi: 'Economy grade' },
+                { id: 4, nama: 'Premium', deskripsi: 'High quality' },
+                { id: 5, nama: 'Standard', deskripsi: 'Normal quality' },
+                { id: 6, nama: 'Economy', deskripsi: 'Basic quality' }
+            ];
+            localStorage.setItem('gradeBarang', JSON.stringify(gradeBarang));
+            console.log('Created sample grade barang data');
+        }
+        
+        console.log('Master data ensured for test data generation');
+        
+    } catch (error) {
+        console.error('Error ensuring master data exists:', error);
+    }
+}
+
+// Function to fill random customer data
+function fillRandomCustomerData() {
+    try {
+        // Use current timestamp for enhanced randomness
+        const randomSeed = Date.now() + Math.random();
+        
+        const customerNames = [
+            'PT Maju Bersama', 'CV Sukses Mandiri', 'UD Jaya Abadi',
+            'PT Global Teknik', 'CV Mitra Sejati', 'UD Berkah Makmur',
+            'PT Prima Steel', 'CV Mitra Utama', 'UD Jaya Makmur',
+            'PT Teknik Sukses', 'CV Maju Jaya', 'UD Berkah Jaya',
+            'PT Metal Works', 'CV Steel Solutions', 'UD Aluminium Pro',
+            'PT Industrial Supply', 'CV Construction Co', 'UD Manufacturing Plus'
+        ];
+        
+        const customerPhones = [
+            '021-1234567', '021-2345678', '021-3456789',
+            '021-4567890', '021-5678901', '021-6789012',
+            '021-7890123', '021-8901234', '021-9012345',
+            '021-1122334', '021-2233445', '021-3344556',
+            '021-4455667', '021-5566778', '021-6677889'
+        ];
+        
+        const customerEmails = [
+            'info@majubersama.com', 'contact@sukesmandiri.com', 'sales@jayabadi.com',
+            'info@globalteknik.com', 'contact@mitrasejati.com', 'sales@berkahmakmur.com',
+            'info@primasteel.com', 'contact@mitrautama.com', 'sales@jayamakmur.com',
+            'sales@metalworks.com', 'info@steelsolutions.com', 'contact@aluminiumpro.com',
+            'info@industrialsupply.com', 'sales@constructionco.com', 'contact@manufacturingplus.com'
+        ];
+        
+        const customerAddresses = [
+            'Jl. Sudirman No. 123, Jakarta Pusat', 'Jl. Thamrin No. 45, Jakarta Pusat',
+            'Jl. Gatot Subroto No. 67, Jakarta Selatan', 'Jl. Rasuna Said No. 89, Jakarta Selatan',
+            'Jl. Jendral Ahmad Yani No. 12, Jakarta Timur', 'Jl. Jendral Sudirman No. 34, Jakarta Barat',
+            'Jl. Raya Bekasi No. 56, Bekasi', 'Jl. Raya Tangerang No. 78, Tangerang',
+            'Jl. Raya Bogor No. 90, Bogor', 'Jl. Raya Depok No. 11, Depok',
+            'Jl. Industri No. 15, Karawang', 'Jl. Pelabuhan No. 22, Cilegon',
+            'Jl. Pabrik No. 33, Serang', 'Jl. Kawasan Industri No. 44, Bekasi',
+            'Jl. Sentra Industri No. 55, Tangerang', 'Jl. Zona Industri No. 66, Bogor'
+        ];
+        
+        // Enhanced random selections using seed
+        const randomName = customerNames[Math.floor((randomSeed * 1) % customerNames.length)];
+        const randomPhone = customerPhones[Math.floor((randomSeed * 2) % customerPhones.length)];
+        const randomEmail = customerEmails[Math.floor((randomSeed * 3) % customerEmails.length)];
+        const randomAddress = customerAddresses[Math.floor((randomSeed * 4) % customerAddresses.length)];
+        
+        // Fill form fields
+        const customerNameField = document.getElementById('customerName');
+        const customerPhoneField = document.getElementById('customerPhone');
+        const customerEmailField = document.getElementById('customerEmail');
+        const customerAddressField = document.getElementById('customerAddress');
+        
+        if (customerNameField) customerNameField.value = randomName;
+        if (customerPhoneField) customerPhoneField.value = randomPhone;
+        if (customerEmailField) customerEmailField.value = randomEmail;
+        if (customerAddressField) customerAddressField.value = randomAddress;
+        
+        console.log('Random customer data filled:', { randomName, randomPhone, randomEmail, randomAddress });
+        
+    } catch (error) {
+        console.error('Error filling random customer data:', error);
+    }
+}
+
+// Function to fill random warehouse data
+function fillRandomWarehouseData() {
+    try {
+        // Use current timestamp for enhanced randomness
+        const randomSeed = Date.now() + Math.random();
+        
+        const warehouseOptions = document.getElementById('asalGudang');
+        if (warehouseOptions && warehouseOptions.options.length > 1) {
+            // Select random warehouse (skip first option which is "Pilih Gudang")
+            const randomIndex = Math.floor((randomSeed * 1) % (warehouseOptions.options.length - 1)) + 1;
+            warehouseOptions.selectedIndex = randomIndex;
+            console.log('Random warehouse selected:', warehouseOptions.options[randomIndex].text);
+        }
+        
+        // Fill random delivery date (within next 30 days)
+        const deliveryDateField = document.getElementById('deliveryDate');
+        if (deliveryDateField) {
+            const today = new Date();
+            const randomDays = Math.floor((randomSeed * 2) % 30) + 7; // 7-37 days from now
+            const deliveryDate = new Date(today.getTime() + (randomDays * 24 * 60 * 60 * 1000));
+            deliveryDateField.value = deliveryDate.toISOString().split('T')[0];
+            console.log('Random delivery date set:', deliveryDateField.value);
+        }
+        
+        // Fill random SO number
+        const soNumberField = document.getElementById('soNumber');
+        if (soNumberField) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const randomSequence = Math.floor((randomSeed * 3) % 999) + 1;
+            const soNumber = `SO-${year}${month}${day}-${String(randomSequence).padStart(3, '0')}`;
+            soNumberField.value = soNumber;
+            console.log('Random SO number generated:', soNumber);
+        }
+        
+        // Fill random SO date (within last 7 days)
+        const soDateField = document.getElementById('soDate');
+        if (soDateField) {
+            const today = new Date();
+            const randomDaysAgo = Math.floor((randomSeed * 4) % 7); // 0-6 days ago
+            const soDate = new Date(today.getTime() - (randomDaysAgo * 24 * 60 * 60 * 1000));
+            soDateField.value = soDate.toISOString().split('T')[0];
+            console.log('Random SO date set:', soDateField.value);
+        }
+        
+        // Fill random payment terms
+        const paymentTermsField = document.getElementById('paymentTerms');
+        if (paymentTermsField) {
+            const paymentTermsOptions = ['net30', 'net60', 'net90', 'advance', 'cod'];
+            const randomPaymentTerms = paymentTermsOptions[Math.floor((randomSeed * 5) % paymentTermsOptions.length)];
+            paymentTermsField.value = randomPaymentTerms;
+            console.log('Random payment terms set:', randomPaymentTerms);
+        }
+        
+    } catch (error) {
+        console.error('Error filling random warehouse data:', error);
+    }
+}
+
+// Function to create sample SO data for testing
+function createSampleSOData() {
+    const existingSO = JSON.parse(localStorage.getItem('soList') || '[]');
+    if (existingSO.length > 0) {
+        console.log('Sample SO data already exists');
+        return;
+    }
+    
+    console.log('Creating sample SO data...');
+    
+    const sampleSO = [
+        {
+            id: Date.now(),
+            soNumber: 'SO-20250812-001',
+            customerName: 'PT Test Customer',
+            customerPhone: '021-1234567',
+            customerEmail: 'test@customer.com',
+            customerAddress: 'Jl. Test No. 123, Jakarta',
+            tanggalSO: new Date().toISOString(),
+            deliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+            asalGudang: 1, // Gudang Utama
+            items: [
+                {
+                    id: 1,
+                    jenisBarang: 'Aluminium 1100',
+                    bentukBarang: 'Plat',
+                    gradeBarang: 'Grade A',
+                    panjang: 2.0,
+                    lebar: 1.0,
+                    qty: 2,
+                    luas: 2.0,
+                    ketebalan: 1.0,
+                    harga: 150000,
+                    units: 'per_m2',
+                    discount: 0,
+                    total: 600000,
+                    notes: 'Sample item 1'
+                },
+                {
+                    id: 2,
+                    jenisBarang: 'Aluminium 6061',
+                    bentukBarang: 'Plat',
+                    gradeBarang: 'Grade B',
+                    panjang: 1.5,
+                    lebar: 1.0,
+                    qty: 1,
+                    luas: 1.5,
+                    ketebalan: 1.5,
+                    harga: 200000,
+                    units: 'per_m2',
+                    discount: 5,
+                    total: 285000,
+                    notes: 'Sample item 2'
+                }
+            ],
+            total: 885000,
+            status: 'Draft',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }
+    ];
+    
+    localStorage.setItem('soList', JSON.stringify(sampleSO));
+    console.log('Sample SO data created:', sampleSO);
 }
 
 // Function to create sample stock data for testing
@@ -1230,9 +2190,21 @@ function createSampleStockData() {
 }
 
 // Function to create Work Order from Sales Order
-function createWorkOrderFromSO(so) {
+function createWorkOrderFromSO(so, itemsToConvert = null) {
     const woNumber = generateWONumber();
     const currentDate = new Date();
+    
+    // Use provided items or all SO items
+    const itemsForWO = itemsToConvert || so.items;
+    
+    // Calculate totals for WO
+    const totalItems = itemsForWO.length;
+    const totalQty = itemsForWO.reduce((sum, item) => sum + (item.qty || 0), 0);
+    const totalValue = itemsForWO.reduce((sum, item) => sum + (item.total || 0), 0);
+    
+    // Reduce stock quantities for items being converted to WO
+    const stockReductionResult = reduceStockForWO(itemsForWO, so.asalGudang);
+    console.log('Stock reduction result:', stockReductionResult);
     
     const wo = {
         id: Date.now(),
@@ -1246,12 +2218,24 @@ function createWorkOrderFromSO(so) {
         tanggalWO: currentDate.toISOString(),
         deliveryDate: so.deliveryDate,
         asalGudang: so.asalGudang,
-        items: so.items.map(item => ({
+        items: itemsForWO.map(item => ({
             ...item,
             status: 'Pending',
             progress: 0,
             notes: ''
         })),
+        // WO summary
+        totalItems: totalItems,
+        totalQty: totalQty,
+        totalValue: totalValue,
+        // Conversion info
+        isPartialConversion: itemsToConvert !== null && itemsToConvert.length < so.items.length,
+        originalSOItemsCount: so.items.length,
+        convertedItemsCount: totalItems,
+        conversionRate: itemsToConvert ? (totalItems / so.items.length * 100).toFixed(1) : '100',
+        // Stock reduction info
+        stockReduction: stockReductionResult,
+        // WO properties
         status: 'Pending',
         priority: 'Normal',
         assignedTo: '',
@@ -1261,6 +2245,15 @@ function createWorkOrderFromSO(so) {
         createdAt: currentDate.toISOString(),
         updatedAt: currentDate.toISOString()
     };
+    
+    console.log('Work Order created:', {
+        woNumber: wo.woNumber,
+        itemsCount: wo.totalItems,
+        totalValue: wo.totalValue,
+        isPartial: wo.isPartialConversion,
+        conversionRate: wo.conversionRate,
+        stockReduced: stockReductionResult.totalReduced
+    });
     
     return wo;
 }
@@ -1571,76 +2564,7 @@ function generateSONumber() {
     document.getElementById('soNumber').value = soNumber;
 }
 
-// Function to fill test data for testing purposes
-function fillTestData() {
-    console.log('Filling test data...');
-    
-    // Fill customer information
-    document.getElementById('customerName').value = 'PT Test Customer';
-    document.getElementById('customerPhone').value = '08123456789';
-    document.getElementById('customerEmail').value = 'test@customer.com';
-    document.getElementById('customerAddress').value = 'Jl. Test No. 123, Jakarta Pusat';
-    
-    // Set dates
-    const today = new Date();
-    const deliveryDate = new Date();
-    deliveryDate.setDate(today.getDate() + 14); // 14 days from today
-    
-    document.getElementById('soDate').valueAsDate = today;
-    document.getElementById('deliveryDate').valueAsDate = deliveryDate;
-    
-    // Set payment terms and warehouse
-    document.getElementById('paymentTerms').value = '30_days';
-    
-    // Set warehouse if available
-    const asalGudangSelect = document.getElementById('asalGudang');
-    if (asalGudangSelect.options.length > 1) {
-        asalGudangSelect.value = asalGudangSelect.options[1].value; // Select first warehouse
-    }
-    
-    // Fill item form with test data
-    document.getElementById('panjang').value = '2.5';
-    document.getElementById('lebar').value = '1.2';
-    document.getElementById('qty').value = '10';
-    
-    // Set item properties if available
-    const jenisBarangSelect = document.getElementById('jenisBarang');
-    if (jenisBarangSelect.options.length > 1) {
-        jenisBarangSelect.value = jenisBarangSelect.options[1].value;
-    }
-    
-    const bentukBarangSelect = document.getElementById('bentukBarang');
-    if (bentukBarangSelect.options.length > 1) {
-        bentukBarangSelect.value = bentukBarangSelect.options[1].value;
-    }
-    
-    const gradeBarangSelect = document.getElementById('gradeBarang');
-    if (gradeBarangSelect.options.length > 1) {
-        gradeBarangSelect.value = gradeBarangSelect.options[1].value;
-    }
-    
-    // Set price and units
-    document.getElementById('customPrice').value = '150000';
-    document.getElementById('units').value = 'per_m2';
-    document.getElementById('discount').value = '5';
-    document.getElementById('notes').value = 'Test order untuk testing sistem';
-    
-    // Trigger form update to calculate totals
-    if (typeof updateItemForm === 'function') {
-        updateItemForm();
-    }
-    
-    // Add the item to the list
-    if (typeof tambahItem === 'function') {
-        setTimeout(() => {
-            tambahItem();
-            console.log('Test item added successfully');
-        }, 100);
-    }
-    
-    console.log('Test data filled successfully!');
-    showSuccessModal('Test data berhasil diisi! Silakan klik "Tambah Item" jika belum ada item, lalu klik "Simpan SO"');
-}
+// Function to fill test data for testing purposes - REMOVED DUPLICATE
 
 // Function to add test item to the list
 function addTestItem() {
