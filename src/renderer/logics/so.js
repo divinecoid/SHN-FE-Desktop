@@ -964,9 +964,9 @@ function renderFilteredSOList() {
             <td>Rp ${so.total.toLocaleString('id-ID')}</td>
             <td><span style="color: ${getStatusColor(so.status)}">${so.status}</span></td>
             <td>
-                <button onclick="viewSO(${so.id})" style="background: #3498db; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-right: 4px;">View</button>
-                <button onclick="${canConvertToWO ? 'convertToWO(' + so.id + ')' : 'void(0)'}" style="${convertButtonStyle} border: none; padding: 4px 8px; border-radius: 4px; margin-right: 4px;">${convertButtonText}</button>
-                <button onclick="deleteSO(${so.id})" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Hapus</button>
+                <button class="btn-view" onclick="viewSO(${so.id})">View</button>
+                <button class="btn-convert" onclick="${canConvertToWO ? 'convertToWO(' + so.id + ')' : 'void(0)'}" ${!canConvertToWO ? 'disabled' : ''}>${convertButtonText}</button>
+                <button class="btn-hapus" onclick="deleteSO(${so.id})">Hapus</button>
             </td>
         `;
         tbody.appendChild(row);
