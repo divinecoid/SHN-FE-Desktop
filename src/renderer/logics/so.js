@@ -3,6 +3,76 @@ let currentItems = [];
 let soList = JSON.parse(localStorage.getItem('soList') || '[]');
 let filteredSOList = [...soList];
 
+// Custom Modal Functions
+function showModal(type, title, message) {
+    const modal = document.getElementById('customModal');
+    const icon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    
+    // Set modal content based on type
+    switch(type) {
+        case 'success':
+            icon.textContent = '✅';
+            icon.style.color = '#27ae60';
+            break;
+        case 'error':
+            icon.textContent = '❌';
+            icon.style.color = '#e74c3c';
+            break;
+        case 'warning':
+            icon.textContent = '⚠️';
+            icon.style.color = '#f39c12';
+            break;
+        case 'info':
+            icon.textContent = 'ℹ️';
+            icon.style.color = '#3498db';
+            break;
+        default:
+            icon.textContent = 'ℹ️';
+            icon.style.color = '#3498db';
+    }
+    
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    
+    // Show modal
+    modal.classList.add('show');
+    modal.style.display = 'flex';
+    
+    // Focus on close button
+    document.getElementById('modalCloseBtn').focus();
+}
+
+function hideModal() {
+    const modal = document.getElementById('customModal');
+    modal.classList.remove('show');
+    modal.style.display = 'none';
+}
+
+function showSuccessModal(message) {
+    showModal('success', 'Berhasil!', message);
+    
+    // Auto-hide success modal after 3 seconds
+    setTimeout(() => {
+        hideModal();
+    }, 3000);
+}
+
+function showErrorModal(message) {
+    showModal('error', 'Error!', message);
+}
+
+function showWarningModal(message) {
+    showModal('warning', 'Peringatan!', message);
+}
+
+function showInfoModal(message) {
+    showModal('info', 'Informasi', message);
+}
+
+
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     loadMasterData();
@@ -12,6 +82,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
+    // Modal close button listener
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', hideModal);
+    }
+    
+    // Close modal when clicking outside
+    const customModal = document.getElementById('customModal');
+    if (customModal) {
+        customModal.addEventListener('click', function(e) {
+            if (e.target === customModal) {
+                hideModal();
+            }
+        });
+    }
+    
+    // Close modal with ESC key or Enter key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideModal();
+        } else if (e.key === 'Enter' && document.getElementById('customModal').style.display === 'flex') {
+            hideModal();
+        }
+    });
+    
     // View toggle listeners
     document.getElementById('tambahSOBtn').addEventListener('click', function() {
         document.getElementById('listView').style.display = 'none';
@@ -40,8 +135,30 @@ function setupEventListeners() {
     
     // Button listeners
     document.getElementById('tambahItem').addEventListener('click', tambahItem);
-    document.getElementById('simpanSO').addEventListener('click', simpanSO);
-    document.getElementById('printSO').addEventListener('click', printSO);
+    
+    // Simpan SO button
+    const simpanSOBtn = document.getElementById('simpanSO');
+    if (simpanSOBtn) {
+        console.log('Simpan SO button found and event listener attached');
+        simpanSOBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Simpan SO button clicked!');
+            simpanSO();
+        });
+    } else {
+        console.error('Simpan SO button not found!');
+    }
+    
+    // Debug info
+    console.log('Event listeners setup completed');
+    console.log('Simpan SO button found:', !!document.getElementById('simpanSO'));
+    console.log('Input view found:', !!document.getElementById('inputView'));
+    
+    // Print SO button
+    const printSOBtn = document.getElementById('printSO');
+    if (printSOBtn) {
+        printSOBtn.addEventListener('click', printSO);
+    }
     
     // Customer info validation
     document.getElementById('customerName').addEventListener('input', validateCustomerInfo);
@@ -185,7 +302,7 @@ function tambahItem() {
     const notes = document.getElementById('notes').value;
     
     if (!panjang || !lebar || !qty || !jenisBarang || !bentukBarang || !gradeBarang) {
-        alert('Mohon lengkapi semua field yang diperlukan');
+        showErrorModal('Mohon lengkapi semua field yang diperlukan');
         return;
     }
     
@@ -344,18 +461,56 @@ function validateCustomerInfo() {
 }
 
 function simpanSO() {
-    const customerName = document.getElementById('customerName').value.trim();
-    const customerPhone = document.getElementById('customerPhone').value.trim();
-    const customerEmail = document.getElementById('customerEmail').value.trim();
-    const customerAddress = document.getElementById('customerAddress').value.trim();
-    const soNumber = document.getElementById('soNumber').value;
-    const soDate = document.getElementById('soDate').value;
-    const deliveryDate = document.getElementById('deliveryDate').value;
-    const paymentTerms = document.getElementById('paymentTerms').value;
-    const asalGudang = document.getElementById('asalGudang').value;
+    console.log('simpanSO function called');
+    
+    // Check if elements exist
+    const customerNameEl = document.getElementById('customerName');
+    const customerPhoneEl = document.getElementById('customerPhone');
+    const customerEmailEl = document.getElementById('customerEmail');
+    const customerAddressEl = document.getElementById('customerAddress');
+    const soNumberEl = document.getElementById('soNumber');
+    const soDateEl = document.getElementById('soDate');
+    const deliveryDateEl = document.getElementById('deliveryDate');
+    const paymentTermsEl = document.getElementById('paymentTerms');
+    const asalGudangEl = document.getElementById('asalGudang');
+    
+    console.log('Elements found:', {
+        customerName: !!customerNameEl,
+        customerPhone: !!customerPhoneEl,
+        customerEmail: !!customerEmailEl,
+        customerAddress: !!customerAddressEl,
+        soNumber: !!soNumberEl,
+        soDate: !!soDateEl,
+        deliveryDate: !!deliveryDateEl,
+        paymentTerms: !!paymentTermsEl,
+        asalGudang: !!asalGudangEl
+    });
+    
+    const customerName = customerNameEl ? customerNameEl.value.trim() : '';
+    const customerPhone = customerPhoneEl ? customerPhoneEl.value.trim() : '';
+    const customerEmail = customerEmailEl ? customerEmailEl.value.trim() : '';
+    const customerAddress = customerAddressEl ? customerAddressEl.value.trim() : '';
+    const soNumber = soNumberEl ? soNumberEl.value : '';
+    const soDate = soDateEl ? soDateEl.value : '';
+    const deliveryDate = deliveryDateEl ? deliveryDateEl.value : '';
+    const paymentTerms = paymentTermsEl ? paymentTermsEl.value : '';
+    const asalGudang = asalGudangEl ? asalGudangEl.value : '';
+    
+    console.log('Form values:', {
+        customerName,
+        customerPhone,
+        customerEmail,
+        customerAddress,
+        soNumber,
+        soDate,
+        deliveryDate,
+        paymentTerms,
+        asalGudang,
+        currentItemsLength: currentItems.length
+    });
     
     if (!customerName || !soDate || !deliveryDate || !asalGudang || currentItems.length === 0) {
-        alert('Mohon lengkapi informasi pelanggan, asal gudang, dan item yang diperlukan');
+        showErrorModal('Mohon lengkapi informasi pelanggan, asal gudang, dan item yang diperlukan');
         return;
     }
     
@@ -429,7 +584,7 @@ function simpanSO() {
     document.getElementById('listView').style.display = 'block';
     document.getElementById('inputView').style.display = 'none';
     
-    alert(`Sales Order ${soNumber} berhasil disimpan!`);
+    showSuccessModal(`Sales Order ${soNumber} berhasil disimpan!`);
 }
 
 function loadSOList() {
@@ -545,7 +700,7 @@ function deleteSO(id) {
         soList = soList.filter(so => so.id !== id);
         localStorage.setItem('soList', JSON.stringify(soList));
         loadSOList();
-        alert('Sales Order berhasil dihapus');
+        showSuccessModal('Sales Order berhasil dihapus');
     }
 }
 
@@ -574,7 +729,7 @@ function getWarehouseDisplay(warehouseId) {
 
 function printSO() {
     if (currentItems.length === 0) {
-        alert('Tidak ada item untuk di-print');
+        showWarningModal('Tidak ada item untuk di-print');
         return;
     }
     
@@ -863,7 +1018,7 @@ function updateSummaryInfo() {
 
 function exportSOList() {
     if (filteredSOList.length === 0) {
-        alert('Tidak ada data untuk di-export');
+        showWarningModal('Tidak ada data untuk di-export');
         return;
     }
     
@@ -904,20 +1059,20 @@ function exportSOList() {
 function convertToWO(soId) {
     const so = soList.find(s => s.id === soId);
     if (!so) {
-        alert('Sales Order tidak ditemukan');
+        showErrorModal('Sales Order tidak ditemukan');
         return;
     }
     
     // Check if SO status is appropriate for conversion
     if (so.status === 'Completed' || so.status === 'Cancelled') {
-        alert('Sales Order dengan status ' + so.status + ' tidak dapat dikonversi menjadi Work Order');
+        showErrorModal('Sales Order dengan status ' + so.status + ' tidak dapat dikonversi menjadi Work Order');
         return;
     }
     
     // Validate stock availability
     const stockValidation = validateStockForWO(so);
     if (!stockValidation.isValid) {
-        alert('Stok tidak mencukupi untuk konversi ke WO:\n' + stockValidation.message);
+        showErrorModal('Stok tidak mencukupi untuk konversi ke WO:\n' + stockValidation.message);
         return;
     }
     
@@ -936,7 +1091,7 @@ function convertToWO(soId) {
         // Refresh display
         loadSOList();
         
-        alert(`Sales Order ${so.soNumber} berhasil dikonversi menjadi Work Order ${wo.woNumber}!\nStatus SO diubah menjadi "In Progress".`);
+        showSuccessModal(`Sales Order ${so.soNumber} berhasil dikonversi menjadi Work Order ${wo.woNumber}!\nStatus SO diubah menjadi "In Progress".`);
     }
 }
 

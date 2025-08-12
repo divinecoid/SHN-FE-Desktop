@@ -506,43 +506,9 @@ label {
   border-top: 1px solid #e9ecef;
 }
 
-/* SO Total Actions - styling untuk tombol Simpan SO */
-.so-total-actions {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 15px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #e9ecef;
-}
+/* SO Total Actions - styling untuk tombol Simpan SO - REMOVED DUPLICATE */
 
-.so-total-actions button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.so-total-actions button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-
-@media (max-width: 768px) {
-  .so-total-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  
-  .so-total-actions button {
-    width: 100%;
-  }
-}
+/* SO Total Actions responsive rules - REMOVED DUPLICATE */
 
 .info-action-row {
   display: flex;
@@ -1254,10 +1220,10 @@ body.login-page {
 
 /* Input Sales Order Scrollable Container */
 .input-scrollable-container {
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 80px);
   overflow-y: auto;
   padding-right: 10px;
-  padding-bottom: 20px;
+  padding-bottom: 120px;
 }
 
 .input-scrollable-container::-webkit-scrollbar {
@@ -1278,9 +1244,65 @@ body.login-page {
   background: #a8a8a8;
 }
 
-/* Ensure proper spacing for scrollable content */
-.input-scrollable-container > *:last-child {
-  margin-bottom: 0;
+
+
+
+
+
+
+
+
+
+
+/* Ensure the action buttons are always visible */
+.so-total-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 15px;
+  margin-top: 40px;
+  margin-bottom: 60px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid #3498db;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  align-items: center;
+}
+
+/* Make buttons more prominent */
+.so-total-actions button {
+  min-width: 140px;
+  min-height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  background: #3498db;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 6px;
+}
+
+.so-total-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Responsive adjustments for SO total actions */
+@media (max-width: 768px) {
+  .so-total-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 30px;
+    margin-bottom: 40px;
+  }
+  
+  .so-total-actions button {
+    width: 100%;
+    min-width: auto;
+  }
 }
 
 /* Responsive adjustments for scrollable container */
@@ -1288,6 +1310,27 @@ body.login-page {
   .input-scrollable-container {
     max-height: calc(100vh - 100px);
     padding-right: 5px;
+  }
+}
+
+/* Responsive adjustments for SO and WO pages */
+@media (max-width: 768px) {
+  .so-main-wrapper .page-title .main-title {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+  
+  .so-main-wrapper .page-title .sub-title {
+    font-size: 1.8rem;
+  }
+  
+  .wo-main-wrapper .page-title .main-title {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+  
+  .wo-main-wrapper .page-title .sub-title {
+    font-size: 1.8rem;
   }
 }
 
@@ -1316,5 +1359,126 @@ body.login-page {
   font-weight: 700;
   color: #2c3e50;
   letter-spacing: 1px;
+}
+
+/* WO Page Specific Styling */
+.wo-main-wrapper {
+  max-width: 1200px;
+  margin-left: 0;
+}
+
+.wo-main-wrapper .page-title {
+  margin-bottom: 24px;
+  margin-top: 12px;
+}
+
+.wo-main-wrapper .page-title .main-title {
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: #7f8c8d;
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.wo-main-wrapper .page-title .sub-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #2c3e50;
+  letter-spacing: 1px;
+}
+
+/* Custom Modal Styles */
+#customModal {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+#customModal.show {
+  display: flex;
+}
+
+#customModal > div {
+  background: #fff;
+  padding: 32px 28px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  min-width: 320px;
+  max-width: 500px;
+  text-align: center;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#modalIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+#modalTitle {
+  font-size: 1.3em;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 12px;
+}
+
+#modalMessage {
+  font-size: 1.1em;
+  color: #555;
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+
+#modalCloseBtn {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#modalCloseBtn:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+/* Modal variants */
+#customModal.success #modalIcon {
+  color: #27ae60;
+}
+
+#customModal.error #modalIcon {
+  color: #e74c3c;
+}
+
+#customModal.warning #modalIcon {
+  color: #f39c12;
+}
+
+#customModal.info #modalIcon {
+  color: #3498db;
 }
 

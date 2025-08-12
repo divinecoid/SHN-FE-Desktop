@@ -50,34 +50,6 @@ function createWindow () {
             win.loadFile('src/renderer/pages/dashboard.html');
           }
         },
-        {
-          label: 'Input PO',
-          accelerator: 'CmdOrCtrl+P',
-          click: () => {
-            win.loadFile('src/renderer/pages/index.html');
-          }
-        },
-        {
-          label: 'Input SO',
-          accelerator: 'CmdOrCtrl+S',
-          click: () => {
-            win.loadFile('src/renderer/pages/so.html');
-          }
-        },
-        {
-          label: 'AR / AP',
-          accelerator: 'CmdOrCtrl+A',
-          click: () => {
-            win.loadFile('src/renderer/pages/arap.html');
-          }
-        },
-        {
-          label: 'Mutasi',
-          accelerator: 'CmdOrCtrl+M',
-          click: () => {
-            win.loadFile('src/renderer/pages/mutasi.html');
-          }
-        },
         { type: 'separator' },
         {
           label: 'Logout',
@@ -260,6 +232,47 @@ function createWindow () {
       ]
     },
     {
+      label: 'Transaksi',
+      submenu: [
+        {
+          label: 'Purchase Order',
+          accelerator: 'CmdOrCtrl+P',
+          click: () => {
+            win.loadFile('src/renderer/pages/index.html');
+          }
+        },
+        {
+          label: 'Sales Order',
+          accelerator: 'CmdOrCtrl+S',
+          click: () => {
+            win.loadFile('src/renderer/pages/so.html');
+          }
+        },
+        {
+          label: 'Work Order',
+          accelerator: 'CmdOrCtrl+W',
+          click: () => {
+            win.loadFile('src/renderer/pages/workorder.html');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'AR / AP',
+          accelerator: 'CmdOrCtrl+A',
+          click: () => {
+            win.loadFile('src/renderer/pages/arap.html');
+          }
+        },
+        {
+          label: 'Mutasi Stock',
+          accelerator: 'CmdOrCtrl+M',
+          click: () => {
+            win.loadFile('src/renderer/pages/mutasi.html');
+          }
+        }
+      ]
+    },
+    {
       label: 'Tools',
       submenu: [
         {
@@ -271,7 +284,7 @@ function createWindow () {
         },
         {
           label: 'Workshop',
-          accelerator: 'CmdOrCtrl+W',
+          accelerator: 'CmdOrCtrl+Shift+W',
           click: () => {
             win.loadFile('src/renderer/pages/workshop.html');
           }
@@ -341,12 +354,13 @@ function createWindow () {
             win.webContents.executeJavaScript(`
               alert('Keyboard Shortcuts:\\n\\n' +
                 'Ctrl+D - Dashboard\\n' +
-                'Ctrl+P - Input PO\\n' +
-                'Ctrl+S - Input SO\\n' +
+                'Ctrl+P - Purchase Order\\n' +
+                'Ctrl+S - Sales Order\\n' +
                 'Ctrl+A - AR/AP\\n' +
-                'Ctrl+M - Mutasi\\n' +
+                'Ctrl+M - Mutasi Stock\\n' +
+                'Ctrl+W - Work Order\\n' +
+                'Ctrl+Shift+W - Workshop\\n' +
                 'Ctrl+F - FUI\\n' +
-                'Ctrl+W - Workshop\\n' +
                 'Ctrl+R - Report\\n' +
                 'Ctrl+1-9 - Masterdata items\\n' +
                 'Ctrl+L - Logout\\n' +

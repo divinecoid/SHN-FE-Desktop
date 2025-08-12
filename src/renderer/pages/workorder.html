@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SURYA LOGAM JAYA | PT. SURYA HARSA NAGARA</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="wo-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">TRANSAKSI</div>
+        <div class="sub-title">Work Order (WO)</div>
+      </div>
+    
+    <!-- List View Section -->
+    <div id="listView">
+      <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <h2 style="margin: 0; color: #2c3e50;">Daftar Work Order</h2>
+        <button id="tambahWOBtn" style="background: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
+          <span style="margin-right: 8px;">+</span>Tambah Work Order
+        </button>
+      </div>
+      
+      <!-- Search and Filter Section -->
+      <div class="search-filter-section" style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef;">
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 200px;">
+            <label for="searchWO" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50;">Cari WO:</label>
+            <input type="text" id="searchWO" placeholder="Cari berdasarkan No WO, No SO, item..." style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+          </div>
+          <div style="min-width: 150px;">
+            <label for="filterStatus" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50;">Status:</label>
+            <select id="filterStatus" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+              <option value="">Semua Status</option>
+              <option value="Draft">Draft</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+          <div style="min-width: 150px;">
+            <label for="filterDate" style="display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50;">Periode:</label>
+            <select id="filterDate" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+              <option value="">Semua Periode</option>
+              <option value="today">Hari Ini</option>
+              <option value="week">Minggu Ini</option>
+              <option value="month">Bulan Ini</option>
+              <option value="quarter">Kuartal Ini</option>
+              <option value="year">Tahun Ini</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: end; gap: 10px;">
+            <button id="clearFilterBtn" style="background: #95a5a6; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;">Clear Filter</button>
+            <button id="exportWOBtn" style="background: #3498db; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 14px; cursor: pointer;">Export</button>
+          </div>
+        </div>
+      </div>
+      
+      <table id="woTable" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+          <tr style="background: #ecf0f1;">
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">No WO</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">No SO</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Pelanggan</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Item</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Ukuran</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Satuan</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Qty</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: left;">Status</th>
+            <th style="border: 1px solid #bdc3c7; padding: 12px; text-align: center;">Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      
+      <!-- Summary Info -->
+      <div class="summary-info" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div><strong>Total WO:</strong> <span id="totalWOCount">0</span></div>
+            <div><strong>Total Item:</strong> <span id="totalWOItems">0</span></div>
+            <div><strong>Rata-rata per WO:</strong> <span id="avgWOItems">0</span> item</div>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <span style="background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Draft: <span id="draftCount">0</span></span>
+            <span style="background: #3498db; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">In Progress: <span id="progressCount">0</span></span>
+            <span style="background: #27ae60; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">Completed: <span id="completedCount">0</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Form Section (Hidden by default) -->
+    <div id="inputView" style="display: none;">
+      <div class="input-scrollable-container">
+        <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+          <h2 style="margin: 0; color: #2c3e50;">Input Work Order Baru</h2>
+          <button id="kembaliKeListBtn" style="background: #95a5a6; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
+            ← Kembali ke List
+          </button>
+        </div>
+        
+        <!-- SO Selection Section -->
+        <div class="so-selection-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="margin-top: 0; color: #2c3e50;">Pilih Sales Order</h3>
+          <div class="row-4col">
+            <div><label for="soSelection">Sales Order:</label>
+              <select id="soSelection" required class="input-long">
+                <option value="">Pilih Sales Order</option>
+              </select>
+            </div>
+            <div><label for="woNumber">Nomor WO:</label><input type="text" id="woNumber" placeholder="Auto-generate" readonly class="input-long" style="background-color: #e9ecef;"></div>
+            <div><label for="woDate">Tanggal WO:</label><input type="date" id="woDate" required class="input-long"></div>
+            <div><label for="priority">Prioritas:</label>
+              <select id="priority" class="input-short">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- SO Items Display -->
+        <div id="soItemsSection" style="display: none;">
+          <h3>Item dari Sales Order</h3>
+          <div class="so-items-info" style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="row-4col">
+              <div><strong>Pelanggan:</strong> <span id="selectedCustomer">-</span></div>
+              <div><strong>Tanggal SO:</strong> <span id="selectedSODate">-</span></div>
+              <div><strong>Asal Gudang:</strong> <span id="selectedGudang">-</span></div>
+              <div><strong>Total Item:</strong> <span id="selectedTotalItems">0</span></div>
+            </div>
+          </div>
+          
+          <table id="soItemsTable" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+              <tr style="background: #ecf0f1;">
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Pilih</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Item</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Bentuk</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Grade</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Ukuran (m)</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Qty</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Luas (m²)</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Satuan</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          
+          <div style="text-align: center; margin: 20px 0;">
+            <button id="buatWOBtn" style="background: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">
+              Buat Work Order
+            </button>
+          </div>
+        </div>
+
+        <!-- WO Details Section -->
+        <div id="woDetailsSection" style="display: none;">
+          <h3>Detail Work Order</h3>
+          
+          <!-- WO Information -->
+          <div class="wo-info-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div class="row-4col">
+              <div><label for="woDescription">Deskripsi Pekerjaan:</label><input type="text" id="woDescription" placeholder="Deskripsi detail pekerjaan" class="input-long"></div>
+              <div><label for="estimatedHours">Estimasi Jam Kerja:</label><input type="number" id="estimatedHours" step="0.5" min="0" class="input-long"></div>
+              <div><label for="assignedTo">Ditetapkan Kepada:</label><input type="text" id="assignedTo" placeholder="Nama pekerja" class="input-long"></div>
+              <div><label for="deadline">Deadline:</label><input type="date" id="deadline" class="input-long"></div>
+            </div>
+          </div>
+          
+          <!-- Selected Items for WO -->
+          <h4>Item yang Dipilih untuk Work Order</h4>
+          <table id="selectedItemsTable" border="1" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+              <tr style="background: #ecf0f1;">
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Item</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Bentuk</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: left;">Grade</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Ukuran (m)</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Qty</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Luas (m²)</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Satuan</th>
+                <th style="border: 1px solid #bdc3c7; padding: 8px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          
+          <div class="wo-actions">
+            <button id="simpanWOBtn" style="background: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer;">Simpan Work Order</button>
+            <button id="printWOBtn" style="background: #3498db; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; margin-left: 10px;">Print WO</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../logics/workorder.js"></script>
+  <script src="../logics/ui.js"></script>
+</body>
+</html>
