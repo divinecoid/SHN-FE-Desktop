@@ -1273,17 +1273,20 @@ body.login-page {
   }
 }
 
+/* AAAAAAAAAAAAAAAAAAAAAAAAAAAAA */
 /* Input Sales Order Scrollable Container */
 .input-scrollable-container {
-  max-height: 40vh;
+  max-height: 70vh;
   overflow-y: auto;
   padding-right: 10px;
   padding-bottom: 120px;
 }
 
+
+/* AAAAAAAAAAAAAAAAAAAAAAAAAAAAA */
 /* SO List Scrollable Container */
 .so-list-scrollable-container {
-  max-height: 50vh;
+  max-height: 70vh;
   overflow-y: auto;
   padding-right: 10px;
   padding-bottom: 20px;

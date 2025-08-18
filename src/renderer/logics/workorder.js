@@ -1005,7 +1005,7 @@ function selectWorkshopFromView(woId, itemIndex, workshopName) {
 
 function showWODetails() {
     if (selectedItems.length === 0) {
-        alert('Pilih minimal satu item untuk Work Order');
+        showWarningModal('Pilih minimal satu item untuk Work Order');
         return;
     }
     
@@ -1139,12 +1139,12 @@ function splitItemToNewWO(item, index) {
     // Update WO list
     loadWOList();
     
-    alert(`Item berhasil dipisahkan menjadi Work Order baru: ${newWO.woNumber}`);
+    showSuccessModal(`Item berhasil dipisahkan menjadi Work Order baru: ${newWO.woNumber}`);
 }
 
 function simpanWO() {
     if (selectedItems.length === 0) {
-        alert('Pilih minimal satu item untuk Work Order');
+        showWarningModal('Pilih minimal satu item untuk Work Order');
         return;
     }
     
@@ -1157,7 +1157,7 @@ function simpanWO() {
     const deadline = document.getElementById('deadline').value;
     
     if (!woDate) {
-        alert('Mohon lengkapi tanggal Work Order');
+        showWarningModal('Mohon lengkapi tanggal Work Order');
         return;
     }
     
@@ -1199,7 +1199,7 @@ function simpanWO() {
     document.getElementById('listView').style.display = 'block';
     document.getElementById('inputView').style.display = 'none';
     
-    alert(`Work Order ${woNumber} berhasil disimpan!`);
+    showSuccessModal(`Work Order ${woNumber} berhasil disimpan!`);
 }
 
 function resetForm() {

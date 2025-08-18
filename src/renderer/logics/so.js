@@ -3,73 +3,7 @@ let currentItems = [];
 let soList = JSON.parse(localStorage.getItem('soList') || '[]');
 let filteredSOList = [...soList];
 
-// Custom Modal Functions
-function showModal(type, title, message) {
-    const modal = document.getElementById('customModal');
-    const icon = document.getElementById('modalIcon');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalMessage = document.getElementById('modalMessage');
-    
-    // Set modal content based on type
-    switch(type) {
-        case 'success':
-            icon.textContent = '✅';
-            icon.style.color = '#27ae60';
-            break;
-        case 'error':
-            icon.textContent = '❌';
-            icon.style.color = '#e74c3c';
-            break;
-        case 'warning':
-            icon.textContent = '⚠️';
-            icon.style.color = '#f39c12';
-            break;
-        case 'info':
-            icon.textContent = 'ℹ️';
-            icon.style.color = '#3498db';
-            break;
-        default:
-            icon.textContent = 'ℹ️';
-            icon.style.color = '#3498db';
-    }
-    
-    modalTitle.textContent = title;
-    modalMessage.textContent = message;
-    
-    // Show modal
-    modal.classList.add('show');
-    modal.style.display = 'flex';
-    
-    // Focus on close button
-    document.getElementById('modalCloseBtn').focus();
-}
-
-function hideModal() {
-    const modal = document.getElementById('customModal');
-    modal.classList.remove('show');
-    modal.style.display = 'none';
-}
-
-function showSuccessModal(message) {
-    showModal('success', 'Berhasil!', message);
-    
-    // Auto-hide success modal after 3 seconds
-    setTimeout(() => {
-        hideModal();
-    }, 3000);
-}
-
-function showErrorModal(message) {
-    showModal('error', 'Error!', message);
-}
-
-function showWarningModal(message) {
-    showModal('warning', 'Peringatan!', message);
-}
-
-function showInfoModal(message) {
-    showModal('info', 'Informasi', message);
-}
+// Modal functions are now imported from modal-utils.js
 
 
 
@@ -84,22 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
-    // Modal close button listener
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-    if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', hideModal);
-    }
-    
-    // Close modal when clicking outside
-    const customModal = document.getElementById('customModal');
-    if (customModal) {
-        customModal.addEventListener('click', function(e) {
-            if (e.target === customModal) {
-                hideModal();
-            }
-        });
-    }
-    
     // Test Convert button listener
     const testConvertBtn = document.getElementById('testConvertBtn');
     if (testConvertBtn) {
@@ -127,15 +45,6 @@ function setupEventListeners() {
             fillTestData();
         });
     }
-    
-    // Close modal with ESC key or Enter key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            hideModal();
-        } else if (e.key === 'Enter' && document.getElementById('customModal').style.display === 'flex') {
-            hideModal();
-        }
-    });
     
     // View toggle listeners
     document.getElementById('tambahSOBtn').addEventListener('click', function() {
@@ -731,12 +640,16 @@ function viewSO(id) {
 }
 
 function deleteSO(id) {
-    if (confirm('Yakin ingin menghapus Sales Order ini?')) {
-        soList = soList.filter(so => so.id !== id);
-        localStorage.setItem('soList', JSON.stringify(soList));
-        loadSOList();
-        showSuccessModal('Sales Order berhasil dihapus');
-    }
+    showConfirmModal(
+        'Konfirmasi Hapus',
+        'Yakin ingin menghapus Sales Order ini?',
+        () => {
+            soList = soList.filter(so => so.id !== id);
+            localStorage.setItem('soList', JSON.stringify(soList));
+            loadSOList();
+            showSuccessModal('Sales Order berhasil dihapus');
+        }
+    );
 }
 
 function getPaymentTermsDisplay(terms) {
@@ -1171,17 +1084,17 @@ function convertToWO(soId) {
             
             // Ask user if they want to proceed with partial conversion
             if (stockValidation.convertibleItems.length > 0) {
-                const proceedPartial = confirm(
+                showConfirmModal(
+                    'Konversi Partial',
                     errorMessage + '\n\n' +
                     'Apakah Anda ingin melanjutkan dengan konversi partial?\n' +
-                    'Hanya item yang stoknya mencukupi yang akan dikonversi menjadi WO.'
+                    'Hanya item yang stoknya mencukupi yang akan dikonversi menjadi WO.',
+                    () => {
+                        // Proceed with partial conversion
+                        proceedWithPartialConversion(so, stockValidation);
+                    }
                 );
-                
-                if (proceedPartial) {
-                    // Proceed with partial conversion
-                    proceedWithPartialConversion(so, stockValidation);
-                    return;
-                }
+                return;
             }
             
             showErrorModal(errorMessage);
@@ -1189,53 +1102,61 @@ function convertToWO(soId) {
         }
         
         // Confirm conversion (full conversion)
-        if (confirm(`Yakin ingin mengkonversi Sales Order ${so.soNumber} menjadi Work Order?\n\nSemua item (${stockValidation.convertibleItems.length}) dapat dikonversi.\nStok tersedia dan siap untuk diproses.`)) {
-            try {
-                // Create Work Order with all items
-                const wo = createWorkOrderFromSO(so, stockValidation.convertibleItems);
-                console.log('Work Order created (full):', wo);
-                
-                // Update SO status
-                so.status = 'In Progress';
-                localStorage.setItem('soList', JSON.stringify(soList));
-                
-                // Save Work Order
-                saveWorkOrder(wo);
-                console.log('Work Order saved successfully');
-                
-                // Refresh display
-                renderFilteredSOList();
-                updateSummaryInfo();
-                
-                // Build success message with stock reduction info
-                let successMessage = `Sales Order ${so.soNumber} berhasil dikonversi menjadi Work Order ${wo.woNumber}!\n\n`;
-                successMessage += `✅ Semua ${stockValidation.convertibleItems.length} item berhasil dikonversi\n`;
-                successMessage += `💰 Total nilai: Rp ${stockValidation.totalConvertibleValue.toLocaleString('id-ID')}\n\n`;
-                
-                // Add stock reduction information
-                if (wo.stockReduction && wo.stockReduction.success) {
-                    successMessage += `📦 Pengurangan Stok:\n`;
-                    successMessage += `   • Total stok berkurang: ${wo.stockReduction.totalReduced.toFixed(2)}m²\n`;
-                    successMessage += `   • Item yang diproses: ${wo.stockReduction.itemsProcessed}\n`;
-                    successMessage += `   • Status: ${wo.stockReduction.message}\n\n`;
-                }
-                
-                successMessage += `📊 Status SO diubah menjadi "In Progress"`;
-                
-                showSuccessModal(successMessage);
-                
-                // Redirect to Work Order page after successful conversion
-                setTimeout(() => {
-                    if (confirm('Konversi berhasil! Apakah Anda ingin melihat Work Order yang baru dibuat?')) {
-                        window.location.href = 'workorder.html';
+        showConfirmModal(
+            'Konversi ke Work Order',
+            `Yakin ingin mengkonversi Sales Order ${so.soNumber} menjadi Work Order?\n\nSemua item (${stockValidation.convertibleItems.length}) dapat dikonversi.\nStok tersedia dan siap untuk diproses.`,
+            () => {
+                try {
+                    // Create Work Order with all items
+                    const wo = createWorkOrderFromSO(so, stockValidation.convertibleItems);
+                    console.log('Work Order created (full):', wo);
+                    
+                    // Update SO status
+                    so.status = 'In Progress';
+                    localStorage.setItem('soList', JSON.stringify(soList));
+                    
+                    // Save Work Order
+                    saveWorkOrder(wo);
+                    console.log('Work Order saved successfully');
+                    
+                    // Refresh display
+                    renderFilteredSOList();
+                    updateSummaryInfo();
+                    
+                    // Build success message with stock reduction info
+                    let successMessage = `Sales Order ${so.soNumber} berhasil dikonversi menjadi Work Order ${wo.woNumber}!\n\n`;
+                    successMessage += `✅ Semua ${stockValidation.convertibleItems.length} item berhasil dikonversi\n`;
+                    successMessage += `💰 Total nilai: Rp ${stockValidation.totalConvertibleValue.toLocaleString('id-ID')}\n\n`;
+                    
+                    // Add stock reduction information
+                    if (wo.stockReduction && wo.stockReduction.success) {
+                        successMessage += `📦 Pengurangan Stok:\n`;
+                        successMessage += `   • Total stok berkurang: ${wo.stockReduction.totalReduced.toFixed(2)}m²\n`;
+                        successMessage += `   • Item yang diproses: ${wo.stockReduction.itemsProcessed}\n`;
+                        successMessage += `   • Status: ${wo.stockReduction.message}\n\n`;
                     }
-                }, 2000);
-                
-            } catch (error) {
-                console.error('Error during conversion:', error);
-                showErrorModal('Terjadi kesalahan saat mengkonversi SO ke WO: ' + error.message);
+                    
+                    successMessage += `📊 Status SO diubah menjadi "In Progress"`;
+                    
+                    showSuccessModal(successMessage);
+                    
+                    // Redirect to Work Order page after successful conversion
+                    setTimeout(() => {
+                        showConfirmModal(
+                            'Lihat Work Order',
+                            'Konversi berhasil! Apakah Anda ingin melihat Work Order yang baru dibuat?',
+                            () => {
+                                window.location.href = 'workorder.html';
+                            }
+                        );
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('Error during conversion:', error);
+                    showErrorModal('Terjadi kesalahan saat mengkonversi SO ke WO: ' + error.message);
+                }
             }
-        }
+        );
     } catch (error) {
         console.error('Error in convertToWO:', error);
         showErrorModal('Terjadi kesalahan: ' + error.message);
@@ -1305,9 +1226,13 @@ function proceedWithPartialConversion(so, stockValidation) {
         
         // Redirect to Work Order page after successful conversion
         setTimeout(() => {
-            if (confirm('Konversi partial berhasil! Apakah Anda ingin melihat Work Order yang baru dibuat?')) {
-                window.location.href = 'workorder.html';
-            }
+            showConfirmModal(
+                'Lihat Work Order',
+                'Konversi partial berhasil! Apakah Anda ingin melihat Work Order yang baru dibuat?',
+                () => {
+                    window.location.href = 'workorder.html';
+                }
+            );
         }, 2000);
         
     } catch (error) {
