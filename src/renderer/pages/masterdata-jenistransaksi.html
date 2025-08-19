@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SURYA LOGAM JAYA | Master Data Jenis Transaksi Kas</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+  <style>
+    .content {
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .jenistransaksi-main-wrapper {
+      max-width: 1200px;
+      margin-left: 0;
+    }
+    #addJenistransaksiBtn {
+      display: inline-block;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.98rem;
+      cursor: pointer;
+      padding: 8px 10px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      color: #2c3e50;
+      letter-spacing: 1px;
+      text-align: left;
+    }
+    
+    .page-title {
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+    
+    .page-title .main-title {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .page-title .sub-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 1px;
+    }
+    
+    /* Modern Table Styling */
+    #jenistransaksiTable {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: none;
+    }
+    
+    #jenistransaksiTable thead {
+      background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+    }
+    
+    #jenistransaksiTable th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #000000;
+      font-size: 0.95rem;
+      border: none;
+      position: relative;
+    }
+    
+    #jenistransaksiTable th.sortable {
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    #jenistransaksiTable th.sortable:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    #jenistransaksiTable tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    #jenistransaksiTable tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #jenistransaksiTable tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    #jenistransaksiTable td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    #jenistransaksiTable td:first-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .edit-btn, .delete-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .edit-btn {
+      background: #3498db;
+      color: #ffffff;
+    }
+    
+    .edit-btn:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+    }
+    
+    .delete-btn {
+      background: #e74c3c;
+      color: #ffffff;
+    }
+    
+    .delete-btn:hover {
+      background: #c0392b;
+      transform: translateY(-1px);
+    }
+    
+    /* Sort Arrows */
+    .sort-arrow {
+      display: inline-block;
+      margin-left: 6px;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-bottom: none;
+      border-top: none;
+    }
+    
+    .sort-arrow.asc {
+      border-bottom: 4px solid #ffffff;
+      border-top: none;
+    }
+    
+    .sort-arrow.desc {
+      border-top: 4px solid #ffffff;
+      border-bottom: none;
+    }
+    
+    /* Table Container */
+    .table-scroll-x {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Table Body Scroll */
+    .table-body-scroll {
+      max-height: 500px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    
+    #jenistransaksiTableBody tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    #jenistransaksiTableBody tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #jenistransaksiTableBody tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    #jenistransaksiTableBody td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    #jenistransaksiTableBody td:first-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    
+    .pagination button {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .pagination button:hover:not(:disabled) {
+      background: #f0f0f0;
+      border-color: #999;
+    }
+    
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination button.active {
+      background: #2c3e50;
+      color: #fff;
+      border-color: #2c3e50;
+    }
+    
+    .pagination-info {
+      margin: 0 15px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    
+    /* Filter and Index Info */
+    .table-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    
+    .index-info {
+      font-weight: 500;
+    }
+    
+    .filter-info {
+      font-style: italic;
+    }
+    
+    /* Done Button */
+    .done-btn {
+      display: block;
+      margin: 20px auto 0;
+      padding: 10px 24px;
+      background: #27ae60;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .done-btn:hover {
+      background: #229954;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="jenistransaksi-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">Master Data</div>
+        <div class="sub-title">Jenis Transaksi Kas</div>
+      </div>
+      <button id="addJenistransaksiBtn">+ Jenis Biaya</button>
+      <div class="table-scroll-x">
+        <table id="jenistransaksiTable" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+          <thead>
+            <tr>
+              <th data-col="kode" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 25%;">Kode <span class="sort-arrow"></span></th>
+              <th data-col="jenis" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 60%;">Jenis Biaya <span class="sort-arrow"></span></th>
+              <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 15%;">Aksi</th>
+            </tr>
+          </thead>
+        </table>
+        <div class="table-body-scroll">
+          <table id="jenistransaksiTableBody" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <tbody>
+              <!-- Data rows will be injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="table-info">
+        <div class="index-info">Index : Kode</div>
+        <div class="filter-info">Filter : Semua</div>
+      </div>
+      
+      <div class="pagination">
+        <button id="prevPage" disabled>Previous</button>
+        <div class="pagination-info">
+          <span id="pageInfo">Page 1 of 1</span>
+        </div>
+        <button id="nextPage" disabled>Next</button>
+      </div>
+      
+      <button class="done-btn" onclick="window.close()">Selesai</button>
+    </div>
+  </div>
+  <!-- Modal for Add/Edit -->
+  <div id="jenistransaksiModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;min-width:400px;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.13);position:relative;">
+      <h2 id="modalTitle" style="margin-top:0;font-size:1.3rem;">Tambah Jenis Biaya</h2>
+      <form id="jenistransaksiForm">
+        <div style="margin-bottom:16px;">
+          <label for="jenistransaksiKode" style="display:block;font-weight:500;margin-bottom:4px;">Kode</label>
+          <input type="text" id="jenistransaksiKode" name="kode" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="10" placeholder="Contoh: AT, BT, EG">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label for="jenistransaksiJenis" style="display:block;font-weight:500;margin-bottom:4px;">Jenis Biaya</label>
+          <input type="text" id="jenistransaksiJenis" name="jenis" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="100" placeholder="Contoh: ALAT TULIS KANTOR">
+        </div>
+        <div style="text-align:right;">
+          <button type="button" id="batalBtn" style="margin-right:12px;padding:8px 18px;background:#95a5a6;border:none;border-radius:5px;cursor:pointer;color:#fff;">Batal</button>
+          <button type="submit" style="padding:8px 18px;background:#34495e;color:#fff;border:none;border-radius:5px;cursor:pointer;">Simpan</button>
+        </div>
+      </form>
+      <button id="closeModalBtn" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>
+    </div>
+  </div>
+  <script>
+    // --- Jenis Transaksi Kas CRUD with localStorage + Sorting + Pagination ---
+    const defaultData = [
+      { kode: 'AT', jenis: 'ALAT TULIS KANTOR' },
+      { kode: 'BT', jenis: 'BARANG TEKNIK' },
+      { kode: 'EG', jenis: 'E TOLL GORIS' },
+      { kode: 'EP', jenis: 'EKSPEDISI' },
+      { kode: 'EY', jenis: 'E TOLL YANDRES' },
+      { kode: 'LL', jenis: 'LAIN LAIN' },
+      { kode: 'LT', jenis: 'LISTRIK TOKO' },
+      { kode: 'MP', jenis: 'MESIN POTONG MAKITA' },
+      { kode: 'MT', jenis: 'MAINTENANCE TOKO' },
+      { kode: 'PB', jenis: 'PISAU BANDSAW' },
+      { kode: 'PH', jenis: 'PRIBADI KO HENKY' },
+      { kode: 'PK', jenis: 'LANGGANAN PARKIR TK' },
+      { kode: 'PM', jenis: 'PISAU MAKITA' },
+      { kode: 'SG', jenis: 'SOLAR GORIS' },
+      { kode: 'SP', jenis: 'SPAREPART MESIN PTG' },
+      { kode: 'SY', jenis: 'SOLAR YANDRES' },
+      { kode: 'TP', jenis: 'TELPON & WIFI' },
+      { kode: 'UJ', jenis: 'UANG JALAN KIRIM' }
+    ];
+    let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    function getJenistransaksiData() {
+      const data = localStorage.getItem('jenistransaksiData');
+      return data ? JSON.parse(data) : defaultData.slice();
+    }
+    function setJenistransaksiData(data) {
+      localStorage.setItem('jenistransaksiData', JSON.stringify(data));
+    }
+    function renderTable() {
+      const tbody = document.querySelector('#jenistransaksiTableBody tbody');
+      let data = getJenistransaksiData();
+      // Sorting
+      if (sortState.col && sortState.dir) {
+        data = data.slice().sort((a, b) => {
+          let va = a[sortState.col] || '';
+          let vb = b[sortState.col] || '';
+          if (va < vb) return sortState.dir === 'asc' ? -1 : 1;
+          if (va > vb) return sortState.dir === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+      
+      // Pagination
+      const totalPages = Math.ceil(data.length / rowsPerPage);
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const pageData = data.slice(startIndex, endIndex);
+      
+      tbody.innerHTML = pageData.map((row, idx) => {
+        const actualIndex = startIndex + idx;
+        return `
+          <tr>
+            <td style="width: 25%;">
+              <span style="font-family:monospace;font-weight:600;background:#e8f4fd;color:#2c3e50;padding:4px 8px;border-radius:6px;font-size:0.9rem;">${row.kode}</span>
+            </td>
+            <td style="width: 60%;">${row.jenis}</td>
+            <td style="width: 15%;">
+              <button class="editBtn" data-idx="${actualIndex}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
+              <button class="deleteBtn" data-idx="${actualIndex}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      // Update pagination controls
+      updatePagination(totalPages);
+      
+      // Update sort arrows
+      document.querySelectorAll('th.sortable').forEach(th => {
+        const arrow = th.querySelector('.sort-arrow');
+        const col = th.getAttribute('data-col');
+        if (sortState.col === col) {
+          arrow.textContent = sortState.dir === 'asc' ? '▲' : (sortState.dir === 'desc' ? '▼' : '');
+        } else {
+          arrow.textContent = '';
+        }
+      });
+    }
+    // Sorting click handler
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function() {
+          const col = th.getAttribute('data-col');
+          if (sortState.col !== col) {
+            sortState = { col, dir: 'asc' };
+          } else if (sortState.dir === 'asc') {
+            sortState.dir = 'desc';
+          } else if (sortState.dir === 'desc') {
+            sortState = { col: null, dir: null };
+          } else {
+            sortState.dir = 'asc';
+          }
+          currentPage = 1; // Reset to first page when sorting
+          renderTable();
+        });
+      });
+      // Modal logic
+      document.getElementById('addJenistransaksiBtn').onclick = () => showModal();
+      document.getElementById('closeModalBtn').onclick = hideModal;
+      document.getElementById('batalBtn').onclick = hideModal;
+      document.getElementById('jenistransaksiForm').onsubmit = function(e) {
+        e.preventDefault();
+        const kode = this.jenistransaksiKode.value.trim().toUpperCase();
+        const jenis = this.jenistransaksiJenis.value.trim();
+        let data = getJenistransaksiData();
+        if (this.dataset.editIdx !== undefined) {
+          // Edit
+          data[this.dataset.editIdx] = { kode, jenis };
+        } else {
+          // Add
+          if (data.some(d => d.kode === kode)) {
+            alert('Kode sudah ada!');
+            return;
+          }
+          data.push({ kode, jenis });
+        }
+        setJenistransaksiData(data);
+        currentPage = 1; // Reset to first page when data changes
+        renderTable();
+        hideModal();
+      };
+      document.querySelector('#jenistransaksiTableBody tbody').onclick = function(e) {
+        if (e.target.classList.contains('editBtn')) {
+          showModal(e.target.dataset.idx);
+        } else if (e.target.classList.contains('deleteBtn')) {
+          if (confirm('Hapus data ini?')) {
+            let data = getJenistransaksiData();
+            data.splice(e.target.dataset.idx, 1);
+            setJenistransaksiData(data);
+            currentPage = 1; // Reset to first page when data changes
+            renderTable();
+          }
+        }
+      };
+      // Pagination event handlers
+      document.getElementById('prevPage').onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTable();
+        }
+      };
+      
+      document.getElementById('nextPage').onclick = () => {
+        const data = getJenistransaksiData();
+        const totalPages = Math.ceil(data.length / rowsPerPage);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderTable();
+        }
+      };
+      
+      // Initial render
+      if (!localStorage.getItem('jenistransaksiData')) setJenistransaksiData(defaultData);
+      renderTable();
+    });
+    
+    function updatePagination(totalPages) {
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      const pageInfo = document.getElementById('pageInfo');
+      
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+    function showModal(editIdx = null) {
+      const modal = document.getElementById('jenistransaksiModal');
+      const form = document.getElementById('jenistransaksiForm');
+      const title = document.getElementById('modalTitle');
+      if (editIdx !== null) {
+        const data = getJenistransaksiData()[editIdx];
+        form.jenistransaksiKode.value = data.kode;
+        form.jenistransaksiJenis.value = data.jenis;
+        form.jenistransaksiKode.disabled = true;
+        title.textContent = 'Edit Jenis Biaya';
+        form.dataset.editIdx = editIdx;
+      } else {
+        form.reset();
+        form.jenistransaksiKode.disabled = false;
+        title.textContent = 'Tambah Jenis Biaya';
+        delete form.dataset.editIdx;
+      }
+      modal.style.display = 'flex';
+    }
+    function hideModal() {
+      document.getElementById('jenistransaksiModal').style.display = 'none';
+    }
+  </script>
+  <script src="../logics/ui.js"></script>
+</body>
+<!-- Custom Confirm Dialog -->
+<div id="customConfirm" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:32px 28px; border-radius:10px; box-shadow:0 2px 16px #0002; min-width:260px; text-align:center;">
+    <div id="customConfirmMsg" style="margin-bottom:18px; font-size:1.1em;">Yakin ingin logout?</div>
+    <button id="customConfirmYes" style="background:#3498db; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; cursor:pointer;">Ya</button>
+    <button id="customConfirmNo" style="background:#eee; color:#444; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; margin-left:18px; cursor:pointer;">Tidak</button>
+  </div>
+</div>
+</html>

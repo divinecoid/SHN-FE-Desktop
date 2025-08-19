@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SURYA LOGAM JAYA | Master Data Pelaksana</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+  <style>
+    .content {
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .pelaksana-main-wrapper {
+      max-width: 1200px;
+      margin-left: 0;
+    }
+    #addPelaksanaBtn {
+      display: inline-block;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.98rem;
+      cursor: pointer;
+      padding: 8px 10px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      color: #2c3e50;
+      letter-spacing: 1px;
+      text-align: left;
+    }
+    
+    .page-title {
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+    
+    .page-title .main-title {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .page-title .sub-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 1px;
+    }
+    
+    /* Modern Table Styling */
+    #pelaksanaTable {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: none;
+    }
+    
+    #pelaksanaTable thead {
+      background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+    }
+    
+    #pelaksanaTable th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #000000;
+      font-size: 0.95rem;
+      border: none;
+      position: relative;
+    }
+    
+    #pelaksanaTable th.sortable {
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    #pelaksanaTable th.sortable:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    #pelaksanaTable tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    #pelaksanaTable tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #pelaksanaTable tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    #pelaksanaTable td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    #pelaksanaTable td:first-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .edit-btn, .delete-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .edit-btn {
+      background: #3498db;
+      color: #ffffff;
+    }
+    
+    .edit-btn:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+    }
+    
+    .delete-btn {
+      background: #e74c3c;
+      color: #ffffff;
+    }
+    
+    .delete-btn:hover {
+      background: #c0392b;
+      transform: translateY(-1px);
+    }
+    
+    /* Sort Arrows */
+    .sort-arrow {
+      display: inline-block;
+      margin-left: 6px;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-bottom: none;
+      border-top: none;
+    }
+    
+    .sort-arrow.asc {
+      border-bottom: 4px solid #ffffff;
+      border-top: none;
+    }
+    
+    .sort-arrow.desc {
+      border-top: 4px solid #ffffff;
+      border-bottom: none;
+    }
+    
+    /* Table Container */
+    .table-scroll-x {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Table Body Scroll */
+    .table-body-scroll {
+      max-height: 500px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    
+    #pelaksanaTableBody tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    #pelaksanaTableBody tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #pelaksanaTableBody tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    #pelaksanaTableBody td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    #pelaksanaTableBody td:first-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    
+    .pagination button {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .pagination button:hover:not(:disabled) {
+      background: #f0f0f0;
+      border-color: #999;
+    }
+    
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination button.active {
+      background: #2c3e50;
+      color: #fff;
+      border-color: #2c3e50;
+    }
+    
+    .pagination-info {
+      margin: 0 15px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="pelaksana-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">Master Data</div>
+        <div class="sub-title">Pelaksana</div>
+      </div>
+      <button id="addPelaksanaBtn">+ Pelaksana</button>
+      <div class="table-scroll-x">
+        <table id="pelaksanaTable" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+          <thead>
+            <tr>
+              <th data-col="kode" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 20%;">Kode <span class="sort-arrow"></span></th>
+              <th data-col="nama" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 50%;">Nama Pelaksana <span class="sort-arrow"></span></th>
+              <th data-col="level" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 15%;">Level <span class="sort-arrow"></span></th>
+              <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 15%;">Aksi</th>
+            </tr>
+          </thead>
+        </table>
+        <div class="table-body-scroll">
+          <table id="pelaksanaTableBody" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <tbody>
+              <!-- Data rows will be injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pagination">
+        <button id="prevPage" disabled>Previous</button>
+        <div class="pagination-info">
+          <span id="pageInfo">Page 1 of 1</span>
+        </div>
+        <button id="nextPage" disabled>Next</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal for Add/Edit -->
+  <div id="pelaksanaModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;min-width:400px;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.13);position:relative;">
+      <h2 id="modalTitle" style="margin-top:0;font-size:1.3rem;">Tambah Pelaksana</h2>
+      <form id="pelaksanaForm">
+        <div style="margin-bottom:16px;">
+          <label for="pelaksanaKode" style="display:block;font-weight:500;margin-bottom:4px;">Kode</label>
+          <input type="text" id="pelaksanaKode" name="kode" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="10">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="pelaksanaNama" style="display:block;font-weight:500;margin-bottom:4px;">Nama Pelaksana</label>
+          <input type="text" id="pelaksanaNama" name="nama" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="100">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label for="pelaksanaLevel" style="display:block;font-weight:500;margin-bottom:4px;">Level</label>
+          <select id="pelaksanaLevel" name="level" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required>
+            <option value="">Pilih Level</option>
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+          </select>
+        </div>
+        <div style="text-align:right;">
+          <button type="button" id="batalBtn" style="margin-right:12px;padding:8px 18px;background:#95a5a6;border:none;border-radius:5px;cursor:pointer;color:#fff;">Batal</button>
+          <button type="submit" style="padding:8px 18px;background:#34495e;color:#fff;border:none;border-radius:5px;cursor:pointer;">Simpan</button>
+        </div>
+      </form>
+      <button id="closeModalBtn" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>
+    </div>
+  </div>
+  <script>
+    // --- Pelaksana CRUD with localStorage + Sorting + Pagination ---
+    const defaultData = [
+      { kode: 'AC', nama: 'ACUNG', level: '1' },
+      { kode: 'AR', nama: 'ARIF', level: '2' },
+      { kode: 'EKO', nama: 'EKO', level: '2' },
+      { kode: 'FR', nama: 'FAHRUL', level: '2' },
+      { kode: 'JOS', nama: 'JOSHUA', level: '2' },
+      { kode: 'MJ', nama: 'MUJI', level: '2' },
+      { kode: 'NN', nama: 'NANANG', level: '2' },
+      { kode: 'NO', nama: 'TUGIONO', level: '2' }
+    ];
+    let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    function getPelaksanaData() {
+      const data = localStorage.getItem('pelaksanaData');
+      return data ? JSON.parse(data) : defaultData.slice();
+    }
+    function setPelaksanaData(data) {
+      localStorage.setItem('pelaksanaData', JSON.stringify(data));
+    }
+    function renderTable() {
+      const tbody = document.querySelector('#pelaksanaTableBody tbody');
+      let data = getPelaksanaData();
+      // Sorting
+      if (sortState.col && sortState.dir) {
+        data = data.slice().sort((a, b) => {
+          let va = a[sortState.col] || '';
+          let vb = b[sortState.col] || '';
+          if (sortState.col === 'level') {
+            va = parseInt(va) || 0;
+            vb = parseInt(vb) || 0;
+          }
+          if (va < vb) return sortState.dir === 'asc' ? -1 : 1;
+          if (va > vb) return sortState.dir === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+      
+      // Pagination
+      const totalPages = Math.ceil(data.length / rowsPerPage);
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const pageData = data.slice(startIndex, endIndex);
+      
+      tbody.innerHTML = pageData.map((row, idx) => {
+        const actualIndex = startIndex + idx;
+        return `
+          <tr>
+            <td style="width: 20%;">
+              <span style="font-family:monospace;font-weight:600;">${row.kode}</span>
+            </td>
+            <td style="width: 50%;">${row.nama}</td>
+            <td style="width: 15%;">
+              <span style="background:#3498db;color:#fff;padding:4px 8px;border-radius:12px;font-size:0.8rem;font-weight:600;">Level ${row.level}</span>
+            </td>
+            <td style="width: 15%;">
+              <button class="editBtn" data-idx="${actualIndex}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
+              <button class="deleteBtn" data-idx="${actualIndex}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      // Update pagination controls
+      updatePagination(totalPages);
+      
+      // Update sort arrows
+      document.querySelectorAll('th.sortable').forEach(th => {
+        const arrow = th.querySelector('.sort-arrow');
+        const col = th.getAttribute('data-col');
+        if (sortState.col === col) {
+          arrow.textContent = sortState.dir === 'asc' ? '▲' : (sortState.dir === 'desc' ? '▼' : '');
+        } else {
+          arrow.textContent = '';
+        }
+      });
+    }
+    // Sorting click handler
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function() {
+          const col = th.getAttribute('data-col');
+          if (sortState.col !== col) {
+            sortState = { col, dir: 'asc' };
+          } else if (sortState.dir === 'asc') {
+            sortState.dir = 'desc';
+          } else if (sortState.dir === 'desc') {
+            sortState = { col: null, dir: null };
+          } else {
+            sortState.dir = 'asc';
+          }
+          currentPage = 1; // Reset to first page when sorting
+          renderTable();
+        });
+      });
+      // Modal logic
+      document.getElementById('addPelaksanaBtn').onclick = () => showModal();
+      document.getElementById('closeModalBtn').onclick = hideModal;
+      document.getElementById('batalBtn').onclick = hideModal;
+      document.getElementById('pelaksanaForm').onsubmit = function(e) {
+        e.preventDefault();
+        const kode = this.pelaksanaKode.value.trim();
+        const nama = this.pelaksanaNama.value.trim();
+        const level = this.pelaksanaLevel.value.trim();
+        let data = getPelaksanaData();
+        if (this.dataset.editIdx !== undefined) {
+          // Edit
+          data[this.dataset.editIdx] = { kode, nama, level };
+        } else {
+          // Add
+          if (data.some(d => d.kode === kode)) {
+            alert('Kode sudah ada!');
+            return;
+          }
+          data.push({ kode, nama, level });
+        }
+        setPelaksanaData(data);
+        currentPage = 1; // Reset to first page when data changes
+        renderTable();
+        hideModal();
+      };
+      document.querySelector('#pelaksanaTableBody tbody').onclick = function(e) {
+        if (e.target.classList.contains('editBtn')) {
+          showModal(e.target.dataset.idx);
+        } else if (e.target.classList.contains('deleteBtn')) {
+          if (confirm('Hapus data ini?')) {
+            let data = getPelaksanaData();
+            data.splice(e.target.dataset.idx, 1);
+            setPelaksanaData(data);
+            currentPage = 1; // Reset to first page when data changes
+            renderTable();
+          }
+        }
+      };
+      // Pagination event handlers
+      document.getElementById('prevPage').onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTable();
+        }
+      };
+      
+      document.getElementById('nextPage').onclick = () => {
+        const data = getPelaksanaData();
+        const totalPages = Math.ceil(data.length / rowsPerPage);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderTable();
+        }
+      };
+      
+      // Initial render
+      if (!localStorage.getItem('pelaksanaData')) setPelaksanaData(defaultData);
+      renderTable();
+    });
+    
+    function updatePagination(totalPages) {
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      const pageInfo = document.getElementById('pageInfo');
+      
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+    function showModal(editIdx = null) {
+      const modal = document.getElementById('pelaksanaModal');
+      const form = document.getElementById('pelaksanaForm');
+      const title = document.getElementById('modalTitle');
+      if (editIdx !== null) {
+        const data = getPelaksanaData()[editIdx];
+        form.pelaksanaKode.value = data.kode;
+        form.pelaksanaNama.value = data.nama;
+        form.pelaksanaLevel.value = data.level;
+        form.pelaksanaKode.disabled = true;
+        title.textContent = 'Edit Pelaksana';
+        form.dataset.editIdx = editIdx;
+      } else {
+        form.reset();
+        form.pelaksanaKode.disabled = false;
+        title.textContent = 'Tambah Pelaksana';
+        delete form.dataset.editIdx;
+      }
+      modal.style.display = 'flex';
+    }
+    function hideModal() {
+      document.getElementById('pelaksanaModal').style.display = 'none';
+    }
+  </script>
+  <script src="../logics/ui.js"></script>
+</body>
+<!-- Custom Confirm Dialog -->
+<div id="customConfirm" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:32px 28px; border-radius:10px; box-shadow:0 2px 16px #0002; min-width:260px; text-align:center;">
+    <div id="customConfirmMsg" style="margin-bottom:18px; font-size:1.1em;">Yakin ingin logout?</div>
+    <button id="customConfirmYes" style="background:#3498db; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; cursor:pointer;">Ya</button>
+    <button id="customConfirmNo" style="background:#eee; color:#444; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; margin-left:18px; cursor:pointer;">Tidak</button>
+  </div>
+</div>
+</html>

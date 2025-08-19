@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>SURYA LOGAM JAYA | Master Data Pelanggan</title>
+  <link rel="stylesheet" href="../styles/style.css">
+  <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
+  <style>
+    .content {
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .pelanggan-main-wrapper {
+      max-width: 1200px;
+      margin-left: 0;
+    }
+    #addPelangganBtn {
+      display: inline-block;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      background: #2c3e50;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.98rem;
+      cursor: pointer;
+      padding: 8px 10px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 18px;
+      margin-top: 8px;
+      color: #2c3e50;
+      letter-spacing: 1px;
+      text-align: left;
+    }
+    
+    .page-title {
+      margin-bottom: 24px;
+      margin-top: 12px;
+    }
+    
+    .page-title .main-title {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    
+    .page-title .sub-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: 1px;
+    }
+    
+    /* Modern Table Styling */
+    #pelangganTable {
+      width: 100%;
+      border-collapse: collapse;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: none;
+    }
+    
+    #pelangganTable thead {
+      background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+    }
+    
+    #pelangganTable th {
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #000000;
+      font-size: 0.95rem;
+      border: none;
+      position: relative;
+    }
+    
+    #pelangganTable th.sortable {
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    #pelangganTable th.sortable:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    #pelangganTable tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    #pelangganTable tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #pelangganTable tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    #pelangganTable td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    #pelangganTable td:first-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .edit-btn, .delete-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    .edit-btn {
+      background: #3498db;
+      color: #ffffff;
+    }
+    
+    .edit-btn:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+    }
+    
+    .delete-btn {
+      background: #e74c3c;
+      color: #ffffff;
+    }
+    
+    .delete-btn:hover {
+      background: #c0392b;
+      transform: translateY(-1px);
+    }
+    
+    /* Sort Arrows */
+    .sort-arrow {
+      display: inline-block;
+      margin-left: 6px;
+      width: 0;
+      height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-bottom: none;
+      border-top: none;
+    }
+    
+    .sort-arrow.asc {
+      border-bottom: 4px solid #ffffff;
+      border-top: none;
+    }
+    
+    .sort-arrow.desc {
+      border-top: 4px solid #ffffff;
+      border-bottom: none;
+    }
+    
+    /* Table Container */
+    .table-scroll-x {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Table Body Scroll */
+    .table-body-scroll {
+      max-height: 500px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    
+    #pelangganTableBody tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+    }
+    
+    #pelangganTableBody tbody tr:hover {
+      background: #f8f9ff;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    #pelangganTableBody tbody tr:last-child {
+      border-bottom: none;
+    }
+    
+    #pelangganTableBody td {
+      padding: 14px 12px;
+      color: #333333;
+      font-size: 0.9rem;
+      border: none;
+    }
+    
+    #pelangganTableBody td:first-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+    
+    .table-body-scroll::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    
+    .pagination button {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #333;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .pagination button:hover:not(:disabled) {
+      background: #f0f0f0;
+      border-color: #999;
+    }
+    
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination button.active {
+      background: #2c3e50;
+      color: #fff;
+      border-color: #2c3e50;
+    }
+    
+    .pagination-info {
+      margin: 0 15px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="header-left">
+      <img src="../assets/logo.png" alt="Logo" class="header-logo">
+      <div class="header-title">
+        <span>SURYA</span>
+        <span>LOGAM</span>
+        <span>JAYA</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-user">Admin</div>
+      <div class="header-version">v1.0.0</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="pelanggan-main-wrapper">
+      <div class="page-title">
+        <div class="main-title">Master Data</div>
+        <div class="sub-title">Pelanggan</div>
+      </div>
+      <button id="addPelangganBtn">+ Pelanggan</button>
+      <div class="table-scroll-x">
+        <table id="pelangganTable" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+          <thead>
+            <tr>
+              <th data-col="kode" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 12%;">Kode <span class="sort-arrow"></span></th>
+              <th data-col="nama" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 25%;">Nama Pelanggan <span class="sort-arrow"></span></th>
+              <th data-col="kota" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 15%;">Kota <span class="sort-arrow"></span></th>
+              <th data-col="telepon" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 15%;">Telephone/HP <span class="sort-arrow"></span></th>
+              <th data-col="contact" class="sortable" style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 18%;">Contact Person <span class="sort-arrow"></span></th>
+              <th style="padding: 16px 12px; text-align: left; font-weight: 600; color: #000000; font-size: 0.95rem; border: none; position: relative; width: 15%;">Aksi</th>
+            </tr>
+          </thead>
+        </table>
+        <div class="table-body-scroll">
+          <table id="pelangganTableBody" style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <tbody>
+              <!-- Data rows will be injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="pagination">
+        <button id="prevPage" disabled>Previous</button>
+        <div class="pagination-info">
+          <span id="pageInfo">Page 1 of 1</span>
+        </div>
+        <button id="nextPage" disabled>Next</button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal for Add/Edit -->
+  <div id="pelangganModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:#fff;padding:32px 28px 24px 28px;border-radius:10px;min-width:400px;max-width:90vw;box-shadow:0 4px 24px rgba(0,0,0,0.13);position:relative;">
+      <h2 id="modalTitle" style="margin-top:0;font-size:1.3rem;">Tambah Pelanggan</h2>
+      <form id="pelangganForm">
+        <div style="margin-bottom:16px;">
+          <label for="pelangganKode" style="display:block;font-weight:500;margin-bottom:4px;">Kode</label>
+          <input type="text" id="pelangganKode" name="kode" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="20">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="pelangganNama" style="display:block;font-weight:500;margin-bottom:4px;">Nama Pelanggan</label>
+          <input type="text" id="pelangganNama" name="nama" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="100">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="pelangganKota" style="display:block;font-weight:500;margin-bottom:4px;">Kota</label>
+          <input type="text" id="pelangganKota" name="kota" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="50">
+        </div>
+        <div style="margin-bottom:16px;">
+          <label for="pelangganTelepon" style="display:block;font-weight:500;margin-bottom:4px;">Telephone/HP</label>
+          <input type="text" id="pelangganTelepon" name="telepon" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="20">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label for="pelangganContact" style="display:block;font-weight:500;margin-bottom:4px;">Contact Person</label>
+          <input type="text" id="pelangganContact" name="contact" style="width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;" required maxlength="100">
+        </div>
+        <div style="text-align:right;">
+          <button type="button" id="batalBtn" style="margin-right:12px;padding:8px 18px;background:#95a5a6;border:none;border-radius:5px;cursor:pointer;color:#fff;">Batal</button>
+          <button type="submit" style="padding:8px 18px;background:#34495e;color:#fff;border:none;border-radius:5px;cursor:pointer;">Simpan</button>
+        </div>
+      </form>
+      <button id="closeModalBtn" style="position:absolute;top:10px;right:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#888;">&times;</button>
+    </div>
+  </div>
+  <script>
+    // --- Pelanggan CRUD with localStorage + Sorting + Pagination ---
+    const defaultData = [
+      { kode: '24', nama: 'TOKO 24', kota: 'JAKARTA', telepon: '', contact: '' },
+      { kode: 'ADAIDE', nama: 'PT. ADA IDE', kota: '', telepon: '', contact: '' },
+      { kode: 'ADIKAR', nama: 'ADIKARYA', kota: 'JAKARTA', telepon: '', contact: '' },
+      { kode: 'AHAU', nama: 'KO AHAU', kota: '', telepon: '', contact: '' },
+      { kode: 'AITECH', nama: 'CV. AITECH INDONESIA', kota: '', telepon: '', contact: '' },
+      { kode: 'AJUN', nama: 'TB.SANJAYA TEKNIK', kota: '', telepon: '', contact: '' },
+      { kode: 'ALSTON', nama: 'PT.ALSTON NABINDO', kota: '', telepon: '', contact: '' },
+      { kode: 'ALUALU', nama: 'ALUALU', kota: '', telepon: '', contact: '' },
+      { kode: 'AMIR', nama: 'AMIR', kota: '', telepon: '', contact: '' },
+      { kode: 'AMM', nama: 'PT. ARGA MEGA MANDIRI', kota: '', telepon: '', contact: '' },
+      { kode: 'APM', nama: 'PT.ASIA PERDANA MESININDO', kota: '', telepon: '', contact: '' },
+      { kode: 'ASM', nama: 'PT. ARUMSARI MAKMUR', kota: '', telepon: '', contact: '' },
+      { kode: 'BAJA_B', nama: 'BAJA BENJAMIN', kota: '', telepon: '', contact: '' },
+      { kode: 'BAKU', nama: 'BAKUH HIMAWAN', kota: 'BEKASI', telepon: '081380403080', contact: 'BAKUH HIMAWAN' },
+      { kode: 'BAYU', nama: 'BAYUBAHARI', kota: '', telepon: '', contact: '' },
+      { kode: 'BEBEN', nama: 'KO BEBEN', kota: '', telepon: '', contact: '' },
+      { kode: 'BINAMK', nama: 'CV. BINA MEKANIK', kota: '', telepon: '', contact: '' },
+      { kode: 'BJL', nama: 'BEKASI JAYA LOGAM', kota: 'BEKASI', telepon: '', contact: '' }
+    ];
+    let sortState = { col: null, dir: null }; // dir: 'asc'|'desc'|null
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    function getPelangganData() {
+      const data = localStorage.getItem('pelangganData');
+      return data ? JSON.parse(data) : defaultData.slice();
+    }
+    function setPelangganData(data) {
+      localStorage.setItem('pelangganData', JSON.stringify(data));
+    }
+    function renderTable() {
+      const tbody = document.querySelector('#pelangganTableBody tbody');
+      let data = getPelangganData();
+      // Sorting
+      if (sortState.col && sortState.dir) {
+        data = data.slice().sort((a, b) => {
+          let va = a[sortState.col] || '';
+          let vb = b[sortState.col] || '';
+          if (va < vb) return sortState.dir === 'asc' ? -1 : 1;
+          if (va > vb) return sortState.dir === 'asc' ? 1 : -1;
+          return 0;
+        });
+      }
+      
+      // Pagination
+      const totalPages = Math.ceil(data.length / rowsPerPage);
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const pageData = data.slice(startIndex, endIndex);
+      
+             tbody.innerHTML = pageData.map((row, idx) => {
+         const actualIndex = startIndex + idx;
+         return `
+           <tr>
+             <td style="width: 12%;">
+               <span style="font-family:monospace;font-weight:600;">${row.kode}</span>
+             </td>
+             <td style="width: 25%;">${row.nama}</td>
+             <td style="width: 15%;">${row.kota || '-'}</td>
+             <td style="width: 15%;">${row.telepon || '-'}</td>
+             <td style="width: 18%;">${row.contact || '-'}</td>
+             <td style="width: 15%;">
+               <button class="editBtn" data-idx="${actualIndex}" style="background:#ffd666;color:#7a5d00;border:none;padding:6px 14px;border-radius:5px;margin-right:8px;cursor:pointer;">Edit</button>
+               <button class="deleteBtn" data-idx="${actualIndex}" style="background:#ff7875;color:#a8071a;border:none;padding:6px 14px;border-radius:5px;cursor:pointer;">Hapus</button>
+             </td>
+           </tr>
+         `;
+       }).join('');
+      
+      // Update pagination controls
+      updatePagination(totalPages);
+      
+      // Update sort arrows
+      document.querySelectorAll('th.sortable').forEach(th => {
+        const arrow = th.querySelector('.sort-arrow');
+        const col = th.getAttribute('data-col');
+        if (sortState.col === col) {
+          arrow.textContent = sortState.dir === 'asc' ? '▲' : (sortState.dir === 'desc' ? '▼' : '');
+        } else {
+          arrow.textContent = '';
+        }
+      });
+    }
+    // Sorting click handler
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('th.sortable').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function() {
+          const col = th.getAttribute('data-col');
+          if (sortState.col !== col) {
+            sortState = { col, dir: 'asc' };
+          } else if (sortState.dir === 'asc') {
+            sortState.dir = 'desc';
+          } else if (sortState.dir === 'desc') {
+            sortState = { col: null, dir: null };
+          } else {
+            sortState.dir = 'asc';
+          }
+          currentPage = 1; // Reset to first page when sorting
+          renderTable();
+        });
+      });
+      // Modal logic
+      document.getElementById('addPelangganBtn').onclick = () => showModal();
+      document.getElementById('closeModalBtn').onclick = hideModal;
+      document.getElementById('batalBtn').onclick = hideModal;
+      document.getElementById('pelangganForm').onsubmit = function(e) {
+        e.preventDefault();
+        const kode = this.pelangganKode.value.trim();
+        const nama = this.pelangganNama.value.trim();
+        const kota = this.pelangganKota.value.trim();
+        const telepon = this.pelangganTelepon.value.trim();
+        const contact = this.pelangganContact.value.trim();
+        let data = getPelangganData();
+        if (this.dataset.editIdx !== undefined) {
+          // Edit
+          data[this.dataset.editIdx] = { kode, nama, kota, telepon, contact };
+        } else {
+          // Add
+          if (data.some(d => d.kode === kode)) {
+            alert('Kode sudah ada!');
+            return;
+          }
+          data.push({ kode, nama, kota, telepon, contact });
+        }
+        setPelangganData(data);
+        currentPage = 1; // Reset to first page when data changes
+        renderTable();
+        hideModal();
+      };
+             document.querySelector('#pelangganTableBody tbody').onclick = function(e) {
+         if (e.target.classList.contains('editBtn')) {
+           showModal(e.target.dataset.idx);
+         } else if (e.target.classList.contains('deleteBtn')) {
+           if (confirm('Hapus data ini?')) {
+             let data = getPelangganData();
+             data.splice(e.target.dataset.idx, 1);
+             setPelangganData(data);
+             currentPage = 1; // Reset to first page when data changes
+             renderTable();
+           }
+         }
+       };
+      // Pagination event handlers
+      document.getElementById('prevPage').onclick = () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderTable();
+        }
+      };
+      
+      document.getElementById('nextPage').onclick = () => {
+        const data = getPelangganData();
+        const totalPages = Math.ceil(data.length / rowsPerPage);
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderTable();
+        }
+      };
+      
+      // Initial render
+      if (!localStorage.getItem('pelangganData')) setPelangganData(defaultData);
+      renderTable();
+    });
+    
+    function updatePagination(totalPages) {
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      const pageInfo = document.getElementById('pageInfo');
+      
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    }
+    function showModal(editIdx = null) {
+      const modal = document.getElementById('pelangganModal');
+      const form = document.getElementById('pelangganForm');
+      const title = document.getElementById('modalTitle');
+      if (editIdx !== null) {
+        const data = getPelangganData()[editIdx];
+        form.pelangganKode.value = data.kode;
+        form.pelangganNama.value = data.nama;
+        form.pelangganKota.value = data.kota;
+        form.pelangganTelepon.value = data.telepon;
+        form.pelangganContact.value = data.contact;
+        form.pelangganKode.disabled = true;
+        title.textContent = 'Edit Pelanggan';
+        form.dataset.editIdx = editIdx;
+      } else {
+        form.reset();
+        form.pelangganKode.disabled = false;
+        title.textContent = 'Tambah Pelanggan';
+        delete form.dataset.editIdx;
+      }
+      modal.style.display = 'flex';
+    }
+    function hideModal() {
+      document.getElementById('pelangganModal').style.display = 'none';
+    }
+  </script>
+  <script src="../logics/ui.js"></script>
+</body>
+<!-- Custom Confirm Dialog -->
+<div id="customConfirm" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.2); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:#fff; padding:32px 28px; border-radius:10px; box-shadow:0 2px 16px #0002; min-width:260px; text-align:center;">
+    <div id="customConfirmMsg" style="margin-bottom:18px; font-size:1.1em;">Yakin ingin logout?</div>
+    <button id="customConfirmYes" style="background:#3498db; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; cursor:pointer;">Ya</button>
+    <button id="customConfirmNo" style="background:#eee; color:#444; border:none; border-radius:6px; padding:8px 24px; font-size:1em; font-weight:600; margin-left:18px; cursor:pointer;">Tidak</button>
+  </div>
+</div>
+</html>
+

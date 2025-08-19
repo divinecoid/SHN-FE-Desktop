@@ -212,7 +212,7 @@ function createWindow () {
           accelerator: 'CmdOrCtrl+7',
           click: () => {
             // Placeholder for future implementation
-            win.webContents.executeJavaScript('alert("Pelanggan - Coming Soon");');
+            win.loadFile('src/renderer/pages/masterdata-pelanggan.html');
           }
         },
         {
@@ -228,15 +228,14 @@ function createWindow () {
           accelerator: 'CmdOrCtrl+9',
           click: () => {
             // Placeholder for future implementation
-            win.webContents.executeJavaScript('alert("Pelaksana - Coming Soon");');
+            win.loadFile('src/renderer/pages/masterdata-pelaksana.html');
           }
         },
         {
           label: 'Jenis Transaksi Kas',
           accelerator: 'CmdOrCtrl+0',
           click: () => {
-            // Placeholder for future implementation
-            win.webContents.executeJavaScript('alert("Jenis Transaksi Kas - Coming Soon");');
+            win.loadFile('src/renderer/pages/masterdata-jenistransaksikas.html');
           }
         }
       ]
